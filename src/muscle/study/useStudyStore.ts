@@ -22,6 +22,35 @@ import type { AppMode, QueueItem, StudyAnswerFeedback, StudyQuestion, StudyUnit 
 const STORAGE_KEY_COMPLETED_UNITS = 'muscle_study_completed_units_v1';
 const STORAGE_KEY_ACTIVE_UNIT = 'muscle_study_active_unit_v1';
 const STORAGE_KEY_APP_MODE = 'muscle_app_mode_v1';
+const STORAGE_KEY_DEBUG_UNLOCK = 'muscle_debug_unlock_curriculum_v1';
+
+export function isDebugUnlockRequested(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (
+      params.has('unlock') ||
+      params.has('unlockAll') ||
+      params.has('debugUnlock') ||
+      params.get('debug') === '1' ||
+      params.get('debug') === 'true'
+    ) {
+      return true;
+    }
+    return localStorage.getItem(STORAGE_KEY_DEBUG_UNLOCK) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function saveStoredDebugUnlock(unlocked: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_DEBUG_UNLOCK, unlocked ? 'true' : 'false');
+  } catch {
+    // Ignore storage quota
+  }
+}
 
 function loadStoredCompletedUnits(): string[] {
   if (typeof window === 'undefined') return [];
@@ -90,6 +119,7 @@ export interface StudyStoreState {
   appMode: AppMode;
   activeUnitId: string;
   completedUnitIds: string[];
+  debugUnlocked: boolean;
   activeQueue: QueueItem[];
   currentQuestion: StudyQuestion | null;
   lastTargetId: string | null;
@@ -99,6 +129,8 @@ export interface StudyStoreState {
 
   setAppMode: (mode: AppMode) => void;
   setNavOpen: (open: boolean) => void;
+  setDebugUnlock: (unlocked: boolean) => void;
+  toggleDebugUnlock: () => void;
   selectUnit: (unitId: string) => void;
   submitAnswer: (choiceId: string) => void;
   nextQuestion: () => void;
@@ -110,17 +142,33 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
   const initialCompleted = loadStoredCompletedUnits();
   const initialAppMode = loadStoredAppMode();
   const initialActiveUnitId = loadStoredActiveUnit();
+  const initialDebugUnlocked = isDebugUnlockRequested();
+  if (initialDebugUnlocked) {
+    useMuscleStore.getState().setDebugCurriculumUnlocked(true);
+  }
 
   return {
     appMode: initialAppMode,
     activeUnitId: initialActiveUnitId,
     completedUnitIds: initialCompleted,
+    debugUnlocked: initialDebugUnlocked,
     activeQueue: [],
     currentQuestion: null,
     lastTargetId: null,
     feedback: null,
     unitCompleted: false,
     navOpen: false,
+
+    setDebugUnlock: (unlocked: boolean) => {
+      saveStoredDebugUnlock(unlocked);
+      set({ debugUnlocked: unlocked });
+      useMuscleStore.getState().setDebugCurriculumUnlocked(unlocked);
+    },
+
+    toggleDebugUnlock: () => {
+      const next = !get().debugUnlocked;
+      get().setDebugUnlock(next);
+    },
 
     setAppMode: (mode: AppMode) => {
       saveStoredAppMode(mode);

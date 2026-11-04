@@ -65,4 +65,19 @@ describe('useStudyStore', () => {
     expect(useStudyStore.getState().appMode).toBe('reference');
     expect(useMuscleStore.getState().studyActive).toBe(false);
   });
+
+  it('toggles debug curriculum unlock and synchronizes with muscleStore', () => {
+    const store = useStudyStore.getState();
+    store.setDebugUnlock(false);
+    expect(useStudyStore.getState().debugUnlocked).toBe(false);
+    expect(useMuscleStore.getState().debugCurriculumUnlocked).toBe(false);
+
+    store.toggleDebugUnlock();
+    expect(useStudyStore.getState().debugUnlocked).toBe(true);
+    expect(useMuscleStore.getState().debugCurriculumUnlocked).toBe(true);
+
+    store.toggleDebugUnlock();
+    expect(useStudyStore.getState().debugUnlocked).toBe(false);
+    expect(useMuscleStore.getState().debugCurriculumUnlocked).toBe(false);
+  });
 });

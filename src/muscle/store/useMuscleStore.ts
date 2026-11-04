@@ -73,6 +73,8 @@ export interface MuscleStoreState {
   studyTargetNodeId: string | null;
   studyMistakeNodeId: string | null;
   studyAnswerState: 'idle' | 'correct' | 'incorrect';
+  debugCurriculumUnlocked: boolean;
+  setDebugCurriculumUnlocked: (unlocked: boolean) => void;
   setStudyTarget: (
     targetId: string | null,
     mistakeId?: string | null,
@@ -276,6 +278,8 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   studyTargetNodeId: null,
   studyMistakeNodeId: null,
   studyAnswerState: 'idle',
+  debugCurriculumUnlocked: false,
+  setDebugCurriculumUnlocked: (unlocked: boolean) => set({ debugCurriculumUnlocked: unlocked }),
 
   setStudyActive: (active: boolean) => {
     set({ studyActive: active });
@@ -654,17 +658,17 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   },
 
   isActiveRepsAllowed: () => {
-    const { activeModuleId, progressByNode, bodyView, atlasTabActive } = get();
+    const { activeModuleId, progressByNode, bodyView, atlasTabActive, debugCurriculumUnlocked } = get();
     if (bodyView === 'full_body' && atlasTabActive) return false;
-    return isModuleUnlocked(activeModuleId, progressByNode);
+    return isModuleUnlocked(activeModuleId, progressByNode, debugCurriculumUnlocked);
   },
 
   getLockReason: () => {
-    const { activeModuleId, progressByNode, bodyView, atlasTabActive } = get();
+    const { activeModuleId, progressByNode, bodyView, atlasTabActive, debugCurriculumUnlocked } = get();
     if (bodyView === 'full_body' && atlasTabActive) {
       return 'Switch to a regional module tab to run Active Reps on a focused deck.';
     }
-    return getModuleLockReason(activeModuleId, progressByNode);
+    return getModuleLockReason(activeModuleId, progressByNode, debugCurriculumUnlocked);
   },
 }));
 

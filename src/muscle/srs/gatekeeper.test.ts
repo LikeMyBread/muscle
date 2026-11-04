@@ -40,4 +40,10 @@ describe('gatekeeper', () => {
     }
     expect(fundamentalsGateSatisfied(map)).toBe(true);
   });
+
+  it('unlocks all modules immediately when debugUnlocked is true', () => {
+    expect(isModuleUnlocked('shoulder_neck', new Map(), true)).toBe(true);
+    expect(isModuleUnlocked('foot', new Map(), true)).toBe(true);
+    expect(getModuleLockReason('shoulder_neck', new Map(), true)).toBeNull();
+  });
 });

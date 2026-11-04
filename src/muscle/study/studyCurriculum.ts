@@ -385,7 +385,8 @@ export const TEXT_UNIT_IDS = [
   'unit_terms_joints',
 ];
 
-export function isGraduatedTo3D(completedUnitIds: string[]): boolean {
+export function isGraduatedTo3D(completedUnitIds: string[], debugUnlocked = false): boolean {
+  if (debugUnlocked) return true;
   return TEXT_UNIT_IDS.every((id) => completedUnitIds.includes(id));
 }
 
@@ -393,13 +394,18 @@ export function getUnitById(id: string): StudyUnit | undefined {
   return STUDY_UNITS.find((u) => u.id === id);
 }
 
-export function isUnitUnlocked(unitId: string, completedUnitIds: string[]): boolean {
+export function isUnitUnlocked(
+  unitId: string,
+  completedUnitIds: string[],
+  debugUnlocked = false,
+): boolean {
+  if (debugUnlocked) return true;
   const unit = getUnitById(unitId);
   if (!unit) return false;
   if (!unit.prerequisiteUnitId) return true;
 
   // If this is a 3D unit, ensure all text units are completed first
-  if (unit.type === '3d' && !isGraduatedTo3D(completedUnitIds)) {
+  if (unit.type === '3d' && !isGraduatedTo3D(completedUnitIds, debugUnlocked)) {
     return false;
   }
 

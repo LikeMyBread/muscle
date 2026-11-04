@@ -45,4 +45,11 @@ describe('studyCurriculum & graduation', () => {
       ]),
     ).toBe(true);
   });
+
+  it('unlocks all units and graduates to 3D immediately when debugUnlocked is true', () => {
+    expect(isGraduatedTo3D([], true)).toBe(true);
+    expect(isUnitUnlocked('unit_fund_head_torso', [], true)).toBe(true);
+    expect(isUnitUnlocked('unit_torso_anterior', [], true)).toBe(true);
+    expect(isUnitUnlocked('unit_foot_landmarks', [], true)).toBe(true);
+  });
 });

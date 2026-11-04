@@ -32,7 +32,9 @@ export function fundamentalsGateSatisfied(
 export function isModuleUnlocked(
   moduleId: MuscleRegion,
   progressByNode: Map<string, WorkoutProgress>,
+  debugUnlocked = false,
 ): boolean {
+  if (debugUnlocked) return true;
   const mod = MUSCLE_MODULES.find((m) => m.id === moduleId);
   if (!mod) return false;
   if (moduleId === 'anatomy_terms') return true;
@@ -55,8 +57,9 @@ export function isModuleUnlocked(
 export function getModuleLockReason(
   moduleId: MuscleRegion,
   progressByNode: Map<string, WorkoutProgress>,
+  debugUnlocked = false,
 ): string | null {
-  if (isModuleUnlocked(moduleId, progressByNode)) return null;
+  if (debugUnlocked || isModuleUnlocked(moduleId, progressByNode, debugUnlocked)) return null;
   if (moduleId === 'anatomy_terms') return null;
 
   if (moduleId === 'fundamentals' && !termsGateSatisfied(progressByNode)) {

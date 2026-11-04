@@ -25,10 +25,12 @@ export default function StudyCurriculumNav() {
   const activeUnitId = useStudyStore((s) => s.activeUnitId);
   const selectUnit = useStudyStore((s) => s.selectUnit);
   const completedUnitIds = useStudyStore((s) => s.completedUnitIds);
+  const debugUnlocked = useStudyStore((s) => s.debugUnlocked);
+  const toggleDebugUnlock = useStudyStore((s) => s.toggleDebugUnlock);
 
   if (!navOpen) return null;
 
-  const graduated = isGraduatedTo3D(completedUnitIds);
+  const graduated = isGraduatedTo3D(completedUnitIds, debugUnlocked);
 
   return (
     <div className="muscle-curriculum-modal" role="dialog" aria-modal="true" aria-label="Curriculum Navigation">
@@ -51,25 +53,45 @@ export default function StudyCurriculumNav() {
           </button>
         </header>
 
+        {/* Debug Unlock Toggle Bar */}
+        <div className="muscle-curriculum-debug-bar">
+          <button
+            type="button"
+            onClick={toggleDebugUnlock}
+            className={`muscle-study-debug-unlock-btn ${debugUnlocked ? 'is-active' : ''}`}
+            title="Toggle debug unlock to access any curriculum unit without prerequisites"
+          >
+            {debugUnlocked ? '🔓 All Curriculum Unlocked (Debug)' : '⚡ Unlock All (Debug)'}
+          </button>
+        </div>
+
         {/* Graduation Status Callout */}
         <div
           className={`muscle-curriculum-graduation-banner ${
-            graduated ? 'is-graduated' : 'is-pending'
+            debugUnlocked
+              ? 'is-debug-unlocked'
+              : graduated
+                ? 'is-graduated'
+                : 'is-pending'
           }`}
         >
           <div className="muscle-curriculum-graduation-banner__icon">
-            {graduated ? '🎓' : '📝'}
+            {debugUnlocked ? '🔓' : graduated ? '🎓' : '📝'}
           </div>
           <div>
             <strong>
-              {graduated
-                ? 'Graduated to 3D Anatomy!'
-                : 'Foundation Phase: Language of Anatomy'}
+              {debugUnlocked
+                ? 'Debug Mode: All Curriculum Unlocked'
+                : graduated
+                  ? 'Graduated to 3D Anatomy!'
+                  : 'Foundation Phase: Language of Anatomy'}
             </strong>
             <p>
-              {graduated
-                ? 'Text terminology mastered. 3D spatial units are unlocked.'
-                : 'Complete the 5 text terminology units to graduate to 3D model feature identification.'}
+              {debugUnlocked
+                ? 'All 17 curriculum units are unlocked for testing and development.'
+                : graduated
+                  ? 'Text terminology mastered. 3D spatial units are unlocked.'
+                  : 'Complete the 5 text terminology units to graduate to 3D model feature identification.'}
             </p>
           </div>
         </div>
@@ -95,7 +117,7 @@ export default function StudyCurriculumNav() {
 
                 <div className="muscle-curriculum-module__units">
                   {units.map((unit) => {
-                    const isUnlocked = isUnitUnlocked(unit.id, completedUnitIds);
+                    const isUnlocked = isUnitUnlocked(unit.id, completedUnitIds, debugUnlocked);
                     const isCompleted = completedUnitIds.includes(unit.id);
                     const isActive = unit.id === activeUnitId;
 

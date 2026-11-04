@@ -13,6 +13,7 @@ export default function ModuleRegionTabs(): React.ReactElement {
   const setBodyView = useMuscleStore((s) => s.setBodyView);
   const setActiveModule = useMuscleStore((s) => s.setActiveModule);
   const progressByNode = useMuscleStore((s) => s.progressByNode);
+  const debugCurriculumUnlocked = useMuscleStore((s) => s.debugCurriculumUnlocked);
 
   return (
     <div className="muscle-region-tabs" role="tablist" aria-label="Proko study regions">
@@ -35,7 +36,7 @@ export default function ModuleRegionTabs(): React.ReactElement {
           mod.id === 'anatomy_terms'
             ? isAnatomyTermsStudyTab(activeModuleId, atlasTabActive)
             : bodyView === 'region' && mod.id === activeModuleId;
-        const unlocked = isModuleUnlocked(mod.id, progressByNode);
+        const unlocked = isModuleUnlocked(mod.id, progressByNode, debugCurriculumUnlocked);
         return (
           <a
             key={mod.id}

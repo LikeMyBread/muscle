@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import LabsDebugDock from '../../../shared/components/LabsDebugDock';
 import { isLabsDebugVisible } from '../../../shared/debug/labsDebugAccess';
 import { ALL_NODES } from '../../curriculum';
+import { useStudyStore } from '../../study/useStudyStore';
 import {
   REQUIRED_FULL_BODY_BONE_IDS,
   REQUIRED_FULL_BODY_MUSCLE_IDS,
@@ -23,6 +24,8 @@ function missingFromInventory(required: readonly string[], loaded: readonly stri
 export default function MuscleAnatomyDebugPanel() {
   const enabled = useMemo(() => isLabsDebugVisible(), []);
   const [snapshot, setSnapshot] = useState(getMuscleAnatomyDebugSnapshot);
+  const debugUnlocked = useStudyStore((s) => s.debugUnlocked);
+  const toggleDebugUnlock = useStudyStore((s) => s.toggleDebugUnlock);
 
   useEffect(() => {
     if (!enabled) return;
@@ -74,6 +77,27 @@ export default function MuscleAnatomyDebugPanel() {
         ) : (
           <p style={{ color: '#86efac', margin: '6px 0' }}>Landmark muscles loaded.</p>
         )}
+        <div style={{ ...ROW, marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={toggleDebugUnlock}
+            style={{
+              padding: '5px 10px',
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 4,
+              border: debugUnlocked ? '1px solid #059669' : '1px solid #475569',
+              background: debugUnlocked ? '#065f46' : '#1e293b',
+              color: '#ffffff',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            {debugUnlocked ? '🔓 Re-lock Curriculum' : '⚡ Unlock All Curriculum'}
+          </button>
+        </div>
         <p style={{ color: '#94a3b8', margin: '8px 0 0' }}>
           Compare loaded ids to catalog with <code>npm run muscle:coverage</code> and{' '}
           <code>npm run muscle:inventory</code>.
