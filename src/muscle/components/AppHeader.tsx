@@ -9,8 +9,6 @@ export default function AppHeader() {
   const activeUnitId = useStudyStore((s) => s.activeUnitId);
   const setNavOpen = useStudyStore((s) => s.setNavOpen);
   const activeQueue = useStudyStore((s) => s.activeQueue);
-  const randomizeOrder = useStudyStore((s) => s.randomizeOrder);
-  const toggleRandomizeOrder = useStudyStore((s) => s.toggleRandomizeOrder);
 
   const activeUnit = getUnitById(activeUnitId);
   const queueProgress = getQueueProgress(activeQueue);
@@ -47,24 +45,6 @@ export default function AppHeader() {
       </div>
 
       <div className="muscle-app-header__right">
-        {appMode === 'study' ? (
-          <button
-            type="button"
-            className={`muscle-app-header__shuffle-btn ${randomizeOrder ? 'is-active' : ''}`}
-            onClick={toggleRandomizeOrder}
-            title={
-              randomizeOrder
-                ? 'Question order: Randomized (click to present in order)'
-                : 'Question order: In order (click to randomize)'
-            }
-            aria-label="Toggle randomize question order"
-            aria-pressed={randomizeOrder}
-          >
-            <span aria-hidden="true">🔀</span>
-            <span className="muscle-app-header__shuffle-text">{randomizeOrder ? 'Shuffle On' : 'In Order'}</span>
-          </button>
-        ) : null}
-
         {appMode === 'study' && queueProgress.inReviewCount > 0 ? (
           <div className="muscle-app-header__queue-badge" title="Mistakes queued for extra practice">
             ⚠️ {queueProgress.inReviewCount} to review

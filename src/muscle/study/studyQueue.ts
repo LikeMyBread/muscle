@@ -2,11 +2,6 @@ import type { QueueItem } from './types';
 
 export const REQUIRED_REPS_ON_MISTAKE = 2;
 
-export interface QueueOptions {
-  randomize?: boolean;
-  rng?: () => number;
-}
-
 /**
  * Standard in-place Fisher-Yates array shuffle returning a new copy.
  */
@@ -20,18 +15,15 @@ export function shuffleQueueItems<T>(items: T[], rng: () => number = Math.random
 }
 
 /**
- * Creates the initial active queue for a study unit.
- * When `options.randomize` is true, the item order is shuffled.
+ * Creates the initial active queue for a study unit with automatically shuffled questions.
  */
 export function createInitialQueue(
   itemIds: string[],
-  options?: QueueOptions,
+  rng: () => number = Math.random,
 ): QueueItem[] {
-  const orderedIds = options?.randomize
-    ? shuffleQueueItems(itemIds, options.rng)
-    : itemIds;
+  const shuffledIds = shuffleQueueItems(itemIds, rng);
 
-  return orderedIds.map((id) => ({
+  return shuffledIds.map((id) => ({
     id,
     requiredRemaining: 1,
     totalAttempts: 0,
@@ -42,15 +34,13 @@ export function createInitialQueue(
 
 /**
  * Selects the next item to present. Avoids repeating the last asked item immediately
- * if other active items are waiting in the queue.
- *
- * When `options.randomize` is true, randomly selects among eligible pending items
- * rather than strictly picking the first one in list order.
+ * if other active items are waiting in the queue, and randomly selects among the
+ * eligible pending items.
  */
 export function getNextQueueTarget(
   queue: QueueItem[],
   lastTargetId: string | null = null,
-  options?: QueueOptions,
+  rng: () => number = Math.random,
 ): QueueItem | null {
   const pending = queue.filter((item) => item.requiredRemaining > 0);
   if (pending.length === 0) return null;
@@ -59,45 +49,8 @@ export function getNextQueueTarget(
   const differentPending = pending.filter((item) => item.id !== lastTargetId);
   const candidatePool = differentPending.length > 0 ? differentPending : pending;
 
-  if (options?.randomize) {
-    const rng = options.rng ?? Math.random;
-    const index = Math.floor(rng() * candidatePool.length);
-    return candidatePool[index];
-  }
-
-  return candidatePool[0];
-}
-
-/**
- * Reorders the pending items in the queue when question ordering mode changes.
- * Mastered items remain in place; pending items are either shuffled or restored to original item order.
- */
-export function reorderQueue(
-  queue: QueueItem[],
-  randomize: boolean,
-  originalOrder?: string[],
-  rng: () => number = Math.random,
-): QueueItem[] {
-  const mastered = queue.filter((item) => item.requiredRemaining <= 0);
-  const pending = queue.filter((item) => item.requiredRemaining > 0);
-
-  if (pending.length <= 1) return queue;
-
-  let reorderedPending: QueueItem[];
-  if (randomize) {
-    reorderedPending = shuffleQueueItems(pending, rng);
-  } else if (originalOrder && originalOrder.length > 0) {
-    const orderMap = new Map(originalOrder.map((id, index) => [id, index]));
-    reorderedPending = [...pending].sort((a, b) => {
-      const idxA = orderMap.has(a.id) ? orderMap.get(a.id)! : 9999;
-      const idxB = orderMap.has(b.id) ? orderMap.get(b.id)! : 9999;
-      return idxA - idxB;
-    });
-  } else {
-    reorderedPending = pending;
-  }
-
-  return [...reorderedPending, ...mastered];
+  const index = Math.floor(rng() * candidatePool.length);
+  return candidatePool[index];
 }
 
 /**

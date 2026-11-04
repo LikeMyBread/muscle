@@ -129,25 +129,19 @@ describe('useStudyStore', () => {
     expect(useMuscleStore.getState().studyAnswerState).toBe('correct');
   });
 
-  it('manages question order randomization mode and toggling', () => {
+  it('automatically shuffles active queue on unit selection', () => {
     const store = useStudyStore.getState();
-    store.setRandomizeOrder(false);
-    expect(useStudyStore.getState().randomizeOrder).toBe(false);
-
-    store.toggleRandomizeOrder();
-    expect(useStudyStore.getState().randomizeOrder).toBe(true);
-
-    store.toggleRandomizeOrder();
-    expect(useStudyStore.getState().randomizeOrder).toBe(false);
-
-    // Initializing a unit when randomizeOrder is false preserves unit itemIds order
     store.selectUnit('unit_terms_planes');
     const unitQueue = useStudyStore.getState().activeQueue;
-    expect(unitQueue[0].id).toBe('term_anatomical_position');
-
-    // When toggled to randomized, queue is reordered
-    store.setRandomizeOrder(true);
-    expect(useStudyStore.getState().randomizeOrder).toBe(true);
-    expect(useStudyStore.getState().activeQueue).toHaveLength(unitQueue.length);
+    expect(unitQueue).toHaveLength(5);
+    // All items from the unit are present
+    const ids = unitQueue.map((q) => q.id).sort();
+    expect(ids).toEqual([
+      'term_anatomical_position',
+      'term_plane_coronal',
+      'term_plane_sagittal',
+      'term_plane_transverse',
+      'term_planes_overview',
+    ]);
   });
 });

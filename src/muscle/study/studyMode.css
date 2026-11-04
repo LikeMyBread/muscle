@@ -328,18 +328,6 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--muscle-muted);
-  gap: 8px;
-}
-
-.muscle-study-progress__count {
-  white-space: nowrap;
-}
-
-.muscle-study-progress__meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .muscle-study-progress__review {
@@ -348,91 +336,6 @@
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.72rem;
-  white-space: nowrap;
-}
-
-.muscle-study-shuffle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--muscle-cream, #f5f0e8);
-  border: 1px solid var(--muscle-border, #e2e8f0);
-  color: var(--muscle-navy, #1a2744);
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.muscle-study-shuffle-btn:hover {
-  background: #ffffff;
-  border-color: var(--muscle-lapis, #2563eb);
-  color: var(--muscle-lapis, #2563eb);
-}
-
-.muscle-study-shuffle-btn.is-active {
-  background: #ecfdf5;
-  border-color: var(--muscle-emerald, #059669);
-  color: #065f46;
-}
-
-.muscle-app-header__shuffle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--muscle-cream, #f5f0e8);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.muscle-app-header__shuffle-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.32);
-}
-
-.muscle-app-header__shuffle-btn.is-active {
-  background: rgba(16, 185, 129, 0.22);
-  border-color: rgba(52, 211, 153, 0.6);
-  color: #a7f3d0;
-}
-
-.muscle-study-shuffle-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #334155;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.muscle-study-shuffle-nav-btn:hover {
-  border-color: #64748b;
-  background: #f1f5f9;
-}
-
-.muscle-study-shuffle-nav-btn.is-active {
-  background: #ecfdf5;
-  border-color: var(--muscle-emerald, #059669);
-  color: #065f46;
 }
 
 .muscle-study-progress__bar {

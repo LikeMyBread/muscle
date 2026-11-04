@@ -15,7 +15,6 @@ import {
   recordIncorrectAnswer,
   isQueueComplete,
   getQueueProgress,
-  reorderQueue,
 } from './studyQueue';
 import { generateQuestionForTarget } from './questionGenerator';
 import type { AppMode, QueueItem, StudyAnswerFeedback, StudyQuestion, StudyUnit } from './types';
@@ -24,7 +23,6 @@ const STORAGE_KEY_COMPLETED_UNITS = 'muscle_study_completed_units_v1';
 const STORAGE_KEY_ACTIVE_UNIT = 'muscle_study_active_unit_v1';
 const STORAGE_KEY_APP_MODE = 'muscle_app_mode_v1';
 const STORAGE_KEY_DEBUG_UNLOCK = 'muscle_debug_unlock_curriculum_v1';
-const STORAGE_KEY_RANDOMIZE_ORDER = 'muscle_study_randomize_order_v1';
 
 export function isDebugUnlockRequested(): boolean {
   if (typeof window === 'undefined') return false;
@@ -117,34 +115,11 @@ function saveStoredActiveUnit(unitId: string): void {
   }
 }
 
-function loadStoredRandomizeOrder(): boolean {
-  if (typeof window === 'undefined') return true;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_RANDOMIZE_ORDER);
-    if (raw !== null) {
-      return raw === 'true';
-    }
-    return true; // Default to true so questions are randomized by default
-  } catch {
-    return true;
-  }
-}
-
-function saveStoredRandomizeOrder(randomize: boolean): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY_RANDOMIZE_ORDER, randomize ? 'true' : 'false');
-  } catch {
-    // Ignore storage quota
-  }
-}
-
 export interface StudyStoreState {
   appMode: AppMode;
   activeUnitId: string;
   completedUnitIds: string[];
   debugUnlocked: boolean;
-  randomizeOrder: boolean;
   activeQueue: QueueItem[];
   currentQuestion: StudyQuestion | null;
   lastTargetId: string | null;
@@ -156,8 +131,6 @@ export interface StudyStoreState {
   setNavOpen: (open: boolean) => void;
   setDebugUnlock: (unlocked: boolean) => void;
   toggleDebugUnlock: () => void;
-  setRandomizeOrder: (randomize: boolean) => void;
-  toggleRandomizeOrder: () => void;
   selectUnit: (unitId: string) => void;
   submitAnswer: (choiceId: string) => void;
   nextQuestion: () => void;
@@ -170,7 +143,6 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
   const initialAppMode = loadStoredAppMode();
   const initialActiveUnitId = loadStoredActiveUnit();
   const initialDebugUnlocked = isDebugUnlockRequested();
-  const initialRandomizeOrder = loadStoredRandomizeOrder();
   if (initialDebugUnlocked) {
     useMuscleStore.getState().setDebugCurriculumUnlocked(true);
   }
@@ -183,7 +155,6 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
     activeUnitId: initialActiveUnitId,
     completedUnitIds: initialCompleted,
     debugUnlocked: initialDebugUnlocked,
-    randomizeOrder: initialRandomizeOrder,
     activeQueue: [],
     currentQuestion: null,
     lastTargetId: null,
@@ -200,21 +171,6 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
     toggleDebugUnlock: () => {
       const next = !get().debugUnlocked;
       get().setDebugUnlock(next);
-    },
-
-    setRandomizeOrder: (randomize: boolean) => {
-      saveStoredRandomizeOrder(randomize);
-      const { activeQueue, activeUnitId } = get();
-      const unit = getUnitById(activeUnitId);
-      const updatedQueue = reorderQueue(activeQueue, randomize, unit?.itemIds);
-      set({
-        randomizeOrder: randomize,
-        activeQueue: updatedQueue,
-      });
-    },
-
-    toggleRandomizeOrder: () => {
-      get().setRandomizeOrder(!get().randomizeOrder);
     },
 
     setAppMode: (mode: AppMode) => {
@@ -268,9 +224,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       if (!unit) return;
 
       saveStoredActiveUnit(unitId);
-      const randomize = get().randomizeOrder;
-      const queue = createInitialQueue(unit.itemIds, { randomize });
-      const nextTarget = getNextQueueTarget(queue, null, { randomize });
+      const queue = createInitialQueue(unit.itemIds);
+      const nextTarget = getNextQueueTarget(queue);
       const firstQuestion = nextTarget ? generateQuestionForTarget(nextTarget.id, unit) : null;
 
       set({
@@ -387,9 +342,7 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       }
 
       // Next question from queue
-      const nextTarget = getNextQueueTarget(activeQueue, lastTargetId, {
-        randomize: get().randomizeOrder,
-      });
+      const nextTarget = getNextQueueTarget(activeQueue, lastTargetId);
       if (!nextTarget) {
         set({ unitCompleted: true });
         return;

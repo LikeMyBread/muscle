@@ -13,8 +13,6 @@ export default function StudyUnitComplete() {
   const selectUnit = useStudyStore((s) => s.selectUnit);
   const setNavOpen = useStudyStore((s) => s.setNavOpen);
   const restartCurrentUnit = useStudyStore((s) => s.restartCurrentUnit);
-  const randomizeOrder = useStudyStore((s) => s.randomizeOrder);
-  const toggleRandomizeOrder = useStudyStore((s) => s.toggleRandomizeOrder);
 
   const currentUnit = getUnitById(activeUnitId);
   const graduated = isGraduatedTo3D(completedUnitIds);
@@ -82,18 +80,7 @@ export default function StudyUnitComplete() {
               className="muscle-unit-complete__btn muscle-unit-complete__btn--secondary"
               onClick={restartCurrentUnit}
             >
-              {randomizeOrder ? 'Practice Again (Randomized 🔀)' : 'Practice Again (In Order ➡️)'}
-            </button>
-            <button
-              type="button"
-              className="muscle-unit-complete__btn muscle-unit-complete__btn--secondary"
-              onClick={() => {
-                toggleRandomizeOrder();
-                restartCurrentUnit();
-              }}
-              title="Switch order mode and restart practice"
-            >
-              {randomizeOrder ? 'Switch to In-Order & Practice ➡️' : 'Switch to Randomized & Practice 🔀'}
+              Practice This Unit Again
             </button>
             <button
               type="button"
