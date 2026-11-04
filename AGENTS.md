@@ -9,6 +9,7 @@ Interactive 3D human anatomy atlas and spaced repetition training app for artist
 - **Unit & integration tests:** `npm test` (`vitest run`)
 - **Asset validation:** `npm run muscle:validate-assets`
 - **Presubmit check:** `npm run presubmit` (`typecheck && test && validate-assets`)
+- **Deploy:** `npm run deploy` (builds locally and pushes `dist/` to `gh-pages` branch)
 - **App entry points:** `index.html`, `src/muscle/main.tsx`, `src/muscle/App.tsx`
 - **Curriculum & Study:** `src/muscle/curriculum/`, `src/muscle/study/`, `src/muscle/store/`
 - **3D Canvas & Models:** `src/muscle/components/canvas/`, `public/muscle/models/`

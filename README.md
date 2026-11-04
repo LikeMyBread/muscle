@@ -14,6 +14,7 @@ npm run dev     # Starts dev server on http://localhost:5173/
 - `npm run dev` - Start the Vite development server.
 - `npm run build` - Typecheck with `tsc` and produce a production bundle in `dist/`.
 - `npm run preview` - Preview the production build locally.
+- `npm run deploy` - Build locally and publish `dist/` directly to the `gh-pages` branch for GitHub Pages.
 - `npm run typecheck` - Run TypeScript compiler checks without emitting files.
 - `npm test` - Run all 48 Vitest suites (257 tests covering curriculum, geometry, SRS, coverage, and renderers).
 - `npm run test:fast` - Run Vitest test suites non-interactively.
