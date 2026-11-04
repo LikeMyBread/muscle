@@ -3,6 +3,7 @@ import { findMultiMemberStudyGroupForNode } from '../../curriculum/resolveStudyG
 import { useMuscleStore } from '../../store/useMuscleStore';
 
 export default function AnatomyCanvasHud() {
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const hoveredNodeId = useMuscleStore((s) => s.hoveredNodeId);
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
   const focusedGroupNodeIds = useMuscleStore((s) => s.focusedGroupNodeIds);
@@ -11,6 +12,8 @@ export default function AnatomyCanvasHud() {
   const mode = useMuscleStore((s) => s.mode);
   const referenceHalfHint = useMuscleStore((s) => s.referenceHalfHint);
   const setReferenceHalfHint = useMuscleStore((s) => s.setReferenceHalfHint);
+
+  if (studyActive) return null;
 
   const hoveredNode = hoveredNodeId ? getNodeById(hoveredNodeId) : undefined;
   const focusedNode = focusedNodeId ? getNodeById(focusedNodeId) : undefined;

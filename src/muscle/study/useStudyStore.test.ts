@@ -80,4 +80,52 @@ describe('useStudyStore', () => {
     expect(useStudyStore.getState().debugUnlocked).toBe(false);
     expect(useMuscleStore.getState().debugCurriculumUnlocked).toBe(false);
   });
+
+  it('suppresses hoveredNodeId when studyActive is true', () => {
+    const muscleStore = useMuscleStore.getState();
+    muscleStore.setStudyActive(true);
+
+    muscleStore.setHoveredNodeId('bone_sternum');
+    expect(useMuscleStore.getState().hoveredNodeId).toBeNull();
+
+    muscleStore.setStudyActive(false);
+    muscleStore.setHoveredNodeId('bone_sternum');
+    // flush hover raf
+    expect(useMuscleStore.getState().studyActive).toBe(false);
+  });
+
+  it('updates 3D visual target and mistake on correct/incorrect answers', () => {
+    // Select a 3D unit
+    useStudyStore.getState().selectUnit('unit_fund_head_torso');
+    const question1 = useStudyStore.getState().currentQuestion;
+    expect(question1).not.toBeNull();
+    expect(question1?.type).toBe('3d');
+
+    const targetId = question1!.targetId;
+    const wrongChoice = question1!.choices.find((c) => c.id !== targetId)!.id;
+
+    // Initial 3D state
+    expect(useMuscleStore.getState().studyActive).toBe(true);
+    expect(useMuscleStore.getState().studyTargetNodeId).toBe(targetId);
+    expect(useMuscleStore.getState().studyAnswerState).toBe('idle');
+
+    // Incorrect answer
+    useStudyStore.getState().submitAnswer(wrongChoice);
+    expect(useMuscleStore.getState().studyTargetNodeId).toBe(targetId);
+    expect(useMuscleStore.getState().studyMistakeNodeId).toBe(wrongChoice);
+    expect(useMuscleStore.getState().studyAnswerState).toBe('incorrect');
+
+    // Advance to next question
+    useStudyStore.getState().nextQuestion();
+    const question2 = useStudyStore.getState().currentQuestion;
+    const nextTargetId = question2!.targetId;
+    expect(useMuscleStore.getState().studyTargetNodeId).toBe(nextTargetId);
+    expect(useMuscleStore.getState().studyMistakeNodeId).toBeNull();
+    expect(useMuscleStore.getState().studyAnswerState).toBe('idle');
+
+    // Correct answer
+    useStudyStore.getState().submitAnswer(nextTargetId);
+    expect(useMuscleStore.getState().studyTargetNodeId).toBe(nextTargetId);
+    expect(useMuscleStore.getState().studyAnswerState).toBe('correct');
+  });
 });

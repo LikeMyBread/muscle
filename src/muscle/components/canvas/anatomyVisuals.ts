@@ -55,17 +55,17 @@ export function shouldShowOutline(state: MeshVisualState, showSubcutaneous: bool
 export function emissiveForState(state: MeshVisualState): { color: string; intensity: number } {
   switch (state) {
     case 'hover':
-      return { color: ANATOMY_COLORS.hover, intensity: 0.18 };
+      return { color: ANATOMY_COLORS.hover, intensity: 0.25 };
     case 'highlight':
-      return { color: ANATOMY_COLORS.highlight, intensity: 0.42 };
+      return { color: ANATOMY_COLORS.highlight, intensity: 0.65 };
     case 'group_ensemble':
       return { color: ANATOMY_COLORS.subcutaneous, intensity: 0.32 };
     case 'group_member':
       return { color: ANATOMY_COLORS.subcutaneous, intensity: 0.16 };
     case 'correct':
-      return { color: ANATOMY_COLORS.correct, intensity: 0.38 };
+      return { color: ANATOMY_COLORS.correct, intensity: 0.85 };
     case 'incorrect':
-      return { color: ANATOMY_COLORS.incorrect, intensity: 0.38 };
+      return { color: ANATOMY_COLORS.incorrect, intensity: 0.85 };
     default:
       return { color: '#000000', intensity: 0 };
   }
@@ -103,11 +103,11 @@ function mixHex(a: string, b: string, t: number): string {
 
 export function colorForVisualState(baseColor: string, state: MeshVisualState): string {
   if (state === 'faded') return ANATOMY_COLORS.faded;
-  if (state === 'hover') return mixHex(baseColor, ANATOMY_COLORS.hover, 0.22);
-  if (state === 'highlight') return mixHex(baseColor, ANATOMY_COLORS.highlight, 0.32);
-  if (state === 'group_ensemble') return mixHex(baseColor, ANATOMY_COLORS.subcutaneous, 0.24);
-  if (state === 'group_member') return mixHex(baseColor, ANATOMY_COLORS.subcutaneous, 0.12);
-  if (state === 'correct') return mixHex(baseColor, ANATOMY_COLORS.correct, 0.32);
-  if (state === 'incorrect') return mixHex(baseColor, ANATOMY_COLORS.incorrect, 0.32);
+  if (state === 'hover') return ANATOMY_COLORS.hover;
+  if (state === 'highlight') return ANATOMY_COLORS.highlight;
+  if (state === 'correct') return ANATOMY_COLORS.correct;
+  if (state === 'incorrect') return ANATOMY_COLORS.incorrect;
+  if (state === 'group_ensemble') return mixHex(baseColor, ANATOMY_COLORS.subcutaneous, 0.4);
+  if (state === 'group_member') return mixHex(baseColor, ANATOMY_COLORS.subcutaneous, 0.2);
   return baseColor;
 }

@@ -22,28 +22,52 @@ export class MuscleDB extends Dexie {
 export const muscleDb = new MuscleDB();
 
 export async function loadAllProgress(): Promise<Map<string, WorkoutProgress>> {
-  const rows = await muscleDb.workoutProgress.toArray();
-  return new Map(rows.map((row) => [row.nodeId, row]));
+  try {
+    const rows = await muscleDb.workoutProgress.toArray();
+    return new Map(rows.map((row) => [row.nodeId, row]));
+  } catch {
+    return new Map();
+  }
 }
 
 export async function saveProgress(progress: WorkoutProgress): Promise<void> {
-  await muscleDb.workoutProgress.put(progress);
+  try {
+    await muscleDb.workoutProgress.put(progress);
+  } catch {
+    // Ignore storage write error in headless/unsupported environments
+  }
 }
 
 export async function loadModuleGuideProgress(): Promise<Map<string, ModuleGuideProgress>> {
-  const rows = await muscleDb.moduleGuideProgress.toArray();
-  return new Map(rows.map((row) => [row.moduleId, row]));
+  try {
+    const rows = await muscleDb.moduleGuideProgress.toArray();
+    return new Map(rows.map((row) => [row.moduleId, row]));
+  } catch {
+    return new Map();
+  }
 }
 
 export async function saveModuleGuideProgress(progress: ModuleGuideProgress): Promise<void> {
-  await muscleDb.moduleGuideProgress.put(progress);
+  try {
+    await muscleDb.moduleGuideProgress.put(progress);
+  } catch {
+    // Ignore storage write error in headless/unsupported environments
+  }
 }
 
 export async function loadQuizModePreference(moduleId: string): Promise<string | null> {
-  const row = await muscleDb.quizPreferences.get(moduleId);
-  return row?.quizMode ?? null;
+  try {
+    const row = await muscleDb.quizPreferences.get(moduleId);
+    return row?.quizMode ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveQuizModePreference(moduleId: string, quizMode: string): Promise<void> {
-  await muscleDb.quizPreferences.put({ moduleId, quizMode });
+  try {
+    await muscleDb.quizPreferences.put({ moduleId, quizMode });
+  } catch {
+    // Ignore storage write error in headless/unsupported environments
+  }
 }

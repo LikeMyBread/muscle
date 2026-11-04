@@ -4,18 +4,20 @@ import type { MuscleMemoryNode, MuscleRegion } from '../../types/node';
 import AnatomyMesh from './AnatomyMesh';
 import { useAnatomyMeshFlags } from './useAnatomyMeshFlags';
 import { useAnatomyMeshInteraction } from './useAnatomyMeshInteraction';
+import { useMuscleStore } from '../../store/useMuscleStore';
 
 function ProceduralAnatomyMesh({ node }: { node: MuscleMemoryNode }) {
   const flags = useAnatomyMeshFlags(node.id, node);
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const { handleClick, handlePointerOver, handlePointerOut } = useAnatomyMeshInteraction(node.id);
 
   return (
     <AnatomyMesh
       node={node}
       flags={flags}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      onClick={handleClick}
+      onPointerOver={studyActive ? undefined : handlePointerOver}
+      onPointerOut={studyActive ? undefined : handlePointerOut}
+      onClick={studyActive ? undefined : handleClick}
     />
   );
 }

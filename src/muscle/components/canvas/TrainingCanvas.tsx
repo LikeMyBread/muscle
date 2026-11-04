@@ -126,6 +126,7 @@ function AnatomySceneInner({ showPerf }: { showPerf: boolean }) {
 export default function TrainingCanvas() {
   const showPerf = useMemo(() => readPerfFlag(), []);
   const anatomySceneReady = useMuscleStore((s) => s.anatomySceneReady);
+  const studyActive = useMuscleStore((s) => s.studyActive);
 
   return (
     <div
@@ -160,11 +161,15 @@ export default function TrainingCanvas() {
           <AnatomySceneInner showPerf={showPerf} />
         </Suspense>
       </Canvas>
-      <AnatomyCanvasHud />
-      <CanvasViewControls />
-      <div className="muscle-canvas-overlay" aria-label="3D view controls">
-        <LayerDepthControl variant="canvas" />
-      </div>
+      {!studyActive ? (
+        <>
+          <AnatomyCanvasHud />
+          <CanvasViewControls />
+          <div className="muscle-canvas-overlay" aria-label="3D view controls">
+            <LayerDepthControl variant="canvas" />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

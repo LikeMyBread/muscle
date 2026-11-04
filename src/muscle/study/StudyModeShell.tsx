@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStudyStore } from './useStudyStore';
+import { useMuscleStore } from '../store/useMuscleStore';
 import StudyTextQuestion from './StudyTextQuestion';
 import Study3DQuestion from './Study3DQuestion';
 import StudyUnitComplete from './StudyUnitComplete';
@@ -11,6 +12,13 @@ export default function StudyModeShell() {
   const currentQuestion = useStudyStore((s) => s.currentQuestion);
   const unitCompleted = useStudyStore((s) => s.unitCompleted);
   const selectUnit = useStudyStore((s) => s.selectUnit);
+
+  useEffect(() => {
+    useMuscleStore.getState().setStudyActive(true);
+    return () => {
+      useMuscleStore.getState().setStudyActive(false);
+    };
+  }, []);
 
   // Initialize active unit question if empty on mount
   useEffect(() => {

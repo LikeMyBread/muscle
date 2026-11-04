@@ -224,6 +224,14 @@ function scheduleHoverFlush(
   set: (partial: Pick<MuscleStoreState, 'hoveredNodeId'>) => void,
 ): void {
   if (hoverRafId !== 0) return;
+  if (typeof requestAnimationFrame === 'undefined') {
+    if (pendingHoverId !== undefined) {
+      const next = pendingHoverId;
+      pendingHoverId = undefined;
+      set({ hoveredNodeId: next });
+    }
+    return;
+  }
   hoverRafId = requestAnimationFrame(() => {
     hoverRafId = 0;
     if (pendingHoverId === undefined) return;
@@ -237,12 +245,25 @@ function flushHoverImmediate(
   set: (partial: Pick<MuscleStoreState, 'hoveredNodeId'>) => void,
   nodeId: string | null,
 ): void {
-  if (hoverRafId !== 0) {
+  if (hoverRafId !== 0 && typeof cancelAnimationFrame !== 'undefined') {
     cancelAnimationFrame(hoverRafId);
     hoverRafId = 0;
   }
   pendingHoverId = undefined;
   set({ hoveredNodeId: nodeId });
+}
+
+function isInitialStudyActive(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get('mode');
+    if (modeParam === 'study') return true;
+    if (modeParam === 'reference') return false;
+    return localStorage.getItem('muscle_app_mode_v1') === 'study';
+  } catch {
+    return false;
+  }
 }
 
 export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
@@ -274,7 +295,7 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   deckQueue: [],
   deckIndex: 0,
   quiz: emptyQuiz(),
-  studyActive: false,
+  studyActive: isInitialStudyActive(),
   studyTargetNodeId: null,
   studyMistakeNodeId: null,
   studyAnswerState: 'idle',
@@ -282,7 +303,23 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   setDebugCurriculumUnlocked: (unlocked: boolean) => set({ debugCurriculumUnlocked: unlocked }),
 
   setStudyActive: (active: boolean) => {
-    set({ studyActive: active });
+    if (active) {
+      flushHoverImmediate(set, null);
+      set({
+        studyActive: true,
+        hoveredNodeId: null,
+        selectedNodeId: null,
+        focusedNodeId: null,
+        focusedGroupNodeIds: null,
+      });
+    } else {
+      set({
+        studyActive: false,
+        studyTargetNodeId: null,
+        studyMistakeNodeId: null,
+        studyAnswerState: 'idle',
+      });
+    }
   },
 
   setStudyTarget: (
@@ -290,11 +327,12 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
     mistakeId: string | null = null,
     answerState: 'idle' | 'correct' | 'incorrect' = 'idle',
   ) => {
-    set({
+    set((s) => ({
       studyTargetNodeId: targetId,
       studyMistakeNodeId: mistakeId,
       studyAnswerState: answerState,
-    });
+      focusCameraNonce: targetId ? s.focusCameraNonce + 1 : s.focusCameraNonce,
+    }));
   },
 
   init: async () => {
@@ -360,13 +398,15 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
       get().startActiveSession();
       return;
     }
-    autoFocusExploreSelection(
-      'region',
-      moduleId,
-      defaultLayerPeelForModule(),
-      get().focusStructure,
-      get().focusStudyGroup,
-    );
+    if (!get().studyActive) {
+      autoFocusExploreSelection(
+        'region',
+        moduleId,
+        defaultLayerPeelForModule(),
+        get().focusStructure,
+        get().focusStudyGroup,
+      );
+    }
   },
 
   setBodyView: (view) => {
@@ -389,7 +429,7 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
       deckIndex: 0,
       quiz: emptyQuiz(get().quizMode),
     });
-    if (get().mode === 'warmup' && view === 'region') {
+    if (get().mode === 'warmup' && view === 'region' && !get().studyActive) {
       autoFocusExploreSelection(
         view,
         get().activeModuleId,
@@ -454,6 +494,7 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   resetCameraView: () => set((s) => ({ cameraResetNonce: s.cameraResetNonce + 1 })),
 
   setHoveredNodeId: (nodeId) => {
+    if (get().studyActive) return;
     pendingHoverId = nodeId;
     scheduleHoverFlush(set);
   },

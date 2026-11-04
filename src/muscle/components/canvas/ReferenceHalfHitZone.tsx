@@ -4,9 +4,12 @@ import { useMuscleStore } from '../../store/useMuscleStore';
 
 /** Captures hover/click on the read-only reference half (full-body atlas). */
 export default function ReferenceHalfHitZone(): React.ReactElement | null {
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const frame = useMuscleStore((s) => s.anatomyStageFrame);
   const bodyView = useMuscleStore((s) => s.bodyView);
   const setReferenceHalfHint = useMuscleStore((s) => s.setReferenceHalfHint);
+
+  if (studyActive) return null;
 
   const { position, size } = useMemo(() => {
     const midlineX = frame.layout.position[0];

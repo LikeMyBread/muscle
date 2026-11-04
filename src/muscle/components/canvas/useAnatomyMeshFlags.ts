@@ -18,22 +18,36 @@ export function useAnatomyMeshFlags(
 ): AnatomyMeshFlags {
   return useMuscleStore(
     useShallow((state) => {
-      if (!node || !isNodeVisibleAtPeelDepth(node, state.layerPeelDepth)) {
+      if (!node) {
         return HIDDEN_FLAGS;
       }
 
-      // Study mode has its own focused visual highlights and hides all hover feedback
+      // In Study Mode, interactions and visual highlights are strictly controlled by the study store
       if (state.studyActive) {
+        // The study target structure is always visible in study mode
         if (state.studyTargetNodeId === nodeId) {
           if (state.studyAnswerState === 'correct') {
             return buildMeshFlags(node, 'correct');
           }
           return buildMeshFlags(node, 'highlight');
         }
+
+        // The chosen mistake structure is always visible when answered incorrectly
         if (state.studyMistakeNodeId === nodeId && state.studyAnswerState === 'incorrect') {
           return buildMeshFlags(node, 'incorrect');
         }
+
+        // For non-target/non-mistake structures, respect layer peel depth
+        if (!isNodeVisibleAtPeelDepth(node, state.layerPeelDepth)) {
+          return HIDDEN_FLAGS;
+        }
+
+        // Non-target visible structures fade into the background
         return buildMeshFlags(node, state.studyTargetNodeId ? 'faded' : 'default');
+      }
+
+      if (!isNodeVisibleAtPeelDepth(node, state.layerPeelDepth)) {
+        return HIDDEN_FLAGS;
       }
 
       const highlightTarget =

@@ -146,6 +146,9 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
   if (initialDebugUnlocked) {
     useMuscleStore.getState().setDebugCurriculumUnlocked(true);
   }
+  if (initialAppMode === 'study') {
+    useMuscleStore.getState().setStudyActive(true);
+  }
 
   return {
     appMode: initialAppMode,
@@ -181,6 +184,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
         const state = get();
         if (!state.currentQuestion) {
           state.selectUnit(state.activeUnitId);
+        } else {
+          state.syncCanvasForQuestion(state.currentQuestion);
         }
       } else {
         muscleStore.setStudyActive(false);
@@ -197,6 +202,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
         muscleStore.setStudyTarget(null, null, 'idle');
         return;
       }
+
+      muscleStore.setStudyActive(true);
 
       // Switch module if needed
       if (muscleStore.activeModuleId !== question.moduleId || muscleStore.bodyView !== 'region') {

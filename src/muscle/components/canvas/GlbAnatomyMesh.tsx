@@ -32,6 +32,7 @@ function GlbAnatomyMeshComponent({ mesh, node, clippingPlane = null }: GlbAnatom
   const mode = useMuscleStore((s) => s.mode);
   const showLandmarks = useMuscleStore((s) => s.showLandmarks);
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const flags = useAnatomyMeshFlags(node.id, node);
   const { handleClick, handlePointerOver, handlePointerOut } = useAnatomyMeshInteraction(node.id);
   const showSubcutaneous = Boolean(
@@ -91,18 +92,30 @@ function GlbAnatomyMeshComponent({ mesh, node, clippingPlane = null }: GlbAnatom
       position={mesh.position}
       rotation={mesh.rotation}
       scale={mesh.scale}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        handlePointerOver(e);
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        handlePointerOut();
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleClick(e);
-      }}
+      onPointerOver={
+        studyActive
+          ? undefined
+          : (e) => {
+              e.stopPropagation();
+              handlePointerOver(e);
+            }
+      }
+      onPointerOut={
+        studyActive
+          ? undefined
+          : (e) => {
+              e.stopPropagation();
+              handlePointerOut();
+            }
+      }
+      onClick={
+        studyActive
+          ? undefined
+          : (e) => {
+              e.stopPropagation();
+              handleClick(e);
+            }
+      }
     />
   );
 }

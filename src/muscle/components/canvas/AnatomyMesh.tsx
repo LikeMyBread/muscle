@@ -34,9 +34,9 @@ function geometryForShape(shape: PrimitiveShape) {
 interface AnatomyMeshProps {
   node: MuscleMemoryNode;
   flags: MeshRenderFlags;
-  onPointerOver: (event: ThreeEvent<PointerEvent>) => void;
-  onPointerOut: () => void;
-  onClick: (event: ThreeEvent<MouseEvent>) => void;
+  onPointerOver?: (event: ThreeEvent<PointerEvent>) => void;
+  onPointerOut?: () => void;
+  onClick?: (event: ThreeEvent<MouseEvent>) => void;
 }
 
 export default function AnatomyMesh({
@@ -88,18 +88,30 @@ export default function AnatomyMesh({
       rotation={layout.rotation ?? [0, 0, 0]}
       scale={layout.scale}
       geometry={geometry}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        onPointerOver(e);
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        onPointerOut();
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(e);
-      }}
+      onPointerOver={
+        onPointerOver
+          ? (e) => {
+              e.stopPropagation();
+              onPointerOver(e);
+            }
+          : undefined
+      }
+      onPointerOut={
+        onPointerOut
+          ? (e) => {
+              e.stopPropagation();
+              onPointerOut();
+            }
+          : undefined
+      }
+      onClick={
+        onClick
+          ? (e) => {
+              e.stopPropagation();
+              onClick(e);
+            }
+          : undefined
+      }
     >
       {/* eslint-disable react/no-unknown-property -- @react-three/fiber maps to three.js */}
       <meshStandardMaterial

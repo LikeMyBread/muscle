@@ -8,29 +8,32 @@ import {
   findSceneObjectForNodeId,
 } from './computeAnatomyFocusCamera';
 
-/** Computes a camera preset when the user focuses a structure in warmup mode. */
+/** Computes a camera preset when the user focuses a structure in warmup mode or study mode. */
 export default function AnatomyFocusCamera() {
   const { scene, camera, invalidate } = useThree();
   const mode = useMuscleStore((s) => s.mode);
+  const studyActive = useMuscleStore((s) => s.studyActive);
+  const studyTargetNodeId = useMuscleStore((s) => s.studyTargetNodeId);
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
   const focusCameraNonce = useMuscleStore((s) => s.focusCameraNonce);
   const layerPeelDepth = useMuscleStore((s) => s.layerPeelDepth);
   const setCameraFocusPreset = useMuscleStore((s) => s.setCameraFocusPreset);
 
   useEffect(() => {
-    if (mode !== 'warmup' || !focusedNodeId) {
+    const targetId = studyActive ? studyTargetNodeId : (mode === 'warmup' ? focusedNodeId : null);
+    if (!targetId) {
       setCameraFocusPreset(null);
       return;
     }
 
-    const object = findSceneObjectForNodeId(scene, focusedNodeId);
+    const object = findSceneObjectForNodeId(scene, targetId);
     if (object) {
       setCameraFocusPreset(computeFramingPresetFromObject(object, camera.position.clone()));
       invalidate();
       return;
     }
 
-    const node = getNodeById(focusedNodeId);
+    const node = getNodeById(targetId);
     if (node?.layout) {
       setCameraFocusPreset(
         computeFramingPresetFromLayout(node.layout.position, node.layout.scale, camera.position),
@@ -45,6 +48,8 @@ export default function AnatomyFocusCamera() {
   }, [
     focusCameraNonce,
     focusedNodeId,
+    studyActive,
+    studyTargetNodeId,
     invalidate,
     layerPeelDepth,
     mode,

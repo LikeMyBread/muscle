@@ -39,6 +39,7 @@ export default function App() {
   useEffect(() => {
     if (!hydrated) return;
     const applyModuleFromSearch = () => {
+      if (useStudyStore.getState().appMode === 'study') return;
       const moduleId = parseMuscleModuleFromSearch(window.location.search);
       if (moduleId) {
         setActiveModule(moduleId);

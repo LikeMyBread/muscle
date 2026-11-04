@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { useStudyStore } from './useStudyStore';
 import { useMuscleStore } from '../store/useMuscleStore';
 import { getQueueProgress } from './studyQueue';
@@ -13,6 +13,11 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
   const feedback = useStudyStore((s) => s.feedback);
   const activeQueue = useStudyStore((s) => s.activeQueue);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
+
+  useEffect(() => {
+    useMuscleStore.getState().setStudyActive(true);
+    useStudyStore.getState().syncCanvasForQuestion(question);
+  }, [question]);
 
   const progress = getQueueProgress(activeQueue);
   const isAnswered = Boolean(feedback?.answered);
