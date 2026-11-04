@@ -1,4 +1,4 @@
-# Anatomy (Muscle Memory)
+# Muscle Memory
 
 Interactive 3D human anatomy atlas and spaced repetition study app. Features both an exploratory **Reference Mode** and a guided single-pane **Study Mode** following the artist anatomy curriculum.
 
@@ -15,7 +15,7 @@ npm run dev     # Starts dev server on http://localhost:5173/
 - `npm run build` - Typecheck with `tsc` and produce a production bundle in `dist/`.
 - `npm run preview` - Preview the production build locally.
 - `npm run typecheck` - Run TypeScript compiler checks without emitting files.
-- `npm test` - Run all 43 Vitest suites (234 tests covering curriculum, geometry, SRS, coverage, and renderers).
+- `npm test` - Run all 48 Vitest suites (257 tests covering curriculum, geometry, SRS, coverage, and renderers).
 - `npm run test:watch` - Run Vitest in interactive watch mode.
 
 ### Muscle Anatomy Pipeline & Validation Scripts
@@ -32,7 +32,7 @@ npm run dev     # Starts dev server on http://localhost:5173/
 ## Project Structure
 
 ```text
-anatomy/
+muscle/
 ├── public/
 │   ├── icons/
 │   │   └── favicon-muscle.svg
