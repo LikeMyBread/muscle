@@ -1,6 +1,6 @@
 # Muscle Memory — copy style
 
-Extends [`docs/USER_COPY_STYLE.md`](../../docs/USER_COPY_STYLE.md).
+Voice and terminology guidelines for the Muscle Memory application.
 
 ## Voice
 

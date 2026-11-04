@@ -25,5 +25,5 @@ Read [`src/muscle/CUJs.md`](../../src/muscle/CUJs.md) CUJ-001 before changing or
 
 ## Related
 
-- [`docs/PERFORMANCE.md`](../../docs/PERFORMANCE.md) — sustained render layer
-- Skill `labs-performance`
+- [`src/muscle/CUJs.md`](../../src/muscle/CUJs.md) — Critical user journeys and latency budgets
+- [`docs/MUSCLE_QA.md`](../MUSCLE_QA.md) — Manual orbit trace and verification protocol

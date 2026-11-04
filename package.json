@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "test:fast": "vitest run",
+    "presubmit": "npm run typecheck && npm test && npm run muscle:validate-assets",
     "muscle:validate-assets": "node scripts/validate-muscle-assets.mjs",
     "muscle:export-glbs": "node scripts/export-muscle-procedural-glbs.mjs",
     "muscle:export-z-anatomy": "node scripts/export-muscle-z-anatomy-glbs.mjs",

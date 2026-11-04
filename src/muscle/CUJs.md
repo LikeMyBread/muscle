@@ -1,7 +1,7 @@
 # Critical user journeys — Muscle Memory
 
 Durable workflows for manual checks, agent verification, and performance benchmarks.  
-Index: [`docs/CRITICAL_USER_JOURNEYS.md`](../../docs/CRITICAL_USER_JOURNEYS.md).
+Index: [`docs/README.md`](../../docs/README.md).
 
 ---
 

@@ -14,8 +14,7 @@ In practice the Z-Anatomy skin mesh was a low-quality medical scan: blobby surfa
 geometry around the ears, and thin "slit" holes across the torso, arms, and back. We spent
 substantial effort (multiple weeks, many Blender re-export cycles) trying to make it
 presentation-quality, then trying to replace it wholesale. Neither path reached the bar without
-significant **manual** 3D work, which is explicitly outside the labor budget for this app (see
-[`.cursor/rules/feasibility-first.mdc`](../../.cursor/rules/feasibility-first.mdc)).
+significant **manual** 3D work, which is explicitly outside the labor budget for this app.
 
 The core realization: the skin is the **only** layer that has to look like a finished organic
 surface. Bones and muscles read as study structures and tolerate atlas-grade geometry; skin does
@@ -83,7 +82,5 @@ building the swap pipeline.
 ## Links
 
 - [`src/muscle/AGENTS.md`](../../src/muscle/AGENTS.md) — "No skin overlay" pitfall
-- [`docs/AGENT_INVARIANTS.md`](../AGENT_INVARIANTS.md) — muscle-vs-skeleton invariant
-- [`.cursor/rules/feasibility-first.mdc`](../../.cursor/rules/feasibility-first.mdc) — manual-labor gate that this episode motivated
-- [`docs/CONTINUOUS_PROCESS_IMPROVEMENT.md`](../CONTINUOUS_PROCESS_IMPROVEMENT.md) — `feasibility-misjudged` root-cause class
+- [`docs/README.md`](../README.md) — Muscle documentation index
 - ADR [0015](./0015-muscle-memory-local-first-anatomy.md) — original Muscle Memory architecture

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Muscle Z-Anatomy export pipeline — audit → export → validate → sync → visual checklist.
- * Skill: labs-muscle-anatomy-export
+ * Documentation: docs/skills/muscle-anatomy-export.md
  */
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -103,7 +103,7 @@ function printVisualChecklist(regions) {
   }
   console.log('6. Orbit ~10 s — no sustained judder.');
   console.log('\nFull protocol: docs/MUSCLE_QA.md');
-  console.log('Skill: .cursor/skills/labs-muscle-anatomy-export/SKILL.md\n');
+  console.log('Documentation: docs/skills/muscle-anatomy-export.md\n');
 }
 
 function main() {

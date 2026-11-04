@@ -16,7 +16,9 @@ npm run dev     # Starts dev server on http://localhost:5173/
 - `npm run preview` - Preview the production build locally.
 - `npm run typecheck` - Run TypeScript compiler checks without emitting files.
 - `npm test` - Run all 48 Vitest suites (257 tests covering curriculum, geometry, SRS, coverage, and renderers).
+- `npm run test:fast` - Run Vitest test suites non-interactively.
 - `npm run test:watch` - Run Vitest in interactive watch mode.
+- `npm run presubmit` - Run full pre-commit verification (typecheck, test suite, asset validation).
 
 ### Muscle Anatomy Pipeline & Validation Scripts
 
