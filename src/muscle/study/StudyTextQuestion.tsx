@@ -1,6 +1,8 @@
 import React from 'react';
 import { useStudyStore } from './useStudyStore';
 import { getQueueProgress } from './studyQueue';
+import { getAnatomyTermById } from '../curriculum/anatomyTerms';
+import StudyTermVisualExample from './StudyTermVisualExample';
 import type { StudyQuestion } from './types';
 
 const CHOICE_LABELS = ['A', 'B', 'C', 'D'];
@@ -13,6 +15,9 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
 
   const progress = getQueueProgress(activeQueue);
   const isAnswered = Boolean(feedback?.answered);
+
+  const targetTerm = getAnatomyTermById(question.targetId);
+  const mistakeTerm = feedback?.selectedId ? getAnatomyTermById(feedback.selectedId) : undefined;
 
   return (
     <div className="muscle-study-card">
@@ -97,7 +102,14 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
 
           <p className="muscle-study-feedback-card__msg">{feedback.message}</p>
 
-          {question.explanation ? (
+          {/* Visual Example Section from Reference Mode */}
+          {targetTerm ? (
+            <StudyTermVisualExample
+              targetTerm={targetTerm}
+              mistakeTerm={mistakeTerm}
+              isCorrect={feedback.isCorrect}
+            />
+          ) : question.explanation ? (
             <div className="muscle-study-feedback-card__explanation">
               <strong>Definition:</strong> {question.explanation}
             </div>

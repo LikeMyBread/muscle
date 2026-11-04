@@ -264,6 +264,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
 
         if (currentQuestion.type === '3d') {
           muscleStore.setStudyTarget(targetId, null, 'correct');
+        } else {
+          muscleStore.setStudyTarget(null, null, 'correct');
         }
       } else {
         const result = recordIncorrectAnswer(activeQueue, targetId, choiceId);
@@ -298,6 +300,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
             const minPeel = Math.min(targetNode.layerDepth, mistakeNode.layerDepth) as 0 | 1 | 2 | 3;
             muscleStore.setLayerPeelDepth(minPeel);
           }
+        } else {
+          muscleStore.setStudyTarget(null, null, 'incorrect');
         }
       }
 

@@ -24,26 +24,37 @@ export function useAnatomyMeshFlags(
 
       // In Study Mode, interactions and visual highlights are strictly controlled by the study store
       if (state.studyActive) {
-        // The study target structure is always visible in study mode
-        if (state.studyTargetNodeId === nodeId) {
+        const isTarget = state.studyTargetNodeId === nodeId;
+        const isMistake = state.studyMistakeNodeId === nodeId;
+        const isFocused =
+          state.focusedNodeId === nodeId ||
+          Boolean(state.focusedGroupNodeIds?.includes(nodeId));
+
+        // The chosen mistake structure is always visible when answered incorrectly
+        if (isMistake && state.studyAnswerState === 'incorrect') {
+          return buildMeshFlags(node, 'incorrect');
+        }
+
+        // The target structure or focused example structure is always visible
+        if (isTarget || isFocused) {
           if (state.studyAnswerState === 'correct') {
             return buildMeshFlags(node, 'correct');
           }
           return buildMeshFlags(node, 'highlight');
         }
 
-        // The chosen mistake structure is always visible when answered incorrectly
-        if (state.studyMistakeNodeId === nodeId && state.studyAnswerState === 'incorrect') {
-          return buildMeshFlags(node, 'incorrect');
-        }
-
-        // For non-target/non-mistake structures, respect layer peel depth
+        // For non-target/non-focused structures, respect layer peel depth
         if (!isNodeVisibleAtPeelDepth(node, state.layerPeelDepth)) {
           return HIDDEN_FLAGS;
         }
 
-        // Non-target visible structures fade into the background
-        return buildMeshFlags(node, state.studyTargetNodeId ? 'faded' : 'default');
+        // Non-target visible structures fade into the background when active target or focus is set
+        const hasActiveFocus = Boolean(
+          state.studyTargetNodeId ||
+            state.focusedNodeId ||
+            (state.focusedGroupNodeIds && state.focusedGroupNodeIds.length > 0),
+        );
+        return buildMeshFlags(node, hasActiveFocus ? 'faded' : 'default');
       }
 
       if (!isNodeVisibleAtPeelDepth(node, state.layerPeelDepth)) {

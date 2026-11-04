@@ -45,15 +45,22 @@ export default function TermSceneOverlay(): React.ReactElement | null {
   const atlasTabActive = useMuscleStore((s) => s.atlasTabActive);
   const activeTermId = useMuscleStore((s) => s.activeTermId);
   const setActiveTermId = useMuscleStore((s) => s.setActiveTermId);
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const lessonStepIndex = useMuscleStore(
     (s) => s.moduleGuideByModule.get('anatomy_terms')?.lessonStepIndex ?? 0,
   );
   const anatomyStageFrame = useMuscleStore((s) => s.anatomyStageFrame);
 
-  const termId = getActiveLessonTermId({ activeTermId, lessonStepIndex });
+  const termId = studyActive
+    ? activeTermId
+    : getActiveLessonTermId({ activeTermId, lessonStepIndex });
   const term = termId ? getAnatomyTermById(termId) : undefined;
 
-  if (!isAnatomyTermsStudyTab(activeModuleId, atlasTabActive) || !term) return null;
+  const shouldRender = studyActive
+    ? Boolean(term)
+    : isAnatomyTermsStudyTab(activeModuleId, atlasTabActive) && Boolean(term);
+
+  if (!shouldRender || !term) return null;
 
   if (term.visualization === 'planes_overview') {
     const selectedKind = activeTermId ? planeKindFromTermId(activeTermId) : null;

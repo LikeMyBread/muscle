@@ -20,7 +20,9 @@ export default function AnatomyFocusCamera() {
   const setCameraFocusPreset = useMuscleStore((s) => s.setCameraFocusPreset);
 
   useEffect(() => {
-    const targetId = studyActive ? studyTargetNodeId : (mode === 'warmup' ? focusedNodeId : null);
+    const targetId = studyActive
+      ? (studyTargetNodeId ?? focusedNodeId)
+      : (mode === 'warmup' ? focusedNodeId : null);
     if (!targetId) {
       setCameraFocusPreset(null);
       return;
