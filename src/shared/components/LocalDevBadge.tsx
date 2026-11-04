@@ -31,7 +31,7 @@ function isLocalDevHost(): boolean {
  * 1. `import.meta.env.DEV` — `false` in a correct prod build, so the whole
  *    component tree-shakes out entirely.
  * 2. `isLocalDevHost()` — refuses to render on any deployed origin
- *    (labs.tiffzhang.com, *.github.io, …), so even a mis-built dev-mode bundle
+ *    (*.github.io, custom domain, …), so even a mis-built dev-mode bundle
  *    that reaches prod never shows the badge.
  *
  * It is NOT a `?debug` tier control. Non-interactive (`pointer-events: none`), so

@@ -25,10 +25,10 @@ describe('LocalDevBadge', () => {
 
   it('never renders on a deployed host, even if the bundle was built without production mode', () => {
     // Regression: a non-production-mode build (import.meta.env.DEV === true) shipped
-    // to prod and showed "LOCAL" on labs.tiffzhang.com, defeating the badge's purpose.
+    // to prod and showed "LOCAL" on a production host, defeating the badge's purpose.
     // The host gate must refuse to render on any deployed origin.
     vi.stubEnv('DEV', true);
-    for (const host of ['labs.tiffzhang.com', 'tiffz.github.io', 'example.com']) {
+    for (const host of ['likemybread.github.io', 'example.com']) {
       vi.stubGlobal('location', { hostname: host });
       const { container, unmount } = render(<LocalDevBadge />);
       expect(container).toBeEmptyDOMElement();

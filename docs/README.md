@@ -1,6 +1,6 @@
 # Muscle Memory Documentation Index
 
-This directory contains architectural decision records (ADRs), QA protocols, performance rules, and pipeline references for the **Muscle Memory** app extracted from `tiffzhanglabs`.
+This directory contains architectural decision records (ADRs), QA protocols, performance rules, and pipeline references for the **Muscle Memory** app.
 
 ## Architecture Decision Records (ADRs)
 

@@ -7,9 +7,6 @@ node_modules/
 dist/
 dist-ssr/
 
-# Reference repository / monorepo source
-tiffzhanglabs/
-
 # OS / Editor files
 .DS_Store
 Thumbs.db
