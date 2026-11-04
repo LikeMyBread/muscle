@@ -1,0 +1,713 @@
+import { alpha, createTheme, type Theme } from '@mui/material/styles';
+
+import { STANZA_THEME_OVERRIDES } from './stanzaThemeBase';
+
+export type AppThemeId =
+  | 'beat'
+  | 'chords'
+  | 'drums'
+  | 'pitch'
+  | 'words'
+  | 'piano'
+  | 'scales'
+  | 'cats'
+  | 'corp'
+  | 'forms'
+  | 'melodia'
+  | 'pulse'
+  | 'story'
+  | 'zines'
+  | 'agility'
+  | 'midi'
+  | 'encore'
+  | 'stanza'
+  | 'sight'
+  | 'gesture'
+  | 'zinebox'
+  | 'lyrefly'
+  | 'palettegen'
+  | 'scrapboard'
+  | 'muscle'
+  | 'maqam';
+
+interface AppThemeConfig {
+  mode: 'light' | 'dark';
+  primary: string;
+  secondary: string;
+  backgroundDefault: string;
+  backgroundPaper: string;
+  textPrimary: string;
+  textSecondary: string;
+  divider: string;
+  radius: number;
+  spacingBase: number;
+  /** When set, overrides the default Roboto-based UI stack (e.g. journal serif apps). */
+  fontFamily?: string;
+  /** Larger type, line heights, and buttons for reading-heavy flows (e.g. Melodia). */
+  readable?: boolean;
+  /**
+   * M3-inspired surfaces, type rhythm, and smoothing (Encore). Keeps other apps unchanged.
+   */
+  materialPolish?: boolean;
+}
+
+function buildTypography(config: AppThemeConfig) {
+  const polish = Boolean(config.materialPolish);
+  const fontFamily =
+    config.fontFamily ?? "'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif";
+  const shared = {
+    fontFamily,
+    fontWeightRegular: 400,
+    fontWeightMedium: 500,
+    fontWeightBold: 700,
+    button: { textTransform: 'none' as const, fontWeight: 600 },
+  };
+  if (config.readable) {
+    return {
+      ...shared,
+      fontSize: 17,
+      h1: {
+        fontSize: '2.35rem',
+        fontWeight: 700,
+        lineHeight: 1.22,
+        ...(polish ? { letterSpacing: '-0.03em' } : {}),
+      },
+      h2: {
+        fontSize: '1.75rem',
+        fontWeight: 700,
+        lineHeight: 1.28,
+        ...(polish ? { letterSpacing: '-0.022em' } : {}),
+      },
+      h3: {
+        fontSize: '1.45rem',
+        fontWeight: 600,
+        lineHeight: 1.34,
+        ...(polish ? { letterSpacing: '-0.015em' } : {}),
+      },
+      ...(polish
+        ? {
+            h4: { fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.28 },
+            h5: { fontWeight: 700, letterSpacing: '-0.018em', lineHeight: 1.3 },
+            h6: { fontWeight: 700, letterSpacing: '-0.012em', lineHeight: 1.35 },
+            overline: { letterSpacing: '0.12em', fontWeight: 700, lineHeight: 1.6, fontSize: '0.7rem' },
+          }
+        : {}),
+      body1: {
+        fontSize: '1.0625rem',
+        lineHeight: 1.62,
+        ...(polish ? { letterSpacing: '0.01em' } : {}),
+      },
+      body2: {
+        fontSize: '1rem',
+        lineHeight: 1.55,
+        ...(polish ? { letterSpacing: '0.008em' } : {}),
+      },
+      subtitle1: {
+        fontSize: '1.125rem',
+        lineHeight: 1.52,
+        fontWeight: 600,
+        ...(polish ? { letterSpacing: '0.006em' } : {}),
+      },
+      subtitle2: {
+        fontSize: '1.03rem',
+        lineHeight: 1.48,
+        fontWeight: 600,
+        ...(polish ? { letterSpacing: '0.04em', fontWeight: 700 } : {}),
+      },
+      caption: {
+        fontSize: '0.9375rem',
+        lineHeight: 1.45,
+        ...(polish ? { letterSpacing: '0.02em', fontWeight: 500 } : {}),
+      },
+      button: { textTransform: 'none' as const, fontWeight: 600, fontSize: '1rem' },
+    };
+  }
+  return {
+    ...shared,
+    fontSize: 14,
+    h1: { fontSize: '1.875rem', fontWeight: 700, lineHeight: 1.2 },
+    h2: { fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.25 },
+    h3: { fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.3 },
+    body1: { fontSize: '0.875rem', lineHeight: 1.5 },
+    body2: { fontSize: '0.8125rem', lineHeight: 1.45 },
+    button: { textTransform: 'none' as const, fontWeight: 600 },
+  };
+}
+
+function buildTheme(config: AppThemeConfig): Theme {
+  const readable = Boolean(config.readable);
+  const polish = Boolean(config.materialPolish);
+
+  return createTheme({
+    palette: {
+      mode: config.mode,
+      primary: { main: config.primary },
+      secondary: { main: config.secondary },
+      background: {
+        default: config.backgroundDefault,
+        paper: config.backgroundPaper,
+      },
+      text: {
+        primary: config.textPrimary,
+        secondary: config.textSecondary,
+      },
+      divider: config.divider,
+    },
+    spacing: config.spacingBase,
+    shape: { borderRadius: config.radius },
+    typography: buildTypography(config),
+    zIndex: {
+      appBar: 1100,
+      drawer: 1200,
+      modal: 1300,
+      snackbar: 1400,
+      tooltip: 1500,
+    },
+    components: {
+      MuiDialog: {
+        defaultProps: {
+          keepMounted: true,
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            borderRadius: theme.shape.borderRadius,
+            ...(polish
+              ? {
+                  boxShadow: `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
+                  border: `1px solid ${alpha(theme.palette.divider as string, 0.55)}`,
+                }
+              : {}),
+          }),
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            borderRadius: Math.max(Number(theme.shape.borderRadius) - 2, 6),
+            minHeight: readable ? 44 : 38,
+            paddingInline: theme.spacing(readable ? 1.75 : 1.5),
+            ...(readable ? { fontSize: '1rem' } : {}),
+            ...(polish ? { letterSpacing: '0.02em' } : {}),
+          }),
+          sizeSmall: ({ theme }) => ({
+            minHeight: readable ? 36 : 32,
+            paddingInline: theme.spacing(1.25),
+          }),
+          sizeLarge: ({ theme }) => ({
+            minHeight: readable ? 52 : 44,
+            paddingInline: theme.spacing(readable ? 2.25 : 2),
+          }),
+          ...(polish
+            ? {
+                containedPrimary: ({ theme }: { theme: Theme }) => ({
+                  boxShadow: `0 1px 3px ${alpha(theme.palette.primary.main, 0.32)}`,
+                  '&:hover': {
+                    boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.36)}`,
+                  },
+                }),
+              }
+            : {}),
+        },
+      },
+      MuiTextField: {
+        defaultProps: {
+          size: readable ? 'medium' : 'small',
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            borderRadius: Math.max(Number(theme.shape.borderRadius) - 2, 6),
+            ...(polish
+              ? {
+                  transition: theme.transitions.create(['border-color', 'box-shadow'], {
+                    duration: theme.transitions.duration.shorter,
+                  }),
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: alpha(theme.palette.primary.main, 0.35),
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: 2,
+                    borderColor: theme.palette.primary.main,
+                  },
+                }
+              : {}),
+          }),
+        },
+      },
+      MuiMenu: {
+        defaultProps: {
+          disableScrollLock: true,
+        },
+      },
+      MuiPopover: {
+        defaultProps: {
+          disableScrollLock: true,
+        },
+      },
+      ...(polish
+        ? {
+            MuiCssBaseline: {
+              styleOverrides: {
+                body: {
+                  WebkitFontSmoothing: 'antialiased',
+                  MozOsxFontSmoothing: 'grayscale',
+                  textRendering: 'optimizeLegibility',
+                },
+              },
+            },
+            MuiCard: {
+              styleOverrides: {
+                root: ({ theme }) => ({
+                  borderRadius: Math.min(Number(theme.shape.borderRadius) + 2, 16),
+                  overflow: 'hidden',
+                }),
+              },
+            },
+            MuiBottomNavigation: {
+              styleOverrides: {
+                root: ({ theme }) => ({
+                  boxShadow: `0 -1px 0 ${alpha(theme.palette.divider as string, 0.85)}`,
+                }),
+              },
+            },
+          }
+        : {}),
+    },
+  });
+}
+
+const MUSIC_LIGHT_DEFAULT: Omit<AppThemeConfig, 'mode'> = {
+  primary: '#7c3aed',
+  secondary: '#a855f7',
+  backgroundDefault: '#f8fafc',
+  backgroundPaper: '#ffffff',
+  textPrimary: '#1e293b',
+  textSecondary: '#64748b',
+  divider: '#e2e8f0',
+  radius: 10,
+  spacingBase: 4,
+};
+
+const MUSIC_DARK_DEFAULT: Omit<AppThemeConfig, 'mode'> = {
+  primary: '#9d8ec7',
+  secondary: '#c9a0b8',
+  backgroundDefault: '#16161e',
+  backgroundPaper: '#1e1e28',
+  textPrimary: '#e8e6f0',
+  textSecondary: '#b8b4c8',
+  divider: 'rgba(157, 142, 199, 0.22)',
+  radius: 10,
+  spacingBase: 4,
+};
+
+/**
+ * DUAL-STACK BRIDGE — keep in sync with the app's CSS `--theme-*` tokens.
+ *
+ * MUI does not accept CSS vars in palette augmentation, so this bridge mirrors
+ * the shared semantic token contract (appSharedThemes.css + per-app overrides)
+ * with concrete hex baselines. When you change an app palette, update BOTH:
+ * the app CSS `--theme-*` block and its entry here — otherwise MUI surfaces
+ * (dialogs, menus) drift from CSS-styled shared controls on the same page.
+ * Policy: src/shared/SHARED_UI_CONVENTIONS.md § Theming bridge.
+ */
+const THEMES: Record<AppThemeId, Theme> = {
+  beat: buildTheme({
+    mode: 'dark',
+    ...MUSIC_DARK_DEFAULT,
+  }),
+  chords: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#6366f1',
+    secondary: '#8b5cf6',
+  }),
+  drums: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#7c3aed',
+    secondary: '#f59e0b',
+  }),
+  pitch: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#0f766e',
+    secondary: '#db2777',
+  }),
+  words: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#0a8a8f',
+    secondary: '#54c0c7',
+  }),
+  piano: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#7c3aed',
+    secondary: '#3b82f6',
+  }),
+  scales: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#059669',
+    secondary: '#0891b2',
+  }),
+  cats: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    primary: '#2563eb',
+    secondary: '#0ea5e9',
+  }),
+  corp: buildTheme({ mode: 'light', ...MUSIC_LIGHT_DEFAULT }),
+  forms: buildTheme({ mode: 'light', ...MUSIC_LIGHT_DEFAULT }),
+  melodia: buildTheme({
+    mode: 'light',
+    fontFamily: "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+    primary: '#1c2840',
+    secondary: '#e91e8c',
+    backgroundDefault: '#faf8f5',
+    backgroundPaper: '#fffef9',
+    textPrimary: '#1c2840',
+    textSecondary: '#334155',
+    divider: 'rgba(28, 40, 64, 0.14)',
+    radius: 12,
+    spacingBase: 5,
+    readable: true,
+  }),
+  pulse: buildTheme({
+    mode: 'dark',
+    primary: '#00ff41',
+    secondary: '#ffb000',
+    backgroundDefault: '#0a0a0a',
+    backgroundPaper: '#141414',
+    textPrimary: '#e0e0e0',
+    textSecondary: '#888888',
+    divider: 'rgba(0, 255, 65, 0.15)',
+    radius: 0,
+    spacingBase: 4,
+  }),
+  story: buildTheme({ mode: 'light', ...MUSIC_LIGHT_DEFAULT }),
+  zines: buildTheme({ mode: 'light', ...MUSIC_LIGHT_DEFAULT }),
+  agility: buildTheme({
+    mode: 'light',
+    fontFamily: "'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace",
+    primary: '#059669',
+    secondary: '#292524',
+    backgroundDefault: '#f7fee7',
+    backgroundPaper: '#fffefb',
+    textPrimary: '#1c1917',
+    textSecondary: '#57534e',
+    divider: 'rgba(41, 37, 36, 0.14)',
+    radius: 4,
+    spacingBase: 5,
+    readable: true,
+  }),
+  // Warm sand and indigo: the palette of tilework and manuscript ink, chosen so
+  // the amber "retuned key" state reads as a highlight rather than a warning.
+  // M3 shape and type rhythm via `materialPolish`, matching Encore.
+  maqam: buildTheme({
+    mode: 'light',
+    // Saffron, terracotta, garnet, indigo, sand. Garnet carries "sounding or
+    // home", terracotta carries "bent off equal temperament", and ink is
+    // indigo rather than black. Kept in step with the `--m3-*` tokens in
+    // src/maqam/maqam.css; MUI controls read from here, everything else reads
+    // from there, and the two disagreeing is what made Play stay blue after
+    // the palette changed.
+    primary: '#b4400c',
+    secondary: '#1f5f3f',
+    backgroundDefault: '#fffbe8',
+    backgroundPaper: '#fffef9',
+    textPrimary: '#1d2b1f',
+    textSecondary: '#5c6557',
+    // Hairlines are the exception, not the default: M3 separates with tonal
+    // surface steps, so this stays faint enough to disappear unless needed.
+    divider: '#cdcdbc',
+    radius: 12,
+    spacingBase: 8,
+    readable: true,
+    materialPolish: true,
+  }),
+  midi: buildTheme({
+    mode: 'light',
+    fontFamily: "'Inter', 'SF Pro Text', system-ui, sans-serif",
+    primary: '#ff4499',
+    secondary: '#7c3aed',
+    backgroundDefault: '#fff8fb',
+    backgroundPaper: '#ffffff',
+    textPrimary: '#2d1b3d',
+    textSecondary: '#6b5b7a',
+    divider: 'rgba(255, 68, 153, 0.16)',
+    radius: 14,
+    spacingBase: 5,
+    readable: true,
+  }),
+  stanza: buildTheme({
+    mode: 'light',
+    ...MUSIC_LIGHT_DEFAULT,
+    ...STANZA_THEME_OVERRIDES,
+  }),
+  sight: createTheme(
+    buildTheme({
+      mode: 'dark',
+      fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace",
+      primary: '#a78bfa',
+      secondary: '#f472b6',
+      backgroundDefault: '#121214',
+      backgroundPaper: '#1a1a1e',
+      textPrimary: '#e4e4e7',
+      textSecondary: '#a1a1aa',
+      divider: '#2e2e34',
+      radius: 4,
+      spacingBase: 4,
+      readable: true,
+    }),
+    {
+      components: {
+        MuiButton: {
+          styleOverrides: {
+            containedPrimary: {
+              color: '#18181b',
+              backgroundColor: '#f4f4f5',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: '#ffffff',
+                boxShadow: 'none',
+              },
+              '&:active': {
+                backgroundColor: '#e4e4e7',
+              },
+              '&.Mui-disabled': {
+                color: alpha('#18181b', 0.38),
+                backgroundColor: alpha('#f4f4f5', 0.28),
+              },
+            },
+            outlinedPrimary: {
+              color: '#fafafa',
+              borderColor: 'rgba(255, 255, 255, 0.72)',
+              '&:hover': {
+                color: '#ffffff',
+                borderColor: '#ffffff',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              },
+              '&.Mui-disabled': {
+                color: alpha('#fafafa', 0.38),
+                borderColor: alpha('#fafafa', 0.28),
+              },
+            },
+            textPrimary: {
+              color: '#e4e4e7',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              },
+            },
+          },
+        },
+      },
+    },
+  ),
+  gesture: buildTheme({
+    mode: 'light',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    primary: '#5f8566',
+    secondary: '#9a958d',
+    backgroundDefault: '#e8e4dc',
+    backgroundPaper: '#f7f5f1',
+    textPrimary: '#2f332c',
+    textSecondary: '#6f6c65',
+    divider: 'rgba(47, 51, 44, 0.09)',
+    radius: 10,
+    spacingBase: 4,
+  }),
+  zinebox: buildTheme({
+    mode: 'light',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    primary: '#ff1493',
+    secondary: '#9c9691',
+    backgroundDefault: '#f8f7f5',
+    backgroundPaper: '#fdfcfb',
+    textPrimary: '#484440',
+    textSecondary: '#9c9691',
+    divider: 'rgba(72, 68, 64, 0.1)',
+    radius: 6,
+    spacingBase: 4,
+  }),
+  lyrefly: buildTheme({
+    mode: 'light',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    primary: '#ff2d95',
+    secondary: '#00d4aa',
+    backgroundDefault: '#fafafa',
+    backgroundPaper: '#ffffff',
+    textPrimary: '#171717',
+    textSecondary: '#737373',
+    divider: 'rgba(23, 23, 23, 0.1)',
+    radius: 2,
+    spacingBase: 4,
+  }),
+  palettegen: buildTheme({
+    mode: 'light',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    primary: '#7c3aed',
+    secondary: '#ec4899',
+    backgroundDefault: '#fafafa',
+    backgroundPaper: '#ffffff',
+    textPrimary: '#1e293b',
+    textSecondary: '#64748b',
+    divider: 'rgba(30, 41, 59, 0.1)',
+    radius: 12,
+    spacingBase: 4,
+  }),
+  scrapboard: buildTheme({
+    mode: 'light',
+    fontFamily: "'Nunito', system-ui, sans-serif",
+    primary: '#333333',
+    secondary: '#f4d03f',
+    backgroundDefault: '#f5f5f0',
+    backgroundPaper: '#fffef8',
+    textPrimary: '#333333',
+    textSecondary: '#666666',
+    divider: 'rgba(51, 51, 51, 0.15)',
+    radius: 4,
+    spacingBase: 4,
+  }),
+  muscle: buildTheme({
+    mode: 'light',
+    fontFamily: "'Roboto', system-ui, sans-serif",
+    primary: '#2563eb',
+    secondary: '#d4a017',
+    backgroundDefault: '#f5f0e8',
+    backgroundPaper: '#fffef9',
+    textPrimary: '#1a2744',
+    textSecondary: '#5c6478',
+    divider: 'rgba(26, 39, 68, 0.14)',
+    radius: 8,
+    spacingBase: 4,
+    readable: true,
+  }),
+  encore: createTheme(
+    buildTheme({
+      mode: 'light',
+      ...MUSIC_LIGHT_DEFAULT,
+      fontFamily: "'Inter', 'SF Pro Text', 'Roboto', system-ui, -apple-system, sans-serif",
+      primary: '#ad1fbf',
+      secondary: '#7c3aed',
+      backgroundDefault: '#fbf7fb',
+      backgroundPaper: '#ffffff',
+      textPrimary: '#4c1d95',
+      textSecondary: '#5b6675',
+      divider: 'rgba(76, 29, 149, 0.04)',
+      radius: 12,
+      spacingBase: 5,
+      readable: true,
+      materialPolish: true,
+    }),
+    {
+      components: {
+        /** Tall dialogs no longer clip off the top of the viewport: scroll inside paper + max height. */
+        MuiDialog: {
+          defaultProps: {
+            keepMounted: true,
+            scroll: 'paper',
+          },
+          styleOverrides: {
+            paper: ({ theme }: { theme: Theme }) => ({
+              maxHeight: `calc(100dvh - ${theme.spacing(2)} - ${theme.spacing(2)} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`,
+              margin: theme.spacing(2),
+              display: 'flex',
+              flexDirection: 'column',
+            }),
+          },
+        },
+        MuiDialogTitle: {
+          styleOverrides: {
+            root: { flexShrink: 0 },
+          },
+        },
+        MuiDialogContent: {
+          styleOverrides: {
+            root: {
+              flex: '1 1 auto',
+              minHeight: 0,
+              overflowY: 'auto',
+            },
+          },
+        },
+        MuiDialogActions: {
+          styleOverrides: {
+            root: { flexShrink: 0 },
+          },
+        },
+        MuiChip: {
+          styleOverrides: {
+            icon: {
+              fontSize: 18,
+            },
+          },
+        },
+        /** Floating menus, popovers, and hover-card tooltips share `--labs-popover-*` on `.encore-app-shell`. */
+        MuiMenu: {
+          defaultProps: {
+            disableScrollLock: true,
+            elevation: 0,
+          },
+          styleOverrides: {
+            paper: {
+              backgroundImage: 'none',
+              backgroundColor: 'var(--labs-popover-bg, #ffffff)',
+              border: 'var(--labs-popover-border, 1px solid rgba(124, 58, 237, 0.14))',
+              boxShadow: 'var(--labs-popover-shadow, 0 12px 28px rgba(76, 29, 149, 0.1))',
+              borderRadius: 'var(--labs-popover-radius, 12px)',
+              backdropFilter: 'var(--labs-popover-backdrop, blur(4px))',
+            },
+          },
+        },
+        MuiPopover: {
+          defaultProps: {
+            disableScrollLock: true,
+            elevation: 0,
+          },
+          styleOverrides: {
+            paper: {
+              backgroundImage: 'none',
+              backgroundColor: 'var(--labs-popover-bg, #ffffff)',
+              border: 'var(--labs-popover-border, 1px solid rgba(124, 58, 237, 0.14))',
+              boxShadow: 'var(--labs-popover-shadow, 0 12px 28px rgba(76, 29, 149, 0.1))',
+              borderRadius: 'var(--labs-popover-radius, 12px)',
+              backdropFilter: 'var(--labs-popover-backdrop, blur(4px))',
+            },
+          },
+        },
+        MuiTooltip: {
+          styleOverrides: {
+            tooltip: {
+              backgroundImage: 'none',
+              backgroundColor: 'var(--labs-popover-bg, #ffffff)',
+              color: 'var(--labs-popover-fg, inherit)',
+              border: 'var(--labs-popover-border, 1px solid rgba(124, 58, 237, 0.14))',
+              boxShadow: 'var(--labs-popover-shadow, 0 12px 28px rgba(76, 29, 149, 0.1))',
+              borderRadius: 'var(--labs-popover-radius, 12px)',
+              backdropFilter: 'var(--labs-popover-backdrop, blur(4px))',
+            },
+          },
+        },
+        MuiAppBar: {
+          styleOverrides: {
+            root: {
+              backdropFilter: 'saturate(180%) blur(20px)',
+              WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+              borderRadius: 0,
+              border: 'none',
+              boxShadow: 'none',
+            },
+          },
+        },
+      },
+    },
+  ),
+};
+
+export function getAppTheme(app: AppThemeId): Theme {
+  return THEMES[app];
+}

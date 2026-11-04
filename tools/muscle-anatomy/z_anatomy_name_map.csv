@@ -1,0 +1,211 @@
+z_anatomy_name,node_id,region
+Frontal bone,bone_skull,fundamentals
+Occipital bone,bone_skull,fundamentals
+Parietal bone.r,bone_skull,fundamentals
+Body of sternum,bone_sternum,fundamentals
+Hip bone.r,bone_pelvis,fundamentals
+Humerus.r,bone_humerus,fundamentals
+Radius.r,bone_radius,fundamentals
+Ulna.r,bone_ulna,fundamentals
+Femur.r,bone_femur,fundamentals
+Tibia.r,bone_tibia,fundamentals
+Articular capsule of glenohumeral joint.r,joint_shoulder,fundamentals
+Articular capsule of elbow.r,joint_elbow,fundamentals
+1st rib.r,bone_ribcage,torso
+2d rib.r,bone_ribcage,torso
+3rd rib.r,bone_ribcage,torso
+4th rib.r,bone_ribcage,torso
+5th rib.r,bone_ribcage,torso
+6th rib.r,bone_ribcage,torso
+7th rib.r,bone_ribcage,torso
+8th rib.r,bone_ribcage,torso
+9th rib.r,bone_ribcage,torso
+10th rib.r,bone_ribcage,torso
+11th rib.r,bone_ribcage,torso
+12th rib.r,bone_ribcage,torso
+1st costal cartilage.r,bone_ribcage,torso
+2d costal cartilage.r,bone_ribcage,torso
+3d costal cartilage.r,bone_ribcage,torso
+4th costal cartilage.r,bone_ribcage,torso
+5th costal cartilage.r,bone_ribcage,torso
+6th costal cartilage.r,bone_ribcage,torso
+7th costal cartilage.r,bone_ribcage,torso
+Rectus abdominis muscle.r,muscle_rectus_abdominis,torso
+External abdominal oblique.r,muscle_external_oblique,torso
+Serratus anterior muscle.r,muscle_serratus_anterior,torso
+Latissimus dorsi muscle.r,muscle_latissimus_dorsi,torso
+Longissimus thoracis muscle.r,muscle_erector_spinae,torso
+Clavicular head of pectoralis major muscle.r,muscle_pectoralis_major,torso
+Sternocostal head of pectoralis major muscle.r,muscle_pectoralis_major,torso
+Abdominal part of pectoralis major muscle.r,muscle_pectoralis_major,torso
+Clavicle.r,bone_clavicle,shoulder_neck
+Scapula.r,bone_scapula,shoulder_neck
+Clavicular part of deltoid muscle.r,muscle_deltoid_anterior,shoulder_neck
+Acromial part of deltoid muscle.r,muscle_deltoid_lateral,shoulder_neck
+Scapular part of deltoid uscle.r,muscle_deltoid_posterior,shoulder_neck
+Ascending part of trapezius muscle.r,muscle_trapezius_upper,shoulder_neck
+Descending part of trapezius muscle.r,muscle_trapezius_upper,shoulder_neck
+Transverse part of trapezius muscle.r,muscle_trapezius_upper,shoulder_neck
+Sternocleidomastoid muscle.r,muscle_sternocleidomastoid,shoulder_neck
+Articular capsule of sternoclavicular joint*.r,joint_sternoclavicular,shoulder_neck
+Short head of biceps brachii.r,muscle_biceps_brachii,arm
+Brachialis muscle.r,muscle_brachialis,arm
+Brachioradialis muscle.r,muscle_brachioradialis,arm
+Extensor carpi radialis longus.r,muscle_extensor_carpi_radialis,arm
+Flexor carpi radialis.r,muscle_flexor_carpi_radialis,arm
+1st metacarpal bone.r,bone_metacarpals,hand
+2d metacarpal bone.r,bone_metacarpals,hand
+3d metacarpal bone.r,bone_metacarpals,hand
+4th metacarpal bone.r,bone_metacarpals,hand
+5th metacarpal bone.r,bone_metacarpals,hand
+Thenar eminence.r,muscle_thenar_eminence,hand
+Hypothenar eminence.r,muscle_hypothenar_eminence,hand
+Flexor digitorum superficialis.r,muscle_flexor_digitorum_superficialis,hand
+Extensor digitorum.r,muscle_extensor_digitorum,hand
+Patella.r,bone_patella,leg
+Rectus femoris muscle.r,muscle_quadriceps_rectus_femoris,leg
+Rectus femoris muscle-Iliac insertion.r,muscle_quadriceps_rectus_femoris,leg
+Vastus lateralis muscle.r,muscle_vastus_lateralis,leg
+Long head of biceps femoris muscle.r,muscle_hamstrings_biceps_femoris,leg
+Short head of biceps femoris muscle.r,muscle_hamstrings_biceps_femoris,leg
+Short head of biceps femoris on lateral lip of linea aspera.r,muscle_hamstrings_biceps_femoris,leg
+Medial head of gastrocnemius.r,muscle_gastrocnemius,leg
+Lateral head of gastrocnemius.r,muscle_gastrocnemius,leg
+Tibialis anterior muscle.r,muscle_tibialis_anterior,leg
+Calcaneus.r,bone_calcaneus,foot
+Talus.r,bone_talus,foot
+1st metatarsal bone.r,bone_metatarsals,foot
+2d metatarsal bone.r,bone_metatarsals,foot
+3rd metatarsal bone.r,bone_metatarsals,foot
+4th metatarsal bone.r,bone_metatarsals,foot
+5th metatarsal bone.r,bone_metatarsals,foot
+Abductor hallucis.r,muscle_abductor_hallucis,foot
+Extensor digitorum brevis.r,muscle_extensor_digitorum_brevis,foot
+Gluteus maximus muscle.r,muscle_gluteus_maximus,atlas_supplement
+Gluteus maximus ending on gluteal surface.r,muscle_gluteus_maximus,atlas_supplement
+Gluteus maximus muscle-Iliac insertion.r,muscle_gluteus_maximus,atlas_supplement
+Gluteus medius muscle.r,muscle_gluteus_medius,atlas_supplement
+Gluteus medius muscle-Iliac insertion.r,muscle_gluteus_medius,atlas_supplement
+Gluteus minimus muscle.r,muscle_gluteus_minimus,atlas_supplement
+Gluteus minimus muscle-Iliac insertion.r,muscle_gluteus_minimus,atlas_supplement
+Inferior gemellus muscle.r,muscle_gemellus_inferior,atlas_supplement
+Inferior gemellus muscle-Ischiatic insertion.r,muscle_gemellus_inferior,atlas_supplement
+Superior gemellus muscle.r,muscle_gemellus_superior,atlas_supplement
+Superior gemellus muscle-Ischiatic insertion.r,muscle_gemellus_superior,atlas_supplement
+Obturator internus.r,muscle_obturator_internus,atlas_supplement
+Quadratus femoris muscle.r,muscle_quadratus_femoris,atlas_supplement
+Quadratus femoris-Ischiatic insertion.r,muscle_quadratus_femoris,atlas_supplement
+Quadratus femoris ending on quadrate tubercle.r,muscle_quadratus_femoris,atlas_supplement
+Piriformis muscle.r,muscle_piriformis,atlas_supplement
+Iliacus muscle.r,muscle_iliacus,atlas_supplement
+Vastus intermedius muscle.r,muscle_vastus_intermedius,atlas_supplement
+Soleus muscle.r,muscle_soleus,atlas_supplement
+Vastus medialis muscle.r,muscle_vastus_medialis,atlas_supplement
+Gracilis muscle.r,muscle_gracilis,atlas_supplement
+Adductor longus.r,muscle_adductor_longus,atlas_supplement
+Adductor longus on medial surface of femur.r,muscle_adductor_longus,atlas_supplement
+Semitendinosus muscle.r,muscle_semitendinosus,atlas_supplement
+Semitendinosus muscle-Isciatic insertion.r,muscle_semitendinosus,atlas_supplement
+Semitendinosus on 'patte d'oie'.r,muscle_semitendinosus,atlas_supplement
+Semimembranosus muscle.r,muscle_semimembranosus,atlas_supplement
+Semimembranosus muscle-Ischiatic insertion.r,muscle_semimembranosus,atlas_supplement
+Semimembranosus on posterior surf. of med. condyle.r,muscle_semimembranosus,atlas_supplement
+Sartorius muscle.r,muscle_sartorius,atlas_supplement
+Tensor fasciae latae.r,muscle_tensor_fasciae_latae,atlas_supplement
+Teres major muscle.r,muscle_teres_major,atlas_supplement
+Infraspinatus muscle.r,muscle_infraspinatus,atlas_supplement
+Supraspinatus muscle.r,muscle_supraspinatus,atlas_supplement
+Teres minor muscle.r,muscle_teres_minor,atlas_supplement
+Subscapular muscle.r,muscle_subscapularis,atlas_supplement
+Rhomboid major muscle.r,muscle_rhomboid_major,atlas_supplement
+Splenius capitis muscle.r,muscle_splenius_capitis,atlas_supplement
+Omohyoid muscle.r,muscle_omohyoid,atlas_supplement
+Fibularis longus.r,muscle_peroneus_longus,foot
+Mandible,bone_mandible,atlas_head_face
+Maxilla.r,bone_maxilla,atlas_head_face
+Nasal bone.r,bone_nasal,atlas_head_face
+Zygomatic bone.r,bone_zygomatic,atlas_head_face
+Hyoid bone,bone_hyoid,atlas_head_face
+Frontalis.r,muscle_frontalis,atlas_head_face
+Superficial part of masseter.r,muscle_masseter,atlas_head_face
+Deep part of masseter.r,muscle_masseter,atlas_head_face
+Temporalis muscle.r,muscle_temporalis,atlas_head_face
+Platysma.r,muscle_platysma,atlas_head_face
+Zygomaticus major muscle.r,muscle_zygomaticus_major,atlas_head_face
+Zygomaticus minor muscle.r,muscle_zygomaticus_minor,atlas_head_face
+Orbicularis oris,muscle_orbicularis_oris,atlas_head_face
+Palpebral part of orbicularis oculi.r,muscle_orbicularis_oculi,atlas_head_face
+Orbital part of orbicularis oculi.r,muscle_orbicularis_oculi,atlas_head_face
+Mentalis muscle.r,muscle_mentalis,atlas_head_face
+Nasalis muscle.r,muscle_nasalis,atlas_head_face
+Depressor anguli oris.r,muscle_depressor_anguli_oris,atlas_head_face
+Levator labii superioris.r,muscle_levator_labii_superioris,atlas_head_face
+Risorius.r,muscle_risorius,atlas_head_face
+Bucinator.r,muscle_bucinator,atlas_head_face
+Corrugator supercilii.r,muscle_corrugator_supercilii,atlas_head_face
+Depressor labii superioris.r,muscle_depressor_labii_superioris,atlas_head_face
+Depressor septi nasi.r,muscle_depressor_septi_nasi,atlas_head_face
+Levator anguli oris.r,muscle_levator_anguli_oris,atlas_head_face
+Levator nasolabialis.r,muscle_levator_nasolabialis,atlas_head_face
+Procerus.r,muscle_procerus,atlas_head_face
+Long head of biceps brachii.r,muscle_biceps_brachii,arm
+Long head of biceps brachii muscle.r,muscle_triceps_long_head,arm
+Lateral head of triceps brachii muscle.r,muscle_triceps_lateral_head,arm
+Medial head of biceps brachii muscle.r,muscle_triceps_medial_head,arm
+Articular capsule of wrist.r,joint_wrist,arm
+Iliocostalis lumborum muscle.r,muscle_erector_spinae,torso
+Iliocostalis thoracis muscle.r,muscle_erector_spinae,torso
+Spinalis thoracis muscle.r,muscle_erector_spinae,torso
+Manubrium,bone_sternum,fundamentals
+Xiphoid process,bone_sternum,fundamentals
+Scaphoid bone.r,bone_carpals,hand
+Lunate bone.r,bone_carpals,hand
+Triquetrum bone.r,bone_carpals,hand
+Pisiform bone.r,bone_carpals,hand
+Trapezium bone.r,bone_carpals,hand
+Trapezoid bone.r,bone_carpals,hand
+Capitate bone.r,bone_carpals,hand
+Hamate bone.r,bone_carpals,hand
+Proximal phalanx of 1st finger.r,bone_phalanges_hand,hand
+Proximal phalanx of 2d finger.r,bone_phalanges_hand,hand
+Middle phalanx of 2d finger.r,bone_phalanges_hand,hand
+Proximal phalanx of 3rd finger.r,bone_phalanges_hand,hand
+Middle phalanx of 3rd finger.r,bone_phalanges_hand,hand
+Proximal phalanx of 4th finger.r,bone_phalanges_hand,hand
+Middle phalanx of 4th finger.r,bone_phalanges_hand,hand
+Proximal phalanx of 5th finger.r,bone_phalanges_hand,hand
+Middle phalanx of 5th finger.r,bone_phalanges_hand,hand
+Distal phalanx of 1st finger.r,bone_phalanges_hand,hand
+Distal phalanx of 2d finger.r,bone_phalanges_hand,hand
+Distal phalanx of 3d finger.r,bone_phalanges_hand,hand
+Distal phalanx of 4th finger.r,bone_phalanges_hand,hand
+Distal phalanx of 5th finger.r,bone_phalanges_hand,hand
+Superficial head of flexor pollicis brevis.r,muscle_flexor_pollicis_brevis,hand
+Deep head of flexor pollicis brevis.r,muscle_flexor_pollicis_brevis,hand
+Lumbricals muscles of hand.r,muscle_lumbricals_hand,hand
+Dorsal interosseus muscles of 1st metacarpal bone.r,muscle_dorsal_interossei_hand,hand
+Dorsal interosseus muscles of 2d metacarpal bone.r,muscle_dorsal_interossei_hand,hand
+Dorsal interosseus muscles d 3d metacarpal bone.r,muscle_dorsal_interossei_hand,hand
+Dorsal interosseus muscles of 4th metacarpal bone.r,muscle_dorsal_interossei_hand,hand
+Dorsal interosseus musclesof 5th metacarpal bone.r,muscle_dorsal_interossei_hand,hand
+Navicular bone.r,bone_tarsals,foot
+Cuboid bone.r,bone_tarsals,foot
+Medial cuneiform bone.r,bone_tarsals,foot
+Intermediate cuneiform bone.r,bone_tarsals,foot
+Lateral cuneiform bone.r,bone_tarsals,foot
+Proximal phalanx of 1st finger of foot.r,bone_phalanges_foot,foot
+Proximal phalanx of 2d finger of foot.r,bone_phalanges_foot,foot
+Middle phalanx of 2d finger of foot.r,bone_phalanges_foot,foot
+Proximal phalanx of 3rd finger of foot.r,bone_phalanges_foot,foot
+Middle phalanx of 3rd finger of foot.r,bone_phalanges_foot,foot
+Proximal phalanx of 4th finger of foot.r,bone_phalanges_foot,foot
+Middle phalanx of 4th finger of foot.r,bone_phalanges_foot,foot
+Proximal phalanx of 5th finger of foot.r,bone_phalanges_foot,foot
+Middle phalanx of 5th finger of foot.r,bone_phalanges_foot,foot
+Distal phalanx of 1st finger of foot.r,bone_phalanges_foot,foot
+Distal phalanx of 2d finger of foot.r,bone_phalanges_foot,foot
+Distal phalanx of 3rd finger of foot.r,bone_phalanges_foot,foot
+Distal phalanx of 4th finger of foot.r,bone_phalanges_foot,foot
+Distal phalanx of 5th finger of foot.r,bone_phalanges_foot,foot
+Flexor digitorum brevis.r,muscle_flexor_digitorum_brevis,foot
+Lumbrical muscles of foot.r,muscle_lumbricals_foot,foot

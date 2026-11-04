@@ -1,0 +1,91 @@
+import { useMemo } from 'react';
+import {
+  countVisibleNodesForView,
+  LAYER_PEEL_STOPS,
+  layerPeelDepthLabel,
+  type LayerPeelDepth,
+} from '../../layerDepthView';
+import { useMuscleStore } from '../../store/useMuscleStore';
+
+type LayerDepthControlProps = {
+  /** Sidebar shows stop buttons; canvas overlay is slider-only. */
+  variant?: 'panel' | 'canvas';
+};
+
+export default function LayerDepthControl({ variant = 'panel' }: LayerDepthControlProps) {
+  const bodyView = useMuscleStore((s) => s.bodyView);
+  const activeModuleId = useMuscleStore((s) => s.activeModuleId);
+  const layerPeelDepth = useMuscleStore((s) => s.layerPeelDepth);
+  const setLayerPeelDepth = useMuscleStore((s) => s.setLayerPeelDepth);
+
+  const visibleNodeCount = useMemo(
+    () => countVisibleNodesForView(bodyView, activeModuleId, layerPeelDepth),
+    [activeModuleId, bodyView, layerPeelDepth],
+  );
+
+  const statusLabel = `${layerPeelDepthLabel(layerPeelDepth)} · ${visibleNodeCount} visible`;
+
+  return (
+    <div
+      className={`muscle-layer-peel${variant === 'canvas' ? ' muscle-layer-peel--canvas' : ''}`}
+      aria-label="Anatomy layer depth"
+    >
+      <div className="muscle-layer-peel__header">
+        <span className="muscle-layer-peel__label" id="muscle-layer-peel-label">
+          Depth
+        </span>
+        <span
+          className="muscle-layer-peel__count"
+          data-testid={variant === 'canvas' ? 'muscle-layer-status' : undefined}
+          title={statusLabel}
+        >
+          {statusLabel}
+        </span>
+      </div>
+      <div className="muscle-layer-peel__slider-wrap">
+        <input
+          type="range"
+          className="muscle-layer-peel__slider"
+          min={0}
+          max={LAYER_PEEL_STOPS.length - 1}
+          step={1}
+          value={layerPeelDepth}
+          aria-labelledby="muscle-layer-peel-label"
+          aria-valuetext={statusLabel}
+          onChange={(event) => setLayerPeelDepth(Number(event.target.value) as LayerPeelDepth)}
+        />
+        {variant === 'panel' ? (
+          <div className="muscle-layer-peel__notches" aria-hidden>
+            {LAYER_PEEL_STOPS.map((stop) => (
+              <span
+                key={stop.depth}
+                className={`muscle-layer-peel__notch${layerPeelDepth === stop.depth ? ' is-active' : ''}`}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {variant === 'panel' ? (
+        <div className="muscle-layer-peel__stops" role="radiogroup" aria-labelledby="muscle-layer-peel-label">
+          {LAYER_PEEL_STOPS.map((stop) => {
+            const active = layerPeelDepth === stop.depth;
+            return (
+              <button
+                key={stop.depth}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                title={stop.hint}
+                className={`muscle-layer-peel__stop${active ? ' is-active' : ''}`}
+                onClick={() => setLayerPeelDepth(stop.depth)}
+              >
+                <span className="muscle-layer-peel__stop-label">{stop.label}</span>
+                <span className="muscle-layer-peel__stop-hint">{stop.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}

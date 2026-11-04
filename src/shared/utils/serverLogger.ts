@@ -1,0 +1,226 @@
+/**
+ * Server Logger - Sends console logs to Vite dev server terminal
+ * Shared utility for all micro-apps in the labs project
+ */
+import { isLabsDebugEnabled } from './readLabsDebugParams';
+
+/** Debounce before first batched POST; coalesces bursty logs without resetting on every line. */
+const SERVER_LOG_FLUSH_DEBOUNCE_MS = 900;
+/** Max entries per POST body so dev middleware and browser payloads stay small. */
+const SERVER_LOG_MAX_BATCH = 32;
+/** Pause between chained POSTs when the queue still has more than one batch. */
+const SERVER_LOG_CHAIN_GAP_MS = 280;
+/** Short follow-up debounce if new lines arrive while a flush is finishing. */
+const SERVER_LOG_TAIL_DEBOUNCE_MS = 220;
+
+class ServerLogger {
+  private static instance: ServerLogger;
+  private isEnabled = false;
+  private appName: string;
+  private logQueue: Array<{ level: string; message: string; data?: unknown; timestamp: string }> = [];
+  private flushTimer: number | null = null;
+  private isFlushing = false;
+  private handlingError = false; // Prevent recursive error handling
+
+  static getInstance(appName: string = 'APP'): ServerLogger {
+    if (!ServerLogger.instance) {
+      ServerLogger.instance = new ServerLogger(appName);
+    }
+    return ServerLogger.instance;
+  }
+
+  constructor(appName: string = 'APP') {
+    this.appName = appName.toUpperCase();
+    
+    // Enable in dev mode only, and skip entirely during E2E runs
+    this.isEnabled = import.meta.env.DEV;
+
+    // Allow enabling for tests via environment variable
+    if (import.meta.env.VITEST) {
+      this.isEnabled = true;
+    }
+
+    if (typeof window !== 'undefined') {
+      // Playwright/E2E hint set via addInitScript in tests
+      const isE2E = Boolean((window as unknown as { __E2E__?: boolean }).__E2E__);
+      if (isE2E) {
+        this.isEnabled = false;
+      }
+    }
+
+    if (this.isEnabled && typeof window !== 'undefined') {
+      // Global error hooks to capture uncaught exceptions and unhandled rejections
+      window.addEventListener('error', (e: ErrorEvent) => {
+        if (this.handlingError || !this.isEnabled) return;
+        this.handlingError = true;
+        try {
+          this.error('early window.onerror', {
+            message: e.message,
+            filename: e.filename,
+            lineno: e.lineno,
+            colno: e.colno,
+            stack: e.error?.stack || String(e.error)
+          });
+        } catch {
+          // ignore
+        } finally {
+          this.handlingError = false;
+        }
+      });
+      window.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+        if (this.handlingError || !this.isEnabled) return;
+        this.handlingError = true;
+        try {
+          this.error('early unhandledrejection', {
+            reason: (e.reason && (e.reason.stack || e.reason.message)) || String(e.reason)
+          });
+        } catch {
+          // ignore
+        } finally {
+          this.handlingError = false;
+        }
+      });
+
+      // Don't proxy console methods - they create too much spam
+      // Only capture explicit errors and critical logs
+      // The original console methods remain unchanged
+    }
+  }
+
+  /** Errors/warnings always stream in dev; info/debug only when `?debug` or `?dev` is on. */
+  private shouldSendLevelToServer(level: string): boolean {
+    if (level === 'error' || level === 'warn') return true;
+    if (typeof window === 'undefined') return false;
+    return isLabsDebugEnabled(window.location.search);
+  }
+
+  private async sendToServer(level: string, message: string, data?: unknown) {
+    if (!this.isEnabled || this.handlingError) return;
+    if (!this.shouldSendLevelToServer(level)) return;
+
+    // Add to queue instead of sending immediately (prevent memory leak from too many requests)
+    const logData = {
+      timestamp: new Date().toISOString(),
+      app: this.appName,
+      level,
+      message,
+      data: data ? JSON.stringify(data, null, 2) : undefined
+    };
+
+    this.logQueue.push(logData);
+
+    // Limit queue size to prevent memory buildup
+    if (this.logQueue.length > 100) {
+      this.logQueue.shift(); // Remove oldest log
+    }
+
+    if (!this.flushTimer && !this.isFlushing) {
+      this.flushTimer = window.setTimeout(() => {
+        void this.flushLogs();
+      }, SERVER_LOG_FLUSH_DEBOUNCE_MS);
+    }
+  }
+
+  private async flushLogs() {
+    if (!this.isEnabled || this.logQueue.length === 0) {
+      this.flushTimer = null;
+      return;
+    }
+    if (this.isFlushing) return;
+
+    this.flushTimer = null;
+    this.isFlushing = true;
+    try {
+      let chained = false;
+      while (this.logQueue.length > 0 && this.isEnabled) {
+        if (chained) {
+          await new Promise<void>((resolve) => {
+            globalThis.setTimeout(resolve, SERVER_LOG_CHAIN_GAP_MS);
+          });
+        }
+        chained = true;
+        const logsToSend = this.logQueue.splice(0, SERVER_LOG_MAX_BATCH);
+        if (logsToSend.length === 0) break;
+
+        try {
+          const response = await fetch('/__debug_log', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ logs: logsToSend }),
+          });
+
+          if (response.status === 404) {
+            console.warn('[ServerLogger] Debug endpoint not available, disabling server logging');
+            this.isEnabled = false;
+            this.logQueue.length = 0;
+            break;
+          }
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            console.warn('[ServerLogger] Debug endpoint unreachable, disabling server logging');
+            this.isEnabled = false;
+            this.logQueue.length = 0;
+            break;
+          }
+        }
+      }
+    } finally {
+      this.isFlushing = false;
+      if (this.logQueue.length > 0 && this.isEnabled && !this.flushTimer) {
+        this.flushTimer = window.setTimeout(() => {
+          void this.flushLogs();
+        }, SERVER_LOG_TAIL_DEBOUNCE_MS);
+      }
+    }
+  }
+
+  log(message: string, data?: unknown) {
+    this.sendToServer('info', message, data);
+  }
+
+  error(message: string, data?: unknown) {
+    this.sendToServer('error', message, data);
+  }
+
+  debug(message: string, data?: unknown) {
+    this.sendToServer('debug', message, data);
+  }
+
+  warn(message: string, data?: unknown) {
+    this.sendToServer('warn', message, data);
+  }
+}
+
+/**
+ * Install server logging and error handling for a micro-app
+ * Call this BEFORE importing any other app modules to capture import-time errors
+ */
+export function installServerLogger(appName: string) {
+  const serverLogger = ServerLogger.getInstance(appName);
+
+  // Note: Error handlers are already set up in the ServerLogger constructor
+  // No need to duplicate them here
+
+  return serverLogger;
+}
+
+// Test helper to reset singleton (only for testing)
+export function resetServerLoggerForTesting() {
+  // @ts-expect-error - accessing private static property for testing
+  const inst = ServerLogger.instance as Record<string, unknown> | undefined;
+  if (inst) {
+    const timer = inst.flushTimer;
+    if (typeof timer === 'number') {
+      clearTimeout(timer);
+      inst.flushTimer = null;
+    }
+    const queue = inst.logQueue;
+    if (Array.isArray(queue)) {
+      queue.length = 0;
+    }
+  }
+  // @ts-expect-error - accessing private static property for testing
+  ServerLogger.instance = undefined;
+}

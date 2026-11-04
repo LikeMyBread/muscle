@@ -1,0 +1,3539 @@
+{
+  "version": 1,
+  "regions": {
+    "fundamentals": {
+      "region": "fundamentals",
+      "glbUrl": "/muscle/models/fundamentals.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_skull",
+          "meshName": "bone_skull",
+          "triangleCount": 20728
+        },
+        {
+          "nodeId": "bone_sternum",
+          "meshName": "bone_sternum",
+          "triangleCount": 8030
+        },
+        {
+          "nodeId": "bone_pelvis",
+          "meshName": "bone_pelvis",
+          "triangleCount": 3517
+        },
+        {
+          "nodeId": "bone_humerus",
+          "meshName": "bone_humerus",
+          "triangleCount": 4280
+        },
+        {
+          "nodeId": "bone_radius",
+          "meshName": "bone_radius",
+          "triangleCount": 719
+        },
+        {
+          "nodeId": "bone_ulna",
+          "meshName": "bone_ulna",
+          "triangleCount": 875
+        },
+        {
+          "nodeId": "bone_femur",
+          "meshName": "bone_femur",
+          "triangleCount": 3774
+        },
+        {
+          "nodeId": "bone_tibia",
+          "meshName": "bone_tibia",
+          "triangleCount": 1595
+        },
+        {
+          "nodeId": "joint_shoulder",
+          "meshName": "joint_shoulder",
+          "triangleCount": 185
+        },
+        {
+          "nodeId": "joint_elbow",
+          "meshName": "joint_elbow",
+          "triangleCount": 388
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "torso": {
+      "region": "torso",
+      "glbUrl": "/muscle/models/torso.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_ribcage",
+          "meshName": "bone_ribcage",
+          "triangleCount": 14915
+        },
+        {
+          "nodeId": "muscle_rectus_abdominis",
+          "meshName": "muscle_rectus_abdominis",
+          "triangleCount": 8242
+        },
+        {
+          "nodeId": "muscle_external_oblique",
+          "meshName": "muscle_external_oblique",
+          "triangleCount": 15934
+        },
+        {
+          "nodeId": "muscle_serratus_anterior",
+          "meshName": "muscle_serratus_anterior",
+          "triangleCount": 10096
+        },
+        {
+          "nodeId": "muscle_latissimus_dorsi",
+          "meshName": "muscle_latissimus_dorsi",
+          "triangleCount": 7700
+        },
+        {
+          "nodeId": "muscle_erector_spinae",
+          "meshName": "muscle_erector_spinae",
+          "triangleCount": 11144
+        },
+        {
+          "nodeId": "muscle_pectoralis_major",
+          "meshName": "muscle_pectoralis_major",
+          "triangleCount": 9584
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "shoulder_neck": {
+      "region": "shoulder_neck",
+      "glbUrl": "/muscle/models/shoulder_neck.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_clavicle",
+          "meshName": "bone_clavicle",
+          "triangleCount": 1548
+        },
+        {
+          "nodeId": "bone_scapula",
+          "meshName": "bone_scapula",
+          "triangleCount": 5064
+        },
+        {
+          "nodeId": "muscle_deltoid_anterior",
+          "meshName": "muscle_deltoid_anterior",
+          "triangleCount": 5806
+        },
+        {
+          "nodeId": "muscle_deltoid_lateral",
+          "meshName": "muscle_deltoid_lateral",
+          "triangleCount": 5925
+        },
+        {
+          "nodeId": "muscle_deltoid_posterior",
+          "meshName": "muscle_deltoid_posterior",
+          "triangleCount": 8756
+        },
+        {
+          "nodeId": "muscle_trapezius_upper",
+          "meshName": "muscle_trapezius_upper",
+          "triangleCount": 5740
+        },
+        {
+          "nodeId": "muscle_sternocleidomastoid",
+          "meshName": "muscle_sternocleidomastoid",
+          "triangleCount": 9905
+        },
+        {
+          "nodeId": "joint_sternoclavicular",
+          "meshName": "joint_sternoclavicular",
+          "triangleCount": 14
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "arm": {
+      "region": "arm",
+      "glbUrl": "/muscle/models/arm.glb",
+      "meshes": [
+        {
+          "nodeId": "muscle_biceps_brachii",
+          "meshName": "muscle_biceps_brachii",
+          "triangleCount": 11830
+        },
+        {
+          "nodeId": "muscle_brachialis",
+          "meshName": "muscle_brachialis",
+          "triangleCount": 6954
+        },
+        {
+          "nodeId": "muscle_brachioradialis",
+          "meshName": "muscle_brachioradialis",
+          "triangleCount": 14623
+        },
+        {
+          "nodeId": "muscle_extensor_carpi_radialis",
+          "meshName": "muscle_extensor_carpi_radialis",
+          "triangleCount": 7414
+        },
+        {
+          "nodeId": "muscle_flexor_carpi_radialis",
+          "meshName": "muscle_flexor_carpi_radialis",
+          "triangleCount": 3334
+        },
+        {
+          "nodeId": "muscle_triceps_long_head",
+          "meshName": "muscle_triceps_long_head",
+          "triangleCount": 7902
+        },
+        {
+          "nodeId": "muscle_triceps_lateral_head",
+          "meshName": "muscle_triceps_lateral_head",
+          "triangleCount": 7258
+        },
+        {
+          "nodeId": "muscle_triceps_medial_head",
+          "meshName": "muscle_triceps_medial_head",
+          "triangleCount": 5372
+        },
+        {
+          "nodeId": "joint_wrist",
+          "meshName": "joint_wrist",
+          "triangleCount": 170
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "hand": {
+      "region": "hand",
+      "glbUrl": "/muscle/models/hand.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_metacarpals",
+          "meshName": "bone_metacarpals",
+          "triangleCount": 3290
+        },
+        {
+          "nodeId": "muscle_thenar_eminence",
+          "meshName": "muscle_thenar_eminence",
+          "triangleCount": 652
+        },
+        {
+          "nodeId": "muscle_hypothenar_eminence",
+          "meshName": "muscle_hypothenar_eminence",
+          "triangleCount": 405
+        },
+        {
+          "nodeId": "muscle_flexor_digitorum_superficialis",
+          "meshName": "muscle_flexor_digitorum_superficialis",
+          "triangleCount": 5118
+        },
+        {
+          "nodeId": "muscle_extensor_digitorum",
+          "meshName": "muscle_extensor_digitorum",
+          "triangleCount": 12820
+        },
+        {
+          "nodeId": "bone_carpals",
+          "meshName": "bone_carpals",
+          "triangleCount": 3060
+        },
+        {
+          "nodeId": "bone_phalanges_hand",
+          "meshName": "bone_phalanges_hand",
+          "triangleCount": 4508
+        },
+        {
+          "nodeId": "muscle_flexor_pollicis_brevis",
+          "meshName": "muscle_flexor_pollicis_brevis",
+          "triangleCount": 2044
+        },
+        {
+          "nodeId": "muscle_lumbricals_hand",
+          "meshName": "muscle_lumbricals_hand",
+          "triangleCount": 2736
+        },
+        {
+          "nodeId": "muscle_dorsal_interossei_hand",
+          "meshName": "muscle_dorsal_interossei_hand",
+          "triangleCount": 205
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "leg": {
+      "region": "leg",
+      "glbUrl": "/muscle/models/leg.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_patella",
+          "meshName": "bone_patella",
+          "triangleCount": 274
+        },
+        {
+          "nodeId": "muscle_quadriceps_rectus_femoris",
+          "meshName": "muscle_quadriceps_rectus_femoris",
+          "triangleCount": 16552
+        },
+        {
+          "nodeId": "muscle_vastus_lateralis",
+          "meshName": "muscle_vastus_lateralis",
+          "triangleCount": 18711
+        },
+        {
+          "nodeId": "muscle_hamstrings_biceps_femoris",
+          "meshName": "muscle_hamstrings_biceps_femoris",
+          "triangleCount": 14516
+        },
+        {
+          "nodeId": "muscle_gastrocnemius",
+          "meshName": "muscle_gastrocnemius",
+          "triangleCount": 22742
+        },
+        {
+          "nodeId": "muscle_tibialis_anterior",
+          "meshName": "muscle_tibialis_anterior",
+          "triangleCount": 7054
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "foot": {
+      "region": "foot",
+      "glbUrl": "/muscle/models/foot.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_calcaneus",
+          "meshName": "bone_calcaneus",
+          "triangleCount": 1398
+        },
+        {
+          "nodeId": "bone_talus",
+          "meshName": "bone_talus",
+          "triangleCount": 1288
+        },
+        {
+          "nodeId": "bone_metatarsals",
+          "meshName": "bone_metatarsals",
+          "triangleCount": 4122
+        },
+        {
+          "nodeId": "muscle_abductor_hallucis",
+          "meshName": "muscle_abductor_hallucis",
+          "triangleCount": 3378
+        },
+        {
+          "nodeId": "muscle_extensor_digitorum_brevis",
+          "meshName": "muscle_extensor_digitorum_brevis",
+          "triangleCount": 6370
+        },
+        {
+          "nodeId": "muscle_peroneus_longus",
+          "meshName": "muscle_peroneus_longus",
+          "triangleCount": 11045
+        },
+        {
+          "nodeId": "bone_tarsals",
+          "meshName": "bone_tarsals",
+          "triangleCount": 3730
+        },
+        {
+          "nodeId": "bone_phalanges_foot",
+          "meshName": "bone_phalanges_foot",
+          "triangleCount": 5196
+        },
+        {
+          "nodeId": "muscle_flexor_digitorum_brevis",
+          "meshName": "muscle_flexor_digitorum_brevis",
+          "triangleCount": 6448
+        },
+        {
+          "nodeId": "muscle_lumbricals_foot",
+          "meshName": "muscle_lumbricals_foot",
+          "triangleCount": 836
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "atlas_supplement": {
+      "region": "atlas_supplement",
+      "glbUrl": "/muscle/models/atlas_supplement.glb",
+      "meshes": [
+        {
+          "nodeId": "muscle_gluteus_maximus",
+          "meshName": "muscle_gluteus_maximus",
+          "triangleCount": 5565
+        },
+        {
+          "nodeId": "muscle_gluteus_medius",
+          "meshName": "muscle_gluteus_medius",
+          "triangleCount": 5737
+        },
+        {
+          "nodeId": "muscle_gluteus_minimus",
+          "meshName": "muscle_gluteus_minimus",
+          "triangleCount": 5687
+        },
+        {
+          "nodeId": "muscle_gemellus_inferior",
+          "meshName": "muscle_gemellus_inferior",
+          "triangleCount": 1975
+        },
+        {
+          "nodeId": "muscle_gemellus_superior",
+          "meshName": "muscle_gemellus_superior",
+          "triangleCount": 849
+        },
+        {
+          "nodeId": "muscle_obturator_internus",
+          "meshName": "muscle_obturator_internus",
+          "triangleCount": 5056
+        },
+        {
+          "nodeId": "muscle_quadratus_femoris",
+          "meshName": "muscle_quadratus_femoris",
+          "triangleCount": 3360
+        },
+        {
+          "nodeId": "muscle_piriformis",
+          "meshName": "muscle_piriformis",
+          "triangleCount": 3000
+        },
+        {
+          "nodeId": "muscle_iliacus",
+          "meshName": "muscle_iliacus",
+          "triangleCount": 5854
+        },
+        {
+          "nodeId": "muscle_vastus_intermedius",
+          "meshName": "muscle_vastus_intermedius",
+          "triangleCount": 5572
+        },
+        {
+          "nodeId": "muscle_soleus",
+          "meshName": "muscle_soleus",
+          "triangleCount": 5020
+        },
+        {
+          "nodeId": "muscle_vastus_medialis",
+          "meshName": "muscle_vastus_medialis",
+          "triangleCount": 5840
+        },
+        {
+          "nodeId": "muscle_gracilis",
+          "meshName": "muscle_gracilis",
+          "triangleCount": 5302
+        },
+        {
+          "nodeId": "muscle_adductor_longus",
+          "meshName": "muscle_adductor_longus",
+          "triangleCount": 5012
+        },
+        {
+          "nodeId": "muscle_semitendinosus",
+          "meshName": "muscle_semitendinosus",
+          "triangleCount": 5853
+        },
+        {
+          "nodeId": "muscle_semimembranosus",
+          "meshName": "muscle_semimembranosus",
+          "triangleCount": 5533
+        },
+        {
+          "nodeId": "muscle_sartorius",
+          "meshName": "muscle_sartorius",
+          "triangleCount": 5474
+        },
+        {
+          "nodeId": "muscle_tensor_fasciae_latae",
+          "meshName": "muscle_tensor_fasciae_latae",
+          "triangleCount": 3724
+        },
+        {
+          "nodeId": "muscle_teres_major",
+          "meshName": "muscle_teres_major",
+          "triangleCount": 2308
+        },
+        {
+          "nodeId": "muscle_infraspinatus",
+          "meshName": "muscle_infraspinatus",
+          "triangleCount": 5192
+        },
+        {
+          "nodeId": "muscle_supraspinatus",
+          "meshName": "muscle_supraspinatus",
+          "triangleCount": 2860
+        },
+        {
+          "nodeId": "muscle_teres_minor",
+          "meshName": "muscle_teres_minor",
+          "triangleCount": 3044
+        },
+        {
+          "nodeId": "muscle_subscapularis",
+          "meshName": "muscle_subscapularis",
+          "triangleCount": 4846
+        },
+        {
+          "nodeId": "muscle_rhomboid_major",
+          "meshName": "muscle_rhomboid_major",
+          "triangleCount": 5290
+        },
+        {
+          "nodeId": "muscle_splenius_capitis",
+          "meshName": "muscle_splenius_capitis",
+          "triangleCount": 5800
+        },
+        {
+          "nodeId": "muscle_omohyoid",
+          "meshName": "muscle_omohyoid",
+          "triangleCount": 5414
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "atlas_head_face": {
+      "region": "atlas_head_face",
+      "glbUrl": "/muscle/models/atlas_head_face.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_mandible",
+          "meshName": "bone_mandible",
+          "triangleCount": 2148
+        },
+        {
+          "nodeId": "bone_maxilla",
+          "meshName": "bone_maxilla",
+          "triangleCount": 4768
+        },
+        {
+          "nodeId": "bone_nasal",
+          "meshName": "bone_nasal",
+          "triangleCount": 292
+        },
+        {
+          "nodeId": "bone_zygomatic",
+          "meshName": "bone_zygomatic",
+          "triangleCount": 1322
+        },
+        {
+          "nodeId": "bone_hyoid",
+          "meshName": "bone_hyoid",
+          "triangleCount": 1310
+        },
+        {
+          "nodeId": "muscle_frontalis",
+          "meshName": "muscle_frontalis",
+          "triangleCount": 11748
+        },
+        {
+          "nodeId": "muscle_masseter",
+          "meshName": "muscle_masseter",
+          "triangleCount": 4790
+        },
+        {
+          "nodeId": "muscle_temporalis",
+          "meshName": "muscle_temporalis",
+          "triangleCount": 20518
+        },
+        {
+          "nodeId": "muscle_platysma",
+          "meshName": "muscle_platysma",
+          "triangleCount": 13094
+        },
+        {
+          "nodeId": "muscle_zygomaticus_major",
+          "meshName": "muscle_zygomaticus_major",
+          "triangleCount": 1596
+        },
+        {
+          "nodeId": "muscle_zygomaticus_minor",
+          "meshName": "muscle_zygomaticus_minor",
+          "triangleCount": 866
+        },
+        {
+          "nodeId": "muscle_orbicularis_oris",
+          "meshName": "muscle_orbicularis_oris",
+          "triangleCount": 3760
+        },
+        {
+          "nodeId": "muscle_orbicularis_oculi",
+          "meshName": "muscle_orbicularis_oculi",
+          "triangleCount": 6439
+        },
+        {
+          "nodeId": "muscle_mentalis",
+          "meshName": "muscle_mentalis",
+          "triangleCount": 331
+        },
+        {
+          "nodeId": "muscle_nasalis",
+          "meshName": "muscle_nasalis",
+          "triangleCount": 1407
+        },
+        {
+          "nodeId": "muscle_depressor_anguli_oris",
+          "meshName": "muscle_depressor_anguli_oris",
+          "triangleCount": 1190
+        },
+        {
+          "nodeId": "muscle_levator_labii_superioris",
+          "meshName": "muscle_levator_labii_superioris",
+          "triangleCount": 1078
+        },
+        {
+          "nodeId": "muscle_risorius",
+          "meshName": "muscle_risorius",
+          "triangleCount": 1185
+        },
+        {
+          "nodeId": "muscle_bucinator",
+          "meshName": "muscle_bucinator",
+          "triangleCount": 1770
+        },
+        {
+          "nodeId": "muscle_corrugator_supercilii",
+          "meshName": "muscle_corrugator_supercilii",
+          "triangleCount": 556
+        },
+        {
+          "nodeId": "muscle_depressor_labii_superioris",
+          "meshName": "muscle_depressor_labii_superioris",
+          "triangleCount": 1664
+        },
+        {
+          "nodeId": "muscle_depressor_septi_nasi",
+          "meshName": "muscle_depressor_septi_nasi",
+          "triangleCount": 554
+        },
+        {
+          "nodeId": "muscle_levator_anguli_oris",
+          "meshName": "muscle_levator_anguli_oris",
+          "triangleCount": 662
+        },
+        {
+          "nodeId": "muscle_levator_nasolabialis",
+          "meshName": "muscle_levator_nasolabialis",
+          "triangleCount": 343
+        },
+        {
+          "nodeId": "muscle_procerus",
+          "meshName": "muscle_procerus",
+          "triangleCount": 1089
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    },
+    "atlas_complete": {
+      "region": "atlas_complete",
+      "glbUrl": "/muscle/models/atlas_complete.glb",
+      "meshes": [
+        {
+          "nodeId": "bone_skull",
+          "meshName": "bone_skull",
+          "triangleCount": 1282,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_sternum",
+          "meshName": "bone_sternum",
+          "triangleCount": 3312,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_pelvis",
+          "meshName": "bone_pelvis",
+          "triangleCount": 1492,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_humerus",
+          "meshName": "bone_humerus",
+          "triangleCount": 1766,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_radius",
+          "meshName": "bone_radius",
+          "triangleCount": 322,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_ulna",
+          "meshName": "bone_ulna",
+          "triangleCount": 372,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_femur",
+          "meshName": "bone_femur",
+          "triangleCount": 1556,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_tibia",
+          "meshName": "bone_tibia",
+          "triangleCount": 678,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_ribcage",
+          "meshName": "bone_ribcage",
+          "triangleCount": 4126,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_rectus_abdominis",
+          "meshName": "muscle_rectus_abdominis",
+          "triangleCount": 2550,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_external_oblique",
+          "meshName": "muscle_external_oblique",
+          "triangleCount": 4126,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_serratus_anterior",
+          "meshName": "muscle_serratus_anterior",
+          "triangleCount": 3124,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_latissimus_dorsi",
+          "meshName": "muscle_latissimus_dorsi",
+          "triangleCount": 3176,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_erector_spinae",
+          "meshName": "muscle_erector_spinae",
+          "triangleCount": 3446,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_pectoralis_major",
+          "meshName": "muscle_pectoralis_major",
+          "triangleCount": 3979,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_clavicle",
+          "meshName": "bone_clavicle",
+          "triangleCount": 638,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_scapula",
+          "meshName": "bone_scapula",
+          "triangleCount": 1566,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_deltoid_anterior",
+          "meshName": "muscle_deltoid_anterior",
+          "triangleCount": 2394,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_deltoid_lateral",
+          "meshName": "muscle_deltoid_lateral",
+          "triangleCount": 2445,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_deltoid_posterior",
+          "meshName": "muscle_deltoid_posterior",
+          "triangleCount": 3612,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_trapezius_upper",
+          "meshName": "muscle_trapezius_upper",
+          "triangleCount": 1774,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_sternocleidomastoid",
+          "meshName": "muscle_sternocleidomastoid",
+          "triangleCount": 4086,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_biceps_brachii",
+          "meshName": "muscle_biceps_brachii",
+          "triangleCount": 732,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_brachialis",
+          "meshName": "muscle_brachialis",
+          "triangleCount": 2870,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_brachioradialis",
+          "meshName": "muscle_brachioradialis",
+          "triangleCount": 904,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_extensor_carpi_radialis",
+          "meshName": "muscle_extensor_carpi_radialis",
+          "triangleCount": 3057,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_flexor_carpi_radialis",
+          "meshName": "muscle_flexor_carpi_radialis",
+          "triangleCount": 1374,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_metacarpals",
+          "meshName": "bone_metacarpals",
+          "triangleCount": 1356,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_flexor_digitorum_superficialis",
+          "meshName": "muscle_flexor_digitorum_superficialis",
+          "triangleCount": 1582,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_extensor_digitorum",
+          "meshName": "muscle_extensor_digitorum",
+          "triangleCount": 792,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_patella",
+          "meshName": "bone_patella",
+          "triangleCount": 112,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_quadriceps_rectus_femoris",
+          "meshName": "muscle_quadriceps_rectus_femoris",
+          "triangleCount": 1025,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_vastus_lateralis",
+          "meshName": "muscle_vastus_lateralis",
+          "triangleCount": 1156,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_hamstrings_biceps_femoris",
+          "meshName": "muscle_hamstrings_biceps_femoris",
+          "triangleCount": 1204,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gastrocnemius",
+          "meshName": "muscle_gastrocnemius",
+          "triangleCount": 1404,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_tibialis_anterior",
+          "meshName": "muscle_tibialis_anterior",
+          "triangleCount": 2910,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_calcaneus",
+          "meshName": "bone_calcaneus",
+          "triangleCount": 584,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_talus",
+          "meshName": "bone_talus",
+          "triangleCount": 530,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_metatarsals",
+          "meshName": "bone_metatarsals",
+          "triangleCount": 1742,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_abductor_hallucis",
+          "meshName": "muscle_abductor_hallucis",
+          "triangleCount": 1391,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_extensor_digitorum_brevis",
+          "meshName": "muscle_extensor_digitorum_brevis",
+          "triangleCount": 2628,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gluteus_maximus",
+          "meshName": "muscle_gluteus_maximus",
+          "triangleCount": 2800,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gluteus_medius",
+          "meshName": "muscle_gluteus_medius",
+          "triangleCount": 641,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gluteus_minimus",
+          "meshName": "muscle_gluteus_minimus",
+          "triangleCount": 776,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gemellus_inferior",
+          "meshName": "muscle_gemellus_inferior",
+          "triangleCount": 814,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gemellus_superior",
+          "meshName": "muscle_gemellus_superior",
+          "triangleCount": 349,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_obturator_internus",
+          "meshName": "muscle_obturator_internus",
+          "triangleCount": 3102,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_quadratus_femoris",
+          "meshName": "muscle_quadratus_femoris",
+          "triangleCount": 1387,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_piriformis",
+          "meshName": "muscle_piriformis",
+          "triangleCount": 1235,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_iliacus",
+          "meshName": "muscle_iliacus",
+          "triangleCount": 3592,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_vastus_intermedius",
+          "meshName": "muscle_vastus_intermedius",
+          "triangleCount": 762,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_soleus",
+          "meshName": "muscle_soleus",
+          "triangleCount": 838,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_vastus_medialis",
+          "meshName": "muscle_vastus_medialis",
+          "triangleCount": 798,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_gracilis",
+          "meshName": "muscle_gracilis",
+          "triangleCount": 3970,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_adductor_longus",
+          "meshName": "muscle_adductor_longus",
+          "triangleCount": 3076,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_semitendinosus",
+          "meshName": "muscle_semitendinosus",
+          "triangleCount": 3592,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_semimembranosus",
+          "meshName": "muscle_semimembranosus",
+          "triangleCount": 921,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_sartorius",
+          "meshName": "muscle_sartorius",
+          "triangleCount": 4098,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_tensor_fasciae_latae",
+          "meshName": "muscle_tensor_fasciae_latae",
+          "triangleCount": 1536,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_teres_major",
+          "meshName": "muscle_teres_major",
+          "triangleCount": 952,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_infraspinatus",
+          "meshName": "muscle_infraspinatus",
+          "triangleCount": 2612,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_supraspinatus",
+          "meshName": "muscle_supraspinatus",
+          "triangleCount": 1180,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_teres_minor",
+          "meshName": "muscle_teres_minor",
+          "triangleCount": 1256,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_subscapularis",
+          "meshName": "muscle_subscapularis",
+          "triangleCount": 2438,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_rhomboid_major",
+          "meshName": "muscle_rhomboid_major",
+          "triangleCount": 3960,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_splenius_capitis",
+          "meshName": "muscle_splenius_capitis",
+          "triangleCount": 650,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_omohyoid",
+          "meshName": "muscle_omohyoid",
+          "triangleCount": 2234,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_peroneus_longus",
+          "meshName": "muscle_peroneus_longus",
+          "triangleCount": 682,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_mandible",
+          "meshName": "bone_mandible",
+          "triangleCount": 886,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_maxilla",
+          "meshName": "bone_maxilla",
+          "triangleCount": 1966,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_nasal",
+          "meshName": "bone_nasal",
+          "triangleCount": 120,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_zygomatic",
+          "meshName": "bone_zygomatic",
+          "triangleCount": 544,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_hyoid",
+          "meshName": "bone_hyoid",
+          "triangleCount": 545,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_frontalis",
+          "meshName": "muscle_frontalis",
+          "triangleCount": 726,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_masseter",
+          "meshName": "muscle_masseter",
+          "triangleCount": 1977,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_temporalis",
+          "meshName": "muscle_temporalis",
+          "triangleCount": 1268,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_platysma",
+          "meshName": "muscle_platysma",
+          "triangleCount": 810,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_zygomaticus_major",
+          "meshName": "muscle_zygomaticus_major",
+          "triangleCount": 658,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_zygomaticus_minor",
+          "meshName": "muscle_zygomaticus_minor",
+          "triangleCount": 356,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_orbicularis_oris",
+          "meshName": "muscle_orbicularis_oris",
+          "triangleCount": 1550,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_orbicularis_oculi",
+          "meshName": "muscle_orbicularis_oculi",
+          "triangleCount": 2658,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_mentalis",
+          "meshName": "muscle_mentalis",
+          "triangleCount": 136,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_nasalis",
+          "meshName": "muscle_nasalis",
+          "triangleCount": 580,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_depressor_anguli_oris",
+          "meshName": "muscle_depressor_anguli_oris",
+          "triangleCount": 490,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_levator_labii_superioris",
+          "meshName": "muscle_levator_labii_superioris",
+          "triangleCount": 444,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_risorius",
+          "meshName": "muscle_risorius",
+          "triangleCount": 488,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_bucinator",
+          "meshName": "muscle_bucinator",
+          "triangleCount": 730,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_corrugator_supercilii",
+          "meshName": "muscle_corrugator_supercilii",
+          "triangleCount": 228,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_depressor_labii_superioris",
+          "meshName": "muscle_depressor_labii_superioris",
+          "triangleCount": 686,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_depressor_septi_nasi",
+          "meshName": "muscle_depressor_septi_nasi",
+          "triangleCount": 228,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_levator_anguli_oris",
+          "meshName": "muscle_levator_anguli_oris",
+          "triangleCount": 272,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_levator_nasolabialis",
+          "meshName": "muscle_levator_nasolabialis",
+          "triangleCount": 140,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_procerus",
+          "meshName": "muscle_procerus",
+          "triangleCount": 449,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_triceps_long_head",
+          "meshName": "muscle_triceps_long_head",
+          "triangleCount": 3260,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_triceps_lateral_head",
+          "meshName": "muscle_triceps_lateral_head",
+          "triangleCount": 2994,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_triceps_medial_head",
+          "meshName": "muscle_triceps_medial_head",
+          "triangleCount": 2216,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_carpals",
+          "meshName": "bone_carpals",
+          "triangleCount": 1262,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_phalanges_hand",
+          "meshName": "bone_phalanges_hand",
+          "triangleCount": 1860,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_flexor_pollicis_brevis",
+          "meshName": "muscle_flexor_pollicis_brevis",
+          "triangleCount": 843,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_lumbricals_hand",
+          "meshName": "muscle_lumbricals_hand",
+          "triangleCount": 1128,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_dorsal_interossei_hand",
+          "meshName": "muscle_dorsal_interossei_hand",
+          "triangleCount": 83,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "bone_tarsals",
+          "meshName": "bone_tarsals",
+          "triangleCount": 1550,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "bone_phalanges_foot",
+          "meshName": "bone_phalanges_foot",
+          "triangleCount": 2214,
+          "atlasKind": "bone"
+        },
+        {
+          "nodeId": "muscle_flexor_digitorum_brevis",
+          "meshName": "muscle_flexor_digitorum_brevis",
+          "triangleCount": 2660,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "muscle_lumbricals_foot",
+          "meshName": "muscle_lumbricals_foot",
+          "triangleCount": 344,
+          "atlasKind": "muscle"
+        },
+        {
+          "nodeId": "atlas_abductor_digiti_minimi_of_foot_r_b4068044",
+          "meshName": "atlas_abductor_digiti_minimi_of_foot_r_b4068044",
+          "triangleCount": 1056,
+          "atlasKind": "muscle",
+          "displayName": "Abductor digiti minimi of foot.r"
+        },
+        {
+          "nodeId": "atlas_abductor_digiti_minimi_r_84af0e15",
+          "meshName": "atlas_abductor_digiti_minimi_r_84af0e15",
+          "triangleCount": 554,
+          "atlasKind": "muscle",
+          "displayName": "Abductor digiti minimi.r"
+        },
+        {
+          "nodeId": "atlas_abductor_hallucis_on_medial_process__cce19eb1",
+          "meshName": "atlas_abductor_hallucis_on_medial_process__cce19eb1",
+          "triangleCount": 14,
+          "atlasKind": "muscle",
+          "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.001"
+        },
+        {
+          "nodeId": "atlas_abductor_hallucis_on_medial_process__546add5e",
+          "meshName": "atlas_abductor_hallucis_on_medial_process__546add5e",
+          "triangleCount": 32,
+          "atlasKind": "muscle",
+          "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.002"
+        },
+        {
+          "nodeId": "atlas_abductor_hallucis_on_medial_process__0a26498e",
+          "meshName": "atlas_abductor_hallucis_on_medial_process__0a26498e",
+          "triangleCount": 32,
+          "atlasKind": "muscle",
+          "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.r"
+        },
+        {
+          "nodeId": "atlas_abductor_pollicis_brevis_r_8386f8e0",
+          "meshName": "atlas_abductor_pollicis_brevis_r_8386f8e0",
+          "triangleCount": 514,
+          "atlasKind": "muscle",
+          "displayName": "Abductor pollicis brevis.r"
+        },
+        {
+          "nodeId": "atlas_abductor_pollicis_longus_radioulnar__68ab100b",
+          "meshName": "atlas_abductor_pollicis_longus_radioulnar__68ab100b",
+          "triangleCount": 110,
+          "atlasKind": "muscle",
+          "displayName": "Abductor pollicis longus-Radioulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_acromial_head_of_deltoid_muscle_scap_18d4e450",
+          "meshName": "atlas_acromial_head_of_deltoid_muscle_scap_18d4e450",
+          "triangleCount": 210,
+          "atlasKind": "muscle",
+          "displayName": "Acromial head of deltoid muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_adductor_brevis_r_850d5b06",
+          "meshName": "atlas_adductor_brevis_r_850d5b06",
+          "triangleCount": 1758,
+          "atlasKind": "muscle",
+          "displayName": "Adductor brevis.r"
+        },
+        {
+          "nodeId": "atlas_adductor_longus_pubic_insertion_r_3d05294d",
+          "meshName": "atlas_adductor_longus_pubic_insertion_r_3d05294d",
+          "triangleCount": 13,
+          "atlasKind": "muscle",
+          "displayName": "Adductor longus-Pubic insertion.r"
+        },
+        {
+          "nodeId": "atlas_adductor_magnus_on_medial_lip_of_lin_03f3f255",
+          "meshName": "atlas_adductor_magnus_on_medial_lip_of_lin_03f3f255",
+          "triangleCount": 106,
+          "atlasKind": "muscle",
+          "displayName": "Adductor magnus on medial lip of linea aspera.r"
+        },
+        {
+          "nodeId": "atlas_adductor_magnus_ischiatic_insertion__638c2fdf",
+          "meshName": "atlas_adductor_magnus_ischiatic_insertion__638c2fdf",
+          "triangleCount": 43,
+          "atlasKind": "muscle",
+          "displayName": "Adductor magnus-Ischiatic insertion.r"
+        },
+        {
+          "nodeId": "atlas_adductor_magnus_r_1839bfc2",
+          "meshName": "atlas_adductor_magnus_r_1839bfc2",
+          "triangleCount": 1012,
+          "atlasKind": "muscle",
+          "displayName": "Adductor magnus.r"
+        },
+        {
+          "nodeId": "atlas_adductor_minimus_r_a205dd44",
+          "meshName": "atlas_adductor_minimus_r_a205dd44",
+          "triangleCount": 782,
+          "atlasKind": "muscle",
+          "displayName": "Adductor minimus.r"
+        },
+        {
+          "nodeId": "atlas_adductor_pollicis_brevis_ending_r_f73b386a",
+          "meshName": "atlas_adductor_pollicis_brevis_ending_r_f73b386a",
+          "triangleCount": 30,
+          "atlasKind": "muscle",
+          "displayName": "Adductor pollicis brevis-Ending.r"
+        },
+        {
+          "nodeId": "atlas_adductor_pollicis_longus_r_8bed6af8",
+          "meshName": "atlas_adductor_pollicis_longus_r_8bed6af8",
+          "triangleCount": 2030,
+          "atlasKind": "muscle",
+          "displayName": "Adductor pollicis longus.r"
+        },
+        {
+          "nodeId": "atlas_anconeus_muscle_humeral_insertion_r_241c9c19",
+          "meshName": "atlas_anconeus_muscle_humeral_insertion_r_241c9c19",
+          "triangleCount": 31,
+          "atlasKind": "muscle",
+          "displayName": "Anconeus muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_anconeus_muscle_ulnar_insertion_r_92b0e819",
+          "meshName": "atlas_anconeus_muscle_ulnar_insertion_r_92b0e819",
+          "triangleCount": 24,
+          "atlasKind": "muscle",
+          "displayName": "Anconeus muscle-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_anconeus_muscle_r_357c2d66",
+          "meshName": "atlas_anconeus_muscle_r_357c2d66",
+          "triangleCount": 1190,
+          "atlasKind": "muscle",
+          "displayName": "Anconeus muscle.r"
+        },
+        {
+          "nodeId": "atlas_anterior_belly_of_digastric_muscle_r_ceb7dc2c",
+          "meshName": "atlas_anterior_belly_of_digastric_muscle_r_ceb7dc2c",
+          "triangleCount": 322,
+          "atlasKind": "muscle",
+          "displayName": "Anterior belly of digastric muscle.r"
+        },
+        {
+          "nodeId": "atlas_ascending_part_of_trapezius_muscle_a_24ed9b10",
+          "meshName": "atlas_ascending_part_of_trapezius_muscle_a_24ed9b10",
+          "triangleCount": 87,
+          "atlasKind": "muscle",
+          "displayName": "Ascending part of trapezius muscle-Acromial insertion.r"
+        },
+        {
+          "nodeId": "atlas_ascending_part_of_trapezius_muscle_c_b5761ded",
+          "meshName": "atlas_ascending_part_of_trapezius_muscle_c_b5761ded",
+          "triangleCount": 61,
+          "atlasKind": "muscle",
+          "displayName": "Ascending part of trapezius muscle-Clavicular insertion.r"
+        },
+        {
+          "nodeId": "atlas_ascending_part_of_trapezius_muscle_s_7fbfcfe8",
+          "meshName": "atlas_ascending_part_of_trapezius_muscle_s_7fbfcfe8",
+          "triangleCount": 101,
+          "atlasKind": "muscle",
+          "displayName": "Ascending part of trapezius muscle-Spinal insertion.r"
+        },
+        {
+          "nodeId": "atlas_biceps_brachii_muscle_radial_inserti_5a9942a5",
+          "meshName": "atlas_biceps_brachii_muscle_radial_inserti_5a9942a5",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Biceps brachii muscle-Radial insertion.r"
+        },
+        {
+          "nodeId": "atlas_brachialis_anterior_muscle_humeral_i_5bacb069",
+          "meshName": "atlas_brachialis_anterior_muscle_humeral_i_5bacb069",
+          "triangleCount": 79,
+          "atlasKind": "muscle",
+          "displayName": "Brachialis anterior muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98",
+          "meshName": "atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98",
+          "triangleCount": 67,
+          "atlasKind": "muscle",
+          "displayName": "Brachialis muscle-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_bracioradialis_muscle_humeral_insert_03bc4dad",
+          "meshName": "atlas_bracioradialis_muscle_humeral_insert_03bc4dad",
+          "triangleCount": 30,
+          "atlasKind": "muscle",
+          "displayName": "Bracioradialis muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_c1_28c27031",
+          "meshName": "atlas_c1_28c27031",
+          "triangleCount": 890,
+          "atlasKind": "bone",
+          "displayName": "C1"
+        },
+        {
+          "nodeId": "atlas_c2_cb7d29f4",
+          "meshName": "atlas_c2_cb7d29f4",
+          "triangleCount": 976,
+          "atlasKind": "bone",
+          "displayName": "C2"
+        },
+        {
+          "nodeId": "atlas_c3_0371438f",
+          "meshName": "atlas_c3_0371438f",
+          "triangleCount": 816,
+          "atlasKind": "bone",
+          "displayName": "C3"
+        },
+        {
+          "nodeId": "atlas_c4_aaa025b3",
+          "meshName": "atlas_c4_aaa025b3",
+          "triangleCount": 716,
+          "atlasKind": "bone",
+          "displayName": "C4"
+        },
+        {
+          "nodeId": "atlas_c5_fbeff728",
+          "meshName": "atlas_c5_fbeff728",
+          "triangleCount": 865,
+          "atlasKind": "bone",
+          "displayName": "C5"
+        },
+        {
+          "nodeId": "atlas_c6_742fbe77",
+          "meshName": "atlas_c6_742fbe77",
+          "triangleCount": 910,
+          "atlasKind": "bone",
+          "displayName": "C6"
+        },
+        {
+          "nodeId": "atlas_c7_a838e585",
+          "meshName": "atlas_c7_a838e585",
+          "triangleCount": 788,
+          "atlasKind": "bone",
+          "displayName": "C7"
+        },
+        {
+          "nodeId": "atlas_clavicular_part_of_deltoid_muscle_cl_5b15cb2b",
+          "meshName": "atlas_clavicular_part_of_deltoid_muscle_cl_5b15cb2b",
+          "triangleCount": 51,
+          "atlasKind": "muscle",
+          "displayName": "Clavicular part of deltoid muscle-Clavicular insertion.r"
+        },
+        {
+          "nodeId": "atlas_coccygeus_muscle_r_c7b9df83",
+          "meshName": "atlas_coccygeus_muscle_r_c7b9df83",
+          "triangleCount": 854,
+          "atlasKind": "muscle",
+          "displayName": "Coccygeus muscle.r"
+        },
+        {
+          "nodeId": "atlas_coracobrachialis_muscle_r_72c7cf3f",
+          "meshName": "atlas_coracobrachialis_muscle_r_72c7cf3f",
+          "triangleCount": 958,
+          "atlasKind": "muscle",
+          "displayName": "Coracobrachialis muscle.r"
+        },
+        {
+          "nodeId": "atlas_coracoradialis_muscle_humeral_insert_29c7e833",
+          "meshName": "atlas_coracoradialis_muscle_humeral_insert_29c7e833",
+          "triangleCount": 28,
+          "atlasKind": "muscle",
+          "displayName": "Coracoradialis muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_deep_head_of_flexor_pollicis_brevis__ba2ee757",
+          "meshName": "atlas_deep_head_of_flexor_pollicis_brevis__ba2ee757",
+          "triangleCount": 31,
+          "atlasKind": "muscle",
+          "displayName": "Deep head of flexor pollicis brevis on 1st metacarpal bone"
+        },
+        {
+          "nodeId": "atlas_deep_head_of_flexor_pollicis_brevis__cab92951",
+          "meshName": "atlas_deep_head_of_flexor_pollicis_brevis__cab92951",
+          "triangleCount": 31,
+          "atlasKind": "muscle",
+          "displayName": "Deep head of flexor pollicis brevis on 1st metacarpal bone.001"
+        },
+        {
+          "nodeId": "atlas_deep_head_of_flexor_pollicis_brevis__1db8d6a1",
+          "meshName": "atlas_deep_head_of_flexor_pollicis_brevis__1db8d6a1",
+          "triangleCount": 64,
+          "atlasKind": "muscle",
+          "displayName": "Deep head of flexor pollicis brevis on tubercle of trapeziu"
+        },
+        {
+          "nodeId": "atlas_deep_head_of_flexor_pollicis_brevis__a3e3e1a8",
+          "meshName": "atlas_deep_head_of_flexor_pollicis_brevis__a3e3e1a8",
+          "triangleCount": 64,
+          "atlasKind": "muscle",
+          "displayName": "Deep head of flexor pollicis brevis on tubercle of trapezium"
+        },
+        {
+          "nodeId": "atlas_deep_head_of_prontaor_teres_muscle_r_5384bfe5",
+          "meshName": "atlas_deep_head_of_prontaor_teres_muscle_r_5384bfe5",
+          "triangleCount": 920,
+          "atlasKind": "muscle",
+          "displayName": "Deep head of prontaor teres muscle.r"
+        },
+        {
+          "nodeId": "atlas_deltoid_muscle_humeral_insertion_r_ed353102",
+          "meshName": "atlas_deltoid_muscle_humeral_insertion_r_ed353102",
+          "triangleCount": 35,
+          "atlasKind": "muscle",
+          "displayName": "Deltoid muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_diaphragm_19a78b66",
+          "meshName": "atlas_diaphragm_19a78b66",
+          "triangleCount": 2606,
+          "atlasKind": "muscle",
+          "displayName": "Diaphragm"
+        },
+        {
+          "nodeId": "atlas_dorsal_interossei_muscles_of_foot_r_406f82c4",
+          "meshName": "atlas_dorsal_interossei_muscles_of_foot_r_406f82c4",
+          "triangleCount": 1606,
+          "atlasKind": "muscle",
+          "displayName": "Dorsal interossei muscles of foot.r"
+        },
+        {
+          "nodeId": "atlas_dorsal_parts_of_lateral_intertransve_2a29fdec",
+          "meshName": "atlas_dorsal_parts_of_lateral_intertransve_2a29fdec",
+          "triangleCount": 594,
+          "atlasKind": "muscle",
+          "displayName": "Dorsal parts of lateral intertransversarii lumborum muscles.r"
+        },
+        {
+          "nodeId": "atlas_erector_spinae_muscles_iliac_inserti_bfc50f21",
+          "meshName": "atlas_erector_spinae_muscles_iliac_inserti_bfc50f21",
+          "triangleCount": 57,
+          "atlasKind": "muscle",
+          "displayName": "Erector spinae muscles-Iliac insertions.r"
+        },
+        {
+          "nodeId": "atlas_ethmoid_bone_e17c8931",
+          "meshName": "atlas_ethmoid_bone_e17c8931",
+          "triangleCount": 1820,
+          "atlasKind": "bone",
+          "displayName": "Ethmoid bone"
+        },
+        {
+          "nodeId": "atlas_extensor_carpi_radialis_brevis_r_d2f5b38c",
+          "meshName": "atlas_extensor_carpi_radialis_brevis_r_d2f5b38c",
+          "triangleCount": 2592,
+          "atlasKind": "muscle",
+          "displayName": "Extensor carpi radialis brevis.r"
+        },
+        {
+          "nodeId": "atlas_extensor_carpi_radialis_longus_muscl_fc86fba9",
+          "meshName": "atlas_extensor_carpi_radialis_longus_muscl_fc86fba9",
+          "triangleCount": 63,
+          "atlasKind": "muscle",
+          "displayName": "Extensor carpi radialis longus muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_extensor_carpi_ulnaris_ulnar_inserti_fa08eb53",
+          "meshName": "atlas_extensor_carpi_ulnaris_ulnar_inserti_fa08eb53",
+          "triangleCount": 9,
+          "atlasKind": "muscle",
+          "displayName": "Extensor carpi ulnaris-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_extensor_digiti_minimi_r_a77e7b69",
+          "meshName": "atlas_extensor_digiti_minimi_r_a77e7b69",
+          "triangleCount": 1774,
+          "atlasKind": "muscle",
+          "displayName": "Extensor digiti minimi.r"
+        },
+        {
+          "nodeId": "atlas_extensor_digitorum_longus_on_fibula__99eb4190",
+          "meshName": "atlas_extensor_digitorum_longus_on_fibula__99eb4190",
+          "triangleCount": 90,
+          "atlasKind": "muscle",
+          "displayName": "Extensor digitorum longus on fibula and interosseus membran"
+        },
+        {
+          "nodeId": "atlas_extensor_digitorum_longus_on_fibula__7151b144",
+          "meshName": "atlas_extensor_digitorum_longus_on_fibula__7151b144",
+          "triangleCount": 90,
+          "atlasKind": "muscle",
+          "displayName": "Extensor digitorum longus on fibula and interosseus membrane.r"
+        },
+        {
+          "nodeId": "atlas_extensor_digitorum_longus_on_lat_sur_7c00b851",
+          "meshName": "atlas_extensor_digitorum_longus_on_lat_sur_7c00b851",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Extensor digitorum longus on lat. surf of lat.condyle.r"
+        },
+        {
+          "nodeId": "atlas_extensor_digitorum_longus_r_cf20b7e2",
+          "meshName": "atlas_extensor_digitorum_longus_r_cf20b7e2",
+          "triangleCount": 736,
+          "atlasKind": "muscle",
+          "displayName": "Extensor digitorum longus.r"
+        },
+        {
+          "nodeId": "atlas_extensor_hallucis_brevis_on_dorsal_s_749b7bf3",
+          "meshName": "atlas_extensor_hallucis_brevis_on_dorsal_s_749b7bf3",
+          "triangleCount": 29,
+          "atlasKind": "muscle",
+          "displayName": "Extensor hallucis brevis on dorsal surface of calcaneus.r"
+        },
+        {
+          "nodeId": "atlas_extensor_hallucis_brevis_r_f9c5ce16",
+          "meshName": "atlas_extensor_hallucis_brevis_r_f9c5ce16",
+          "triangleCount": 922,
+          "atlasKind": "muscle",
+          "displayName": "Extensor hallucis brevis.r"
+        },
+        {
+          "nodeId": "atlas_extensor_hallucis_longus_on_fibula_a_8a375b0d",
+          "meshName": "atlas_extensor_hallucis_longus_on_fibula_a_8a375b0d",
+          "triangleCount": 141,
+          "atlasKind": "muscle",
+          "displayName": "Extensor hallucis longus on fibula and interosseus membrane.r"
+        },
+        {
+          "nodeId": "atlas_extensor_hallucis_longus_r_40a324dd",
+          "meshName": "atlas_extensor_hallucis_longus_r_40a324dd",
+          "triangleCount": 1950,
+          "atlasKind": "muscle",
+          "displayName": "Extensor hallucis longus.r"
+        },
+        {
+          "nodeId": "atlas_extensor_indicis_ulnar_insertion_r_809c9a2f",
+          "meshName": "atlas_extensor_indicis_ulnar_insertion_r_809c9a2f",
+          "triangleCount": 45,
+          "atlasKind": "muscle",
+          "displayName": "Extensor indicis-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_extensor_indicis_r_47985a2f",
+          "meshName": "atlas_extensor_indicis_r_47985a2f",
+          "triangleCount": 942,
+          "atlasKind": "muscle",
+          "displayName": "Extensor indicis.r"
+        },
+        {
+          "nodeId": "atlas_extensor_pollicis_brevis_ulnar_inser_9f5929e9",
+          "meshName": "atlas_extensor_pollicis_brevis_ulnar_inser_9f5929e9",
+          "triangleCount": 53,
+          "atlasKind": "muscle",
+          "displayName": "Extensor pollicis brevis-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_extensor_pollicis_brevis_r_622e7eb6",
+          "meshName": "atlas_extensor_pollicis_brevis_r_622e7eb6",
+          "triangleCount": 968,
+          "atlasKind": "muscle",
+          "displayName": "Extensor pollicis brevis.r"
+        },
+        {
+          "nodeId": "atlas_extensor_pollicis_longus_ulnar_inser_b6bb1afe",
+          "meshName": "atlas_extensor_pollicis_longus_ulnar_inser_b6bb1afe",
+          "triangleCount": 64,
+          "atlasKind": "muscle",
+          "displayName": "Extensor pollicis longus-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_extensor_pollicis_longus_r_b8f110d8",
+          "meshName": "atlas_extensor_pollicis_longus_r_b8f110d8",
+          "triangleCount": 1322,
+          "atlasKind": "muscle",
+          "displayName": "Extensor pollicis longus.r"
+        },
+        {
+          "nodeId": "atlas_external_abdominal_oblique_muscle_il_ef830ec5",
+          "meshName": "atlas_external_abdominal_oblique_muscle_il_ef830ec5",
+          "triangleCount": 49,
+          "atlasKind": "muscle",
+          "displayName": "External abdominal oblique muscle-Iliac insertion.r"
+        },
+        {
+          "nodeId": "atlas_external_anal_sphincter_r_91adc941",
+          "meshName": "atlas_external_anal_sphincter_r_91adc941",
+          "triangleCount": 166,
+          "atlasKind": "muscle",
+          "displayName": "External anal sphincter.r"
+        },
+        {
+          "nodeId": "atlas_external_intercostal_muscles_r_024e74c4",
+          "meshName": "atlas_external_intercostal_muscles_r_024e74c4",
+          "triangleCount": 3687,
+          "atlasKind": "muscle",
+          "displayName": "External intercostal muscles.r"
+        },
+        {
+          "nodeId": "atlas_fascia_lata_r_d92bb3d0",
+          "meshName": "atlas_fascia_lata_r_d92bb3d0",
+          "triangleCount": 3008,
+          "atlasKind": "muscle",
+          "displayName": "Fascia lata.r"
+        },
+        {
+          "nodeId": "atlas_fibula_r_a2845080",
+          "meshName": "atlas_fibula_r_a2845080",
+          "triangleCount": 514,
+          "atlasKind": "bone",
+          "displayName": "Fibula.r"
+        },
+        {
+          "nodeId": "atlas_fibularis_brevis_on_lateral_side_of__ac2e1f7c",
+          "meshName": "atlas_fibularis_brevis_on_lateral_side_of__ac2e1f7c",
+          "triangleCount": 56,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis brevis on lateral side of fibula.r"
+        },
+        {
+          "nodeId": "atlas_fibularis_brevis_r_67f770a1",
+          "meshName": "atlas_fibularis_brevis_r_67f770a1",
+          "triangleCount": 2844,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis brevis.r"
+        },
+        {
+          "nodeId": "atlas_fibularis_longus_on_lateral_side_of__4116fea4",
+          "meshName": "atlas_fibularis_longus_on_lateral_side_of__4116fea4",
+          "triangleCount": 91,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis longus on lateral side of fibula.r"
+        },
+        {
+          "nodeId": "atlas_fibularis_tertius_on_tuberosity_of_f_9b608e30",
+          "meshName": "atlas_fibularis_tertius_on_tuberosity_of_f_9b608e30",
+          "triangleCount": 24,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis tertius on tuberosity of fifth metatarsal bone.r"
+        },
+        {
+          "nodeId": "atlas_fibularis_tertius_origin_a1b2b09b",
+          "meshName": "atlas_fibularis_tertius_origin_a1b2b09b",
+          "triangleCount": 6,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis tertius-Origin"
+        },
+        {
+          "nodeId": "atlas_fibularis_tertius_origin_001_bcc13cf2",
+          "meshName": "atlas_fibularis_tertius_origin_001_bcc13cf2",
+          "triangleCount": 6,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis tertius-Origin.001"
+        },
+        {
+          "nodeId": "atlas_fibularis_tertius_r_065a33a8",
+          "meshName": "atlas_fibularis_tertius_r_065a33a8",
+          "triangleCount": 484,
+          "atlasKind": "muscle",
+          "displayName": "Fibularis tertius.r"
+        },
+        {
+          "nodeId": "atlas_flexor_carpi_ulnaris_insertion_r_74b61904",
+          "meshName": "atlas_flexor_carpi_ulnaris_insertion_r_74b61904",
+          "triangleCount": 56,
+          "atlasKind": "muscle",
+          "displayName": "Flexor carpi ulnaris-Insertion.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digiti_minimi_of_foot_on_5th__5db99b0b",
+          "meshName": "atlas_flexor_digiti_minimi_of_foot_on_5th__5db99b0b",
+          "triangleCount": 29,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digiti minimi of foot on 5th proximal phalanx.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digiti_minimi_of_foot_r_919aed68",
+          "meshName": "atlas_flexor_digiti_minimi_of_foot_r_919aed68",
+          "triangleCount": 382,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digiti minimi of foot.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digiti_minimi_of_hand_r_07586780",
+          "meshName": "atlas_flexor_digiti_minimi_of_hand_r_07586780",
+          "triangleCount": 254,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digiti minimi of hand.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_brevis_on_3d_medial_97cc2bab",
+          "meshName": "atlas_flexor_digitorum_brevis_on_3d_medial_97cc2bab",
+          "triangleCount": 58,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum brevis on 3d medial phalanx.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_brevis_on_medial_pr_0bc37050",
+          "meshName": "atlas_flexor_digitorum_brevis_on_medial_pr_0bc37050",
+          "triangleCount": 39,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum brevis on medial process of calcaneal tube"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_brevis_on_medial_pr_0bf93c52",
+          "meshName": "atlas_flexor_digitorum_brevis_on_medial_pr_0bf93c52",
+          "triangleCount": 39,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum brevis on medial process of calcaneal tubero.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_longus_on_1st_dista_049c0a33",
+          "meshName": "atlas_flexor_digitorum_longus_on_1st_dista_049c0a33",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum longus on 1st distal phalanx.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_longus_on_medial_th_e665098b",
+          "meshName": "atlas_flexor_digitorum_longus_on_medial_th_e665098b",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum longus on medial third of post. tibial sur"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_longus_on_medial_th_e2a93c96",
+          "meshName": "atlas_flexor_digitorum_longus_on_medial_th_e2a93c96",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum longus on medial third of post. tibial surf.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_longus_r_b028cfd8",
+          "meshName": "atlas_flexor_digitorum_longus_r_b028cfd8",
+          "triangleCount": 844,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum longus.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_profundus_r_f5609fa6",
+          "meshName": "atlas_flexor_digitorum_profundus_r_f5609fa6",
+          "triangleCount": 875,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum profundus.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_superficialis_radia_28f48b74",
+          "meshName": "atlas_flexor_digitorum_superficialis_radia_28f48b74",
+          "triangleCount": 41,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum superficialis-Radial insertion.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_superficialis_middl_2f3cd279",
+          "meshName": "atlas_flexor_digitorum_superficialis_middl_2f3cd279",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum superficialis-middle phalanx of 2d finger."
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_superficialis_middl_193f5153",
+          "meshName": "atlas_flexor_digitorum_superficialis_middl_193f5153",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum superficialis-middle phalanx of 2d finger.r"
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_superficialis_middl_f893f1ac",
+          "meshName": "atlas_flexor_digitorum_superficialis_middl_f893f1ac",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum superficialis-middle phalanx of 3d finger."
+        },
+        {
+          "nodeId": "atlas_flexor_digitorum_superficialis_middl_5dc94ca4",
+          "meshName": "atlas_flexor_digitorum_superficialis_middl_5dc94ca4",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Flexor digitorum superficialis-middle phalanx of 3d finger.r"
+        },
+        {
+          "nodeId": "atlas_flexor_hallucis_longus_on_post_fibul_12287ca5",
+          "meshName": "atlas_flexor_hallucis_longus_on_post_fibul_12287ca5",
+          "triangleCount": 101,
+          "atlasKind": "muscle",
+          "displayName": "Flexor hallucis longus on post. fibular surf.r"
+        },
+        {
+          "nodeId": "atlas_flexor_hallucis_longus_r_37e9cbf1",
+          "meshName": "atlas_flexor_hallucis_longus_r_37e9cbf1",
+          "triangleCount": 726,
+          "atlasKind": "muscle",
+          "displayName": "Flexor hallucis longus.r"
+        },
+        {
+          "nodeId": "atlas_flexor_pollicis_longus_radial_insert_721bf1f7",
+          "meshName": "atlas_flexor_pollicis_longus_radial_insert_721bf1f7",
+          "triangleCount": 50,
+          "atlasKind": "muscle",
+          "displayName": "Flexor pollicis longus-Radial insertion.r"
+        },
+        {
+          "nodeId": "atlas_flexor_pollicis_longus_r_e068c7ea",
+          "meshName": "atlas_flexor_pollicis_longus_r_e068c7ea",
+          "triangleCount": 1374,
+          "atlasKind": "muscle",
+          "displayName": "Flexor pollicis longus.r"
+        },
+        {
+          "nodeId": "atlas_geniohyoid_muscle_r_90f77a4d",
+          "meshName": "atlas_geniohyoid_muscle_r_90f77a4d",
+          "triangleCount": 438,
+          "atlasKind": "muscle",
+          "displayName": "Geniohyoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_gluteus_medius_on_greater_trochanter_cc517215",
+          "meshName": "atlas_gluteus_medius_on_greater_trochanter_cc517215",
+          "triangleCount": 37,
+          "atlasKind": "muscle",
+          "displayName": "Gluteus medius on greater trochanter.l.001"
+        },
+        {
+          "nodeId": "atlas_gracilis_muscle_pubic_insertion_r_3568d7dc",
+          "meshName": "atlas_gracilis_muscle_pubic_insertion_r_3568d7dc",
+          "triangleCount": 59,
+          "atlasKind": "muscle",
+          "displayName": "Gracilis muscle-Pubic insertion.r"
+        },
+        {
+          "nodeId": "atlas_gracilis_on_patte_d_oie_r_c1543752",
+          "meshName": "atlas_gracilis_on_patte_d_oie_r_c1543752",
+          "triangleCount": 12,
+          "atlasKind": "muscle",
+          "displayName": "Gracilis on 'patte d'oie'.r"
+        },
+        {
+          "nodeId": "atlas_humeral_head_of_extensor_carpi_ulnar_50ace324",
+          "meshName": "atlas_humeral_head_of_extensor_carpi_ulnar_50ace324",
+          "triangleCount": 5,
+          "atlasKind": "muscle",
+          "displayName": "Humeral head of extensor carpi ulnaris-Insertion.r"
+        },
+        {
+          "nodeId": "atlas_humeral_head_of_extensor_carpi_ulnar_2a3350a5",
+          "meshName": "atlas_humeral_head_of_extensor_carpi_ulnar_2a3350a5",
+          "triangleCount": 684,
+          "atlasKind": "muscle",
+          "displayName": "Humeral head of extensor carpi ulnaris.r"
+        },
+        {
+          "nodeId": "atlas_humeral_head_of_flexor_carpi_ulnaris_876e7da1",
+          "meshName": "atlas_humeral_head_of_flexor_carpi_ulnaris_876e7da1",
+          "triangleCount": 3228,
+          "atlasKind": "muscle",
+          "displayName": "Humeral head of flexor carpi ulnaris.r"
+        },
+        {
+          "nodeId": "atlas_iliococcygeus_muscle_r_f5772056",
+          "meshName": "atlas_iliococcygeus_muscle_r_f5772056",
+          "triangleCount": 1618,
+          "atlasKind": "muscle",
+          "displayName": "Iliococcygeus muscle.r"
+        },
+        {
+          "nodeId": "atlas_iliocostalis_colli_muscle_r_03f47fb3",
+          "meshName": "atlas_iliocostalis_colli_muscle_r_03f47fb3",
+          "triangleCount": 1690,
+          "atlasKind": "muscle",
+          "displayName": "Iliocostalis colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_iliopsoas_ending_on_the_lesser_troch_bc5d086b",
+          "meshName": "atlas_iliopsoas_ending_on_the_lesser_troch_bc5d086b",
+          "triangleCount": 106,
+          "atlasKind": "muscle",
+          "displayName": "Iliopsoas ending on the lesser trochanter.r"
+        },
+        {
+          "nodeId": "atlas_inferior_head_of_lateral_pterygoid_m_488260eb",
+          "meshName": "atlas_inferior_head_of_lateral_pterygoid_m_488260eb",
+          "triangleCount": 268,
+          "atlasKind": "muscle",
+          "displayName": "Inferior head of lateral pterygoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_inferior_nasal_concha_bone_r_80c39c10",
+          "meshName": "atlas_inferior_nasal_concha_bone_r_80c39c10",
+          "triangleCount": 196,
+          "atlasKind": "bone",
+          "displayName": "Inferior nasal concha bone.r"
+        },
+        {
+          "nodeId": "atlas_inferior_oblique_muscle_r_df70550e",
+          "meshName": "atlas_inferior_oblique_muscle_r_df70550e",
+          "triangleCount": 946,
+          "atlasKind": "muscle",
+          "displayName": "Inferior oblique muscle.r"
+        },
+        {
+          "nodeId": "atlas_inferior_rectus_muscle_r_c98a28bb",
+          "meshName": "atlas_inferior_rectus_muscle_r_c98a28bb",
+          "triangleCount": 1432,
+          "atlasKind": "muscle",
+          "displayName": "Inferior rectus muscle.r"
+        },
+        {
+          "nodeId": "atlas_inferior_tarsus_r_fe89cdb1",
+          "meshName": "atlas_inferior_tarsus_r_fe89cdb1",
+          "triangleCount": 115,
+          "atlasKind": "muscle",
+          "displayName": "Inferior tarsus.r"
+        },
+        {
+          "nodeId": "atlas_infraspinatus_muscle_humeral_inserti_562477a9",
+          "meshName": "atlas_infraspinatus_muscle_humeral_inserti_562477a9",
+          "triangleCount": 79,
+          "atlasKind": "muscle",
+          "displayName": "Infraspinatus muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_infraspinatus_muscle_scapular_insert_cbd4353b",
+          "meshName": "atlas_infraspinatus_muscle_scapular_insert_cbd4353b",
+          "triangleCount": 422,
+          "atlasKind": "muscle",
+          "displayName": "Infraspinatus muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_innermost_intercostal_muscles_r_bd0ea2e8",
+          "meshName": "atlas_innermost_intercostal_muscles_r_bd0ea2e8",
+          "triangleCount": 1786,
+          "atlasKind": "muscle",
+          "displayName": "Innermost intercostal muscles.r"
+        },
+        {
+          "nodeId": "atlas_internal_abdominal_oblique_muscle_il_45b42876",
+          "meshName": "atlas_internal_abdominal_oblique_muscle_il_45b42876",
+          "triangleCount": 66,
+          "atlasKind": "muscle",
+          "displayName": "Internal abdominal oblique muscle-Iliac insertion.r"
+        },
+        {
+          "nodeId": "atlas_internal_abdominal_oblique_r_7656165c",
+          "meshName": "atlas_internal_abdominal_oblique_r_7656165c",
+          "triangleCount": 3572,
+          "atlasKind": "muscle",
+          "displayName": "Internal abdominal oblique.r"
+        },
+        {
+          "nodeId": "atlas_internal_intercosatlis_muscles_r_7eb405ef",
+          "meshName": "atlas_internal_intercosatlis_muscles_r_7eb405ef",
+          "triangleCount": 1666,
+          "atlasKind": "muscle",
+          "displayName": "Internal intercosatlis muscles.r"
+        },
+        {
+          "nodeId": "atlas_interosseus_membrane_of_leg_r_b30da720",
+          "meshName": "atlas_interosseus_membrane_of_leg_r_b30da720",
+          "triangleCount": 782,
+          "atlasKind": "bone",
+          "displayName": "Interosseus membrane of leg.r"
+        },
+        {
+          "nodeId": "atlas_interspinales_colli_muscles_r_97f17235",
+          "meshName": "atlas_interspinales_colli_muscles_r_97f17235",
+          "triangleCount": 366,
+          "atlasKind": "muscle",
+          "displayName": "Interspinales colli muscles.r"
+        },
+        {
+          "nodeId": "atlas_interspinales_lumborum_muscles_r_15009cb2",
+          "meshName": "atlas_interspinales_lumborum_muscles_r_15009cb2",
+          "triangleCount": 462,
+          "atlasKind": "muscle",
+          "displayName": "Interspinales lumborum muscles.r"
+        },
+        {
+          "nodeId": "atlas_interspinales_thoracis_muscle_r_86b35e4f",
+          "meshName": "atlas_interspinales_thoracis_muscle_r_86b35e4f",
+          "triangleCount": 162,
+          "atlasKind": "muscle",
+          "displayName": "Interspinales thoracis muscle.r"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c2_c3_e9f2e8c4",
+          "meshName": "atlas_intervertebral_disc_c2_c3_e9f2e8c4",
+          "triangleCount": 278,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C2-C3"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c3_c4_e51966b1",
+          "meshName": "atlas_intervertebral_disc_c3_c4_e51966b1",
+          "triangleCount": 260,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C3-C4"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c4_c5_1a122365",
+          "meshName": "atlas_intervertebral_disc_c4_c5_1a122365",
+          "triangleCount": 322,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C4-C5"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c5_c6_39dbde56",
+          "meshName": "atlas_intervertebral_disc_c5_c6_39dbde56",
+          "triangleCount": 316,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C5-C6"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c6_c7_87536aac",
+          "meshName": "atlas_intervertebral_disc_c6_c7_87536aac",
+          "triangleCount": 296,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C6-C7"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_c7_t1_623cf6a0",
+          "meshName": "atlas_intervertebral_disc_c7_t1_623cf6a0",
+          "triangleCount": 360,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc C7-T1"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_l1_l2_c10e90aa",
+          "meshName": "atlas_intervertebral_disc_l1_l2_c10e90aa",
+          "triangleCount": 1272,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc L1-L2"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_l2_l3_ac930073",
+          "meshName": "atlas_intervertebral_disc_l2_l3_ac930073",
+          "triangleCount": 1256,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc L2-L3"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_l3_l4_bdf9d7c5",
+          "meshName": "atlas_intervertebral_disc_l3_l4_bdf9d7c5",
+          "triangleCount": 1290,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc L3-L4"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_l4_l5_260f550f",
+          "meshName": "atlas_intervertebral_disc_l4_l5_260f550f",
+          "triangleCount": 1338,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc L4-L5"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_l5_s1_80789ffd",
+          "meshName": "atlas_intervertebral_disc_l5_s1_80789ffd",
+          "triangleCount": 1494,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc L5-S1"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t1_t2_1f9b570c",
+          "meshName": "atlas_intervertebral_disc_t1_t2_1f9b570c",
+          "triangleCount": 394,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T1-T2"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t10_t11_68b0a2de",
+          "meshName": "atlas_intervertebral_disc_t10_t11_68b0a2de",
+          "triangleCount": 1064,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T10-T11"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t11_t12_e0f79b00",
+          "meshName": "atlas_intervertebral_disc_t11_t12_e0f79b00",
+          "triangleCount": 1318,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T11-T12"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t12_l1_5710f59d",
+          "meshName": "atlas_intervertebral_disc_t12_l1_5710f59d",
+          "triangleCount": 1342,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T12-L1"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t2_t3_22b6d594",
+          "meshName": "atlas_intervertebral_disc_t2_t3_22b6d594",
+          "triangleCount": 458,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T2-T3"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t3_t4_d153d2cc",
+          "meshName": "atlas_intervertebral_disc_t3_t4_d153d2cc",
+          "triangleCount": 476,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T3-T4"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t4_t5_28bd6ab8",
+          "meshName": "atlas_intervertebral_disc_t4_t5_28bd6ab8",
+          "triangleCount": 582,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T4-T5"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t5_t6_ebf1fa7f",
+          "meshName": "atlas_intervertebral_disc_t5_t6_ebf1fa7f",
+          "triangleCount": 676,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T5-T6"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t6_t7_e188d9ee",
+          "meshName": "atlas_intervertebral_disc_t6_t7_e188d9ee",
+          "triangleCount": 836,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T6-T7"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t7_t8_18e269bd",
+          "meshName": "atlas_intervertebral_disc_t7_t8_18e269bd",
+          "triangleCount": 954,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T7-T8"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t8_t9_6fe8762f",
+          "meshName": "atlas_intervertebral_disc_t8_t9_6fe8762f",
+          "triangleCount": 940,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T8-T9"
+        },
+        {
+          "nodeId": "atlas_intervertebral_disc_t9_t10_6b49099f",
+          "meshName": "atlas_intervertebral_disc_t9_t10_6b49099f",
+          "triangleCount": 434,
+          "atlasKind": "bone",
+          "displayName": "Intervertebral disc T9-T10"
+        },
+        {
+          "nodeId": "atlas_l1_52b1773e",
+          "meshName": "atlas_l1_52b1773e",
+          "triangleCount": 1182,
+          "atlasKind": "bone",
+          "displayName": "L1"
+        },
+        {
+          "nodeId": "atlas_l2_a58b12bf",
+          "meshName": "atlas_l2_a58b12bf",
+          "triangleCount": 984,
+          "atlasKind": "bone",
+          "displayName": "L2"
+        },
+        {
+          "nodeId": "atlas_l3_c6cacbbe",
+          "meshName": "atlas_l3_c6cacbbe",
+          "triangleCount": 1362,
+          "atlasKind": "bone",
+          "displayName": "L3"
+        },
+        {
+          "nodeId": "atlas_l4_08ade9e0",
+          "meshName": "atlas_l4_08ade9e0",
+          "triangleCount": 1426,
+          "atlasKind": "bone",
+          "displayName": "L4"
+        },
+        {
+          "nodeId": "atlas_l5_3a4b083c",
+          "meshName": "atlas_l5_3a4b083c",
+          "triangleCount": 1596,
+          "atlasKind": "bone",
+          "displayName": "L5"
+        },
+        {
+          "nodeId": "atlas_lacrimal_bone_r_c0584e89",
+          "meshName": "atlas_lacrimal_bone_r_c0584e89",
+          "triangleCount": 242,
+          "atlasKind": "bone",
+          "displayName": "LAcrimal bone.r"
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_flexor_hallucis_brev_88e375d5",
+          "meshName": "atlas_lateral_head_of_flexor_hallucis_brev_88e375d5",
+          "triangleCount": 94,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of flexor hallucis brevis on medial cuneiform."
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_flexor_hallucis_brev_be943aec",
+          "meshName": "atlas_lateral_head_of_flexor_hallucis_brev_be943aec",
+          "triangleCount": 94,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of flexor hallucis brevis on medial cuneiform..001"
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_flexor_hallucis_brev_22307aa9",
+          "meshName": "atlas_lateral_head_of_flexor_hallucis_brev_22307aa9",
+          "triangleCount": 796,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of flexor hallucis brevis.r"
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_gastrocnemius_on_lat_d7a53202",
+          "meshName": "atlas_lateral_head_of_gastrocnemius_on_lat_d7a53202",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of gastrocnemius on lat. supracondylar tubercl"
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_gastrocnemius_on_lat_8d9f0f8d",
+          "meshName": "atlas_lateral_head_of_gastrocnemius_on_lat_8d9f0f8d",
+          "triangleCount": 17,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of gastrocnemius on lat. supracondylar tubercle.r"
+        },
+        {
+          "nodeId": "atlas_lateral_head_of_triceps_brachii_hume_a5d1c7b8",
+          "meshName": "atlas_lateral_head_of_triceps_brachii_hume_a5d1c7b8",
+          "triangleCount": 72,
+          "atlasKind": "muscle",
+          "displayName": "Lateral head of triceps brachii-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_lateral_rectus_muscle_r_0ef80b22",
+          "meshName": "atlas_lateral_rectus_muscle_r_0ef80b22",
+          "triangleCount": 1320,
+          "atlasKind": "muscle",
+          "displayName": "Lateral rectus muscle.r"
+        },
+        {
+          "nodeId": "atlas_latissimus_dorsi_muscle_r_a070e41e",
+          "meshName": "atlas_latissimus_dorsi_muscle_r_a070e41e",
+          "triangleCount": 946,
+          "atlasKind": "muscle",
+          "displayName": "Latissimus dorsi muscle'.r"
+        },
+        {
+          "nodeId": "atlas_latissimus_dorsi_muscle_l_001_7bd4f011",
+          "meshName": "atlas_latissimus_dorsi_muscle_l_001_7bd4f011",
+          "triangleCount": 1246,
+          "atlasKind": "muscle",
+          "displayName": "Latissimus dorsi muscle.l.001"
+        },
+        {
+          "nodeId": "atlas_latissimus_dorsi_on_apex_of_the_scap_83328ed8",
+          "meshName": "atlas_latissimus_dorsi_on_apex_of_the_scap_83328ed8",
+          "triangleCount": 96,
+          "atlasKind": "muscle",
+          "displayName": "Latissimus dorsi on apex of the scapula.r"
+        },
+        {
+          "nodeId": "atlas_latissimus_dorsi_iliac_insertion_r_fbd5c83d",
+          "meshName": "atlas_latissimus_dorsi_iliac_insertion_r_fbd5c83d",
+          "triangleCount": 46,
+          "atlasKind": "muscle",
+          "displayName": "Latissimus dorsi-Iliac insertion.r"
+        },
+        {
+          "nodeId": "atlas_left_parietal_bone_c407c491",
+          "meshName": "atlas_left_parietal_bone_c407c491",
+          "triangleCount": 2770,
+          "atlasKind": "bone",
+          "displayName": "Left parietal bone"
+        },
+        {
+          "nodeId": "atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1",
+          "meshName": "atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1",
+          "triangleCount": 42,
+          "atlasKind": "muscle",
+          "displayName": "Levator ani-Pubic and ischiatic insertions.r"
+        },
+        {
+          "nodeId": "atlas_levator_palpebrae_superioris_r_5e4fb236",
+          "meshName": "atlas_levator_palpebrae_superioris_r_5e4fb236",
+          "triangleCount": 1776,
+          "atlasKind": "muscle",
+          "displayName": "Levator palpebrae superioris.r"
+        },
+        {
+          "nodeId": "atlas_levator_scapulae_scapular_insertion__3d4bb546",
+          "meshName": "atlas_levator_scapulae_scapular_insertion__3d4bb546",
+          "triangleCount": 369,
+          "atlasKind": "muscle",
+          "displayName": "Levator scapulae-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_levator_scapulae_r_f1bc2e8a",
+          "meshName": "atlas_levator_scapulae_r_f1bc2e8a",
+          "triangleCount": 2542,
+          "atlasKind": "muscle",
+          "displayName": "Levator scapulae.r"
+        },
+        {
+          "nodeId": "atlas_levatores_breves_costarum_r_2dc42eed",
+          "meshName": "atlas_levatores_breves_costarum_r_2dc42eed",
+          "triangleCount": 2219,
+          "atlasKind": "muscle",
+          "displayName": "Levatores breves costarum.r"
+        },
+        {
+          "nodeId": "atlas_levatores_longi_costarum_r_0b887fc9",
+          "meshName": "atlas_levatores_longi_costarum_r_0b887fc9",
+          "triangleCount": 728,
+          "atlasKind": "muscle",
+          "displayName": "Levatores longi costarum.r"
+        },
+        {
+          "nodeId": "atlas_linea_alba_eeb055b3",
+          "meshName": "atlas_linea_alba_eeb055b3",
+          "triangleCount": 278,
+          "atlasKind": "muscle",
+          "displayName": "Linea alba"
+        },
+        {
+          "nodeId": "atlas_long_head_of_biceps_femoris_muscle_i_69d2859a",
+          "meshName": "atlas_long_head_of_biceps_femoris_muscle_i_69d2859a",
+          "triangleCount": 21,
+          "atlasKind": "muscle",
+          "displayName": "Long head of biceps femoris muscle-Ischiatic insertion.r"
+        },
+        {
+          "nodeId": "atlas_long_head_of_biceps_femoris_on_fibul_ed8ca122",
+          "meshName": "atlas_long_head_of_biceps_femoris_on_fibul_ed8ca122",
+          "triangleCount": 50,
+          "atlasKind": "muscle",
+          "displayName": "Long head of biceps femoris on fibular head.r"
+        },
+        {
+          "nodeId": "atlas_longissimus_capitis_r_49697928",
+          "meshName": "atlas_longissimus_capitis_r_49697928",
+          "triangleCount": 1297,
+          "atlasKind": "muscle",
+          "displayName": "Longissimus capitis.r"
+        },
+        {
+          "nodeId": "atlas_longissimus_colli_muscle_r_3ed16123",
+          "meshName": "atlas_longissimus_colli_muscle_r_3ed16123",
+          "triangleCount": 1506,
+          "atlasKind": "muscle",
+          "displayName": "Longissimus colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_longissimus_thoracis_r_9a6c4246",
+          "meshName": "atlas_longissimus_thoracis_r_9a6c4246",
+          "triangleCount": 1194,
+          "atlasKind": "muscle",
+          "displayName": "Longissimus thoracis.r"
+        },
+        {
+          "nodeId": "atlas_longus_capitis_muscle_r_4f1d6b06",
+          "meshName": "atlas_longus_capitis_muscle_r_4f1d6b06",
+          "triangleCount": 1634,
+          "atlasKind": "muscle",
+          "displayName": "Longus capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_longus_colli_muscle_r_d3faa702",
+          "meshName": "atlas_longus_colli_muscle_r_d3faa702",
+          "triangleCount": 778,
+          "atlasKind": "muscle",
+          "displayName": "Longus colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_medial_head_of_flexor_hallucis_brevi_ad7a8f15",
+          "meshName": "atlas_medial_head_of_flexor_hallucis_brevi_ad7a8f15",
+          "triangleCount": 424,
+          "atlasKind": "muscle",
+          "displayName": "Medial head of flexor hallucis brevis.r"
+        },
+        {
+          "nodeId": "atlas_medial_head_of_gastrocnemius_on_med__9d2eb188",
+          "meshName": "atlas_medial_head_of_gastrocnemius_on_med__9d2eb188",
+          "triangleCount": 48,
+          "atlasKind": "muscle",
+          "displayName": "Medial head of gastrocnemius on med. supracondylar tubercle.r"
+        },
+        {
+          "nodeId": "atlas_medial_head_of_triceps_brachii_humer_e40d0b57",
+          "meshName": "atlas_medial_head_of_triceps_brachii_humer_e40d0b57",
+          "triangleCount": 97,
+          "atlasKind": "muscle",
+          "displayName": "Medial head of triceps brachii-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_medial_pterygoid_muscle_r_2f7ede96",
+          "meshName": "atlas_medial_pterygoid_muscle_r_2f7ede96",
+          "triangleCount": 408,
+          "atlasKind": "muscle",
+          "displayName": "Medial pterygoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_medial_rectus_muscle_r_ff5fdc86",
+          "meshName": "atlas_medial_rectus_muscle_r_ff5fdc86",
+          "triangleCount": 1034,
+          "atlasKind": "muscle",
+          "displayName": "Medial rectus muscle.r"
+        },
+        {
+          "nodeId": "atlas_multifidus_colli_muscle_r_229714f1",
+          "meshName": "atlas_multifidus_colli_muscle_r_229714f1",
+          "triangleCount": 1146,
+          "atlasKind": "muscle",
+          "displayName": "Multifidus colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_multifidus_lumborum_r_cf6909f0",
+          "meshName": "atlas_multifidus_lumborum_r_cf6909f0",
+          "triangleCount": 2328,
+          "atlasKind": "muscle",
+          "displayName": "Multifidus lumborum.r"
+        },
+        {
+          "nodeId": "atlas_multifidus_thoracis_r_83cf1c0e",
+          "meshName": "atlas_multifidus_thoracis_r_83cf1c0e",
+          "triangleCount": 3219,
+          "atlasKind": "muscle",
+          "displayName": "Multifidus thoracis.r"
+        },
+        {
+          "nodeId": "atlas_mylohyoid_muscle_r_44db4053",
+          "meshName": "atlas_mylohyoid_muscle_r_44db4053",
+          "triangleCount": 924,
+          "atlasKind": "muscle",
+          "displayName": "Mylohyoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_oblique_head_of_adductor_hallucis_on_ad3835a3",
+          "meshName": "atlas_oblique_head_of_adductor_hallucis_on_ad3835a3",
+          "triangleCount": 58,
+          "atlasKind": "muscle",
+          "displayName": "Oblique head of adductor hallucis on 3rd metatarsal base.r"
+        },
+        {
+          "nodeId": "atlas_oblique_head_of_adductor_hallucis_on_2563243f",
+          "meshName": "atlas_oblique_head_of_adductor_hallucis_on_2563243f",
+          "triangleCount": 31,
+          "atlasKind": "muscle",
+          "displayName": "Oblique head of adductor hallucis on cuboid bone.r"
+        },
+        {
+          "nodeId": "atlas_oblique_head_of_adductor_hallucis_r_b66ba198",
+          "meshName": "atlas_oblique_head_of_adductor_hallucis_r_b66ba198",
+          "triangleCount": 746,
+          "atlasKind": "muscle",
+          "displayName": "Oblique head of adductor hallucis.r"
+        },
+        {
+          "nodeId": "atlas_oblique_head_of_adductor_policis_bre_57a81bdb",
+          "meshName": "atlas_oblique_head_of_adductor_policis_bre_57a81bdb",
+          "triangleCount": 371,
+          "atlasKind": "muscle",
+          "displayName": "Oblique head of adductor policis brevis.r"
+        },
+        {
+          "nodeId": "atlas_obliquus_inferior_capitis_muscle_r_95136e0e",
+          "meshName": "atlas_obliquus_inferior_capitis_muscle_r_95136e0e",
+          "triangleCount": 446,
+          "atlasKind": "muscle",
+          "displayName": "Obliquus inferior capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_obliquus_superior_capitis_muscle_r_270bdc04",
+          "meshName": "atlas_obliquus_superior_capitis_muscle_r_270bdc04",
+          "triangleCount": 540,
+          "atlasKind": "muscle",
+          "displayName": "Obliquus superior capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_obturator_externus_on_obturator_memb_705025fd",
+          "meshName": "atlas_obturator_externus_on_obturator_memb_705025fd",
+          "triangleCount": 84,
+          "atlasKind": "muscle",
+          "displayName": "Obturator externus on obturator membrane.r"
+        },
+        {
+          "nodeId": "atlas_obturator_externus_r_093dc41e",
+          "meshName": "atlas_obturator_externus_r_093dc41e",
+          "triangleCount": 954,
+          "atlasKind": "muscle",
+          "displayName": "Obturator externus.r"
+        },
+        {
+          "nodeId": "atlas_obturator_internus_pelvic_insertion__fa648da3",
+          "meshName": "atlas_obturator_internus_pelvic_insertion__fa648da3",
+          "triangleCount": 106,
+          "atlasKind": "muscle",
+          "displayName": "Obturator internus-Pelvic insertion.r"
+        },
+        {
+          "nodeId": "atlas_occipitalis_r_c2bdd772",
+          "meshName": "atlas_occipitalis_r_c2bdd772",
+          "triangleCount": 2146,
+          "atlasKind": "muscle",
+          "displayName": "Occipitalis.r"
+        },
+        {
+          "nodeId": "atlas_opponens_digiti_minimi_of_foot_on_5t_36143590",
+          "meshName": "atlas_opponens_digiti_minimi_of_foot_on_5t_36143590",
+          "triangleCount": 30,
+          "atlasKind": "muscle",
+          "displayName": "Opponens digiti minimi of foot on 5th metatarsal bone.r"
+        },
+        {
+          "nodeId": "atlas_opponens_digiti_minimi_of_foot_r_db71fce8",
+          "meshName": "atlas_opponens_digiti_minimi_of_foot_r_db71fce8",
+          "triangleCount": 194,
+          "atlasKind": "muscle",
+          "displayName": "Opponens digiti minimi of foot.r"
+        },
+        {
+          "nodeId": "atlas_opponens_digiti_minimi_of_hand_r_7c258f4e",
+          "meshName": "atlas_opponens_digiti_minimi_of_hand_r_7c258f4e",
+          "triangleCount": 346,
+          "atlasKind": "muscle",
+          "displayName": "Opponens digiti minimi of hand.r"
+        },
+        {
+          "nodeId": "atlas_opponens_pollicis_muscle_r_1850a4bc",
+          "meshName": "atlas_opponens_pollicis_muscle_r_1850a4bc",
+          "triangleCount": 316,
+          "atlasKind": "muscle",
+          "displayName": "Opponens pollicis muscle.r"
+        },
+        {
+          "nodeId": "atlas_origin_of_articularis_genus_r_85ebc333",
+          "meshName": "atlas_origin_of_articularis_genus_r_85ebc333",
+          "triangleCount": 11,
+          "atlasKind": "muscle",
+          "displayName": "Origin of articularis genus.r"
+        },
+        {
+          "nodeId": "atlas_origin_of_psoas_minor_on_iliac_fossa_d611611c",
+          "meshName": "atlas_origin_of_psoas_minor_on_iliac_fossa_d611611c",
+          "triangleCount": 61,
+          "atlasKind": "muscle",
+          "displayName": "Origin of psoas minor on Iliac fossa.r"
+        },
+        {
+          "nodeId": "atlas_origin_of_vastus_intermedius_r_846049d0",
+          "meshName": "atlas_origin_of_vastus_intermedius_r_846049d0",
+          "triangleCount": 92,
+          "atlasKind": "muscle",
+          "displayName": "Origin of vastus intermedius.r"
+        },
+        {
+          "nodeId": "atlas_origin_of_vastus_lateralis_r_bd09e1e7",
+          "meshName": "atlas_origin_of_vastus_lateralis_r_bd09e1e7",
+          "triangleCount": 53,
+          "atlasKind": "muscle",
+          "displayName": "Origin of vastus lateralis.r"
+        },
+        {
+          "nodeId": "atlas_origin_of_vastus_medialis_r_44c4ad4c",
+          "meshName": "atlas_origin_of_vastus_medialis_r_44c4ad4c",
+          "triangleCount": 115,
+          "atlasKind": "muscle",
+          "displayName": "Origin of vastus medialis.r"
+        },
+        {
+          "nodeId": "atlas_palatine_bone_r_129618d9",
+          "meshName": "atlas_palatine_bone_r_129618d9",
+          "triangleCount": 602,
+          "atlasKind": "bone",
+          "displayName": "Palatine bone.r"
+        },
+        {
+          "nodeId": "atlas_palmar_interossei_muscles_of_hand_r_6ac17e27",
+          "meshName": "atlas_palmar_interossei_muscles_of_hand_r_6ac17e27",
+          "triangleCount": 142,
+          "atlasKind": "muscle",
+          "displayName": "Palmar interossei muscles of hand.r"
+        },
+        {
+          "nodeId": "atlas_palmaris_longus_muscle_r_da3cad59",
+          "meshName": "atlas_palmaris_longus_muscle_r_da3cad59",
+          "triangleCount": 3608,
+          "atlasKind": "muscle",
+          "displayName": "Palmaris longus muscle.r"
+        },
+        {
+          "nodeId": "atlas_pectineus_muscle_on_medial_surface_o_0afe52d9",
+          "meshName": "atlas_pectineus_muscle_on_medial_surface_o_0afe52d9",
+          "triangleCount": 12,
+          "atlasKind": "muscle",
+          "displayName": "Pectineus muscle on medial surface od femur.r"
+        },
+        {
+          "nodeId": "atlas_pectineus_muscle_pubic_insertion_r_6517708f",
+          "meshName": "atlas_pectineus_muscle_pubic_insertion_r_6517708f",
+          "triangleCount": 51,
+          "atlasKind": "muscle",
+          "displayName": "Pectineus muscle-Pubic insertion.r"
+        },
+        {
+          "nodeId": "atlas_pectineus_muscle_r_9632d228",
+          "meshName": "atlas_pectineus_muscle_r_9632d228",
+          "triangleCount": 1610,
+          "atlasKind": "muscle",
+          "displayName": "Pectineus muscle.r"
+        },
+        {
+          "nodeId": "atlas_pectoralis_major_muscle_clavicular_i_25190cac",
+          "meshName": "atlas_pectoralis_major_muscle_clavicular_i_25190cac",
+          "triangleCount": 108,
+          "atlasKind": "muscle",
+          "displayName": "Pectoralis major muscle-Clavicular insertion.r"
+        },
+        {
+          "nodeId": "atlas_pectoralis_major_muscle_humeral_inse_782e067b",
+          "meshName": "atlas_pectoralis_major_muscle_humeral_inse_782e067b",
+          "triangleCount": 47,
+          "atlasKind": "muscle",
+          "displayName": "Pectoralis major muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_pectoralis_minor_muscle_r_f973f846",
+          "meshName": "atlas_pectoralis_minor_muscle_r_f973f846",
+          "triangleCount": 3418,
+          "atlasKind": "muscle",
+          "displayName": "Pectoralis minor muscle.r"
+        },
+        {
+          "nodeId": "atlas_plantar_interossei_muscles_on_3rd_me_7c5c498c",
+          "meshName": "atlas_plantar_interossei_muscles_on_3rd_me_7c5c498c",
+          "triangleCount": 25,
+          "atlasKind": "muscle",
+          "displayName": "Plantar interossei muscles on 3rd metatarsal bone.r"
+        },
+        {
+          "nodeId": "atlas_plantar_interossei_muscles_on_4th_me_54172b1a",
+          "meshName": "atlas_plantar_interossei_muscles_on_4th_me_54172b1a",
+          "triangleCount": 27,
+          "atlasKind": "muscle",
+          "displayName": "Plantar interossei muscles on 4th metatarsal bone.r"
+        },
+        {
+          "nodeId": "atlas_plantar_interossei_muscles_on_5th_me_15b99a66",
+          "meshName": "atlas_plantar_interossei_muscles_on_5th_me_15b99a66",
+          "triangleCount": 42,
+          "atlasKind": "muscle",
+          "displayName": "Plantar interossei muscles on 5th metatarsal bone.r"
+        },
+        {
+          "nodeId": "atlas_plantar_interossei_muscles_r_b397d746",
+          "meshName": "atlas_plantar_interossei_muscles_r_b397d746",
+          "triangleCount": 1024,
+          "atlasKind": "muscle",
+          "displayName": "Plantar interossei muscles.r"
+        },
+        {
+          "nodeId": "atlas_plantaris_muscle_medially_to_the_lat_143de19a",
+          "meshName": "atlas_plantaris_muscle_medially_to_the_lat_143de19a",
+          "triangleCount": 38,
+          "atlasKind": "muscle",
+          "displayName": "Plantaris muscle medially to the lateral gastrocnemius orig"
+        },
+        {
+          "nodeId": "atlas_plantaris_muscle_medially_to_the_lat_3ef61b75",
+          "meshName": "atlas_plantaris_muscle_medially_to_the_lat_3ef61b75",
+          "triangleCount": 38,
+          "atlasKind": "muscle",
+          "displayName": "Plantaris muscle medially to the lateral gastrocnemius origin.r"
+        },
+        {
+          "nodeId": "atlas_plantaris_muscle_r_5a2fd02c",
+          "meshName": "atlas_plantaris_muscle_r_5a2fd02c",
+          "triangleCount": 3876,
+          "atlasKind": "muscle",
+          "displayName": "Plantaris muscle.r"
+        },
+        {
+          "nodeId": "atlas_popliteus_above_oblique_line_of_tibi_964800d5",
+          "meshName": "atlas_popliteus_above_oblique_line_of_tibi_964800d5",
+          "triangleCount": 54,
+          "atlasKind": "muscle",
+          "displayName": "Popliteus above oblique line of tibia.r"
+        },
+        {
+          "nodeId": "atlas_popliteus_muscle_in_the_groove_for_p_a62d0a7d",
+          "meshName": "atlas_popliteus_muscle_in_the_groove_for_p_a62d0a7d",
+          "triangleCount": 29,
+          "atlasKind": "muscle",
+          "displayName": "Popliteus muscle in the groove for popliteus muscle.r"
+        },
+        {
+          "nodeId": "atlas_popliteus_muscle_r_f65f8b2e",
+          "meshName": "atlas_popliteus_muscle_r_f65f8b2e",
+          "triangleCount": 934,
+          "atlasKind": "muscle",
+          "displayName": "Popliteus muscle.r"
+        },
+        {
+          "nodeId": "atlas_posterior_belly_of_digastric_muscle__5570a2b8",
+          "meshName": "atlas_posterior_belly_of_digastric_muscle__5570a2b8",
+          "triangleCount": 1052,
+          "atlasKind": "muscle",
+          "displayName": "Posterior belly of digastric muscle.r"
+        },
+        {
+          "nodeId": "atlas_pronator_quadratus_radial_insertions_e8c06b94",
+          "meshName": "atlas_pronator_quadratus_radial_insertions_e8c06b94",
+          "triangleCount": 39,
+          "atlasKind": "muscle",
+          "displayName": "Pronator quadratus-Radial insertions.r"
+        },
+        {
+          "nodeId": "atlas_pronator_quadratus_ulnar_insertion_r_10f56e21",
+          "meshName": "atlas_pronator_quadratus_ulnar_insertion_r_10f56e21",
+          "triangleCount": 13,
+          "atlasKind": "muscle",
+          "displayName": "Pronator quadratus-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_pronator_quadratus_r_33b146f5",
+          "meshName": "atlas_pronator_quadratus_r_33b146f5",
+          "triangleCount": 840,
+          "atlasKind": "muscle",
+          "displayName": "Pronator quadratus.r"
+        },
+        {
+          "nodeId": "atlas_pronator_teres_muscle_humeral_insert_d4d2d6a7",
+          "meshName": "atlas_pronator_teres_muscle_humeral_insert_d4d2d6a7",
+          "triangleCount": 16,
+          "atlasKind": "muscle",
+          "displayName": "Pronator teres muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_pronator_teres_radial_insertion_r_19f278c8",
+          "meshName": "atlas_pronator_teres_radial_insertion_r_19f278c8",
+          "triangleCount": 16,
+          "atlasKind": "muscle",
+          "displayName": "Pronator teres-Radial insertion.r"
+        },
+        {
+          "nodeId": "atlas_psoas_muscle_r_08af9941",
+          "meshName": "atlas_psoas_muscle_r_08af9941",
+          "triangleCount": 676,
+          "atlasKind": "muscle",
+          "displayName": "Psoas muscle.r"
+        },
+        {
+          "nodeId": "atlas_pubococcygeus_muscle_r_a87d3b88",
+          "meshName": "atlas_pubococcygeus_muscle_r_a87d3b88",
+          "triangleCount": 2072,
+          "atlasKind": "muscle",
+          "displayName": "Pubococcygeus muscle.r"
+        },
+        {
+          "nodeId": "atlas_puborectalis_muscle_r_9f43ed9b",
+          "meshName": "atlas_puborectalis_muscle_r_9f43ed9b",
+          "triangleCount": 1188,
+          "atlasKind": "muscle",
+          "displayName": "Puborectalis muscle.r"
+        },
+        {
+          "nodeId": "atlas_pyramidalis_muscle_r_9e122134",
+          "meshName": "atlas_pyramidalis_muscle_r_9e122134",
+          "triangleCount": 918,
+          "atlasKind": "muscle",
+          "displayName": "Pyramidalis muscle.r"
+        },
+        {
+          "nodeId": "atlas_quadratus_lumborum_muscle_r_d64800b8",
+          "meshName": "atlas_quadratus_lumborum_muscle_r_d64800b8",
+          "triangleCount": 2338,
+          "atlasKind": "muscle",
+          "displayName": "Quadratus lumborum muscle.r"
+        },
+        {
+          "nodeId": "atlas_quadratus_plantae_muscle_on_plantar__df13f463",
+          "meshName": "atlas_quadratus_plantae_muscle_on_plantar__df13f463",
+          "triangleCount": 45,
+          "atlasKind": "muscle",
+          "displayName": "Quadratus plantae muscle on plantar surface of calcaneus.r"
+        },
+        {
+          "nodeId": "atlas_quadratus_plantae_muscle_r_b7f4abc3",
+          "meshName": "atlas_quadratus_plantae_muscle_r_b7f4abc3",
+          "triangleCount": 970,
+          "atlasKind": "muscle",
+          "displayName": "Quadratus plantae muscle.r"
+        },
+        {
+          "nodeId": "atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6",
+          "meshName": "atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6",
+          "triangleCount": 49,
+          "atlasKind": "muscle",
+          "displayName": "Quadriceps femoris on base of patella.r"
+        },
+        {
+          "nodeId": "atlas_radial_head_of_flexor_digitorum_supe_a807f317",
+          "meshName": "atlas_radial_head_of_flexor_digitorum_supe_a807f317",
+          "triangleCount": 1052,
+          "atlasKind": "muscle",
+          "displayName": "Radial head of flexor digitorum superficialis.r"
+        },
+        {
+          "nodeId": "atlas_rectus_anterior_capitis_muscle_r_5be47d79",
+          "meshName": "atlas_rectus_anterior_capitis_muscle_r_5be47d79",
+          "triangleCount": 326,
+          "atlasKind": "muscle",
+          "displayName": "Rectus anterior capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_rectus_lateralis_capitis_muscle_r_b3e01a83",
+          "meshName": "atlas_rectus_lateralis_capitis_muscle_r_b3e01a83",
+          "triangleCount": 296,
+          "atlasKind": "muscle",
+          "displayName": "Rectus lateralis capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_rectus_posterior_major_capitis_muscl_0ce227e0",
+          "meshName": "atlas_rectus_posterior_major_capitis_muscl_0ce227e0",
+          "triangleCount": 650,
+          "atlasKind": "muscle",
+          "displayName": "Rectus posterior major capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_rectus_posterior_minor_capitis_muscl_24396a21",
+          "meshName": "atlas_rectus_posterior_minor_capitis_muscl_24396a21",
+          "triangleCount": 355,
+          "atlasKind": "muscle",
+          "displayName": "Rectus posterior minor capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_rhomboid_major_muscle_scapular_inser_5edfcd10",
+          "meshName": "atlas_rhomboid_major_muscle_scapular_inser_5edfcd10",
+          "triangleCount": 509,
+          "atlasKind": "muscle",
+          "displayName": "Rhomboid major muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_rhomboid_minor_muscle_scapular_inser_a101c69c",
+          "meshName": "atlas_rhomboid_minor_muscle_scapular_inser_a101c69c",
+          "triangleCount": 150,
+          "atlasKind": "muscle",
+          "displayName": "Rhomboid minor muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_rhomboid_minor_muscle_r_ccf407a3",
+          "meshName": "atlas_rhomboid_minor_muscle_r_ccf407a3",
+          "triangleCount": 1231,
+          "atlasKind": "muscle",
+          "displayName": "Rhomboid minor muscle.r"
+        },
+        {
+          "nodeId": "atlas_sacrum_fb87013e",
+          "meshName": "atlas_sacrum_fb87013e",
+          "triangleCount": 3664,
+          "atlasKind": "bone",
+          "displayName": "Sacrum"
+        },
+        {
+          "nodeId": "atlas_sartorius_muscle_on_upper_anterior_i_a4219826",
+          "meshName": "atlas_sartorius_muscle_on_upper_anterior_i_a4219826",
+          "triangleCount": 83,
+          "atlasKind": "muscle",
+          "displayName": "Sartorius muscle on upper anterior iliac spine.r"
+        },
+        {
+          "nodeId": "atlas_sartorius_on_patte_d_oie_r_114b15fb",
+          "meshName": "atlas_sartorius_on_patte_d_oie_r_114b15fb",
+          "triangleCount": 8,
+          "atlasKind": "muscle",
+          "displayName": "Sartorius on 'patte d'oie'.r"
+        },
+        {
+          "nodeId": "atlas_scalene_anterior_muscle_r_1e3001ee",
+          "meshName": "atlas_scalene_anterior_muscle_r_1e3001ee",
+          "triangleCount": 1145,
+          "atlasKind": "muscle",
+          "displayName": "Scalene anterior muscle.r"
+        },
+        {
+          "nodeId": "atlas_scalenus_anterior_and_medius_r_5d70bb29",
+          "meshName": "atlas_scalenus_anterior_and_medius_r_5d70bb29",
+          "triangleCount": 1714,
+          "atlasKind": "muscle",
+          "displayName": "Scalenus anterior and medius.r"
+        },
+        {
+          "nodeId": "atlas_scalenus_posterior_r_55d63619",
+          "meshName": "atlas_scalenus_posterior_r_55d63619",
+          "triangleCount": 1094,
+          "atlasKind": "muscle",
+          "displayName": "Scalenus posterior.r"
+        },
+        {
+          "nodeId": "atlas_scapular_head_of_deltoid_muscle_scap_708240d7",
+          "meshName": "atlas_scapular_head_of_deltoid_muscle_scap_708240d7",
+          "triangleCount": 359,
+          "atlasKind": "muscle",
+          "displayName": "Scapular head of deltoid muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_sclera_r_001_c2981b7e",
+          "meshName": "atlas_sclera_r_001_c2981b7e",
+          "triangleCount": 2393,
+          "atlasKind": "muscle",
+          "displayName": "Sclera.r.001"
+        },
+        {
+          "nodeId": "atlas_semispinalis_colli_muscle_r_9c7f0b23",
+          "meshName": "atlas_semispinalis_colli_muscle_r_9c7f0b23",
+          "triangleCount": 2132,
+          "atlasKind": "muscle",
+          "displayName": "Semispinalis colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_semispinalis_thoracis_r_c50bcc85",
+          "meshName": "atlas_semispinalis_thoracis_r_c50bcc85",
+          "triangleCount": 4104,
+          "atlasKind": "muscle",
+          "displayName": "Semispinalis thoracis.r"
+        },
+        {
+          "nodeId": "atlas_serratus_anterior_muscle_scapular_in_6dfd93c8",
+          "meshName": "atlas_serratus_anterior_muscle_scapular_in_6dfd93c8",
+          "triangleCount": 126,
+          "atlasKind": "muscle",
+          "displayName": "Serratus anterior muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_serratus_posterior_inferior_muscle_r_9aa86405",
+          "meshName": "atlas_serratus_posterior_inferior_muscle_r_9aa86405",
+          "triangleCount": 1108,
+          "atlasKind": "muscle",
+          "displayName": "Serratus posterior inferior muscle.r"
+        },
+        {
+          "nodeId": "atlas_serratus_posterior_superior_muscle_r_280a7fd8",
+          "meshName": "atlas_serratus_posterior_superior_muscle_r_280a7fd8",
+          "triangleCount": 682,
+          "atlasKind": "muscle",
+          "displayName": "Serratus posterior superior muscle.r"
+        },
+        {
+          "nodeId": "atlas_sesamoid_bones_of_foot_r_9fe412a6",
+          "meshName": "atlas_sesamoid_bones_of_foot_r_9fe412a6",
+          "triangleCount": 118,
+          "atlasKind": "bone",
+          "displayName": "Sesamoid bones of foot.r"
+        },
+        {
+          "nodeId": "atlas_solear_on_solear_crest_on_fibular_he_5d9cd70e",
+          "meshName": "atlas_solear_on_solear_crest_on_fibular_he_5d9cd70e",
+          "triangleCount": 46,
+          "atlasKind": "muscle",
+          "displayName": "Solear on solear crest on fibular head.r"
+        },
+        {
+          "nodeId": "atlas_solear_on_solear_crest_on_oblique_li_4d8bfebe",
+          "meshName": "atlas_solear_on_solear_crest_on_oblique_li_4d8bfebe",
+          "triangleCount": 40,
+          "atlasKind": "muscle",
+          "displayName": "Solear on solear crest on oblique line.r"
+        },
+        {
+          "nodeId": "atlas_spinalis_capitis_muscle_r_e34954a0",
+          "meshName": "atlas_spinalis_capitis_muscle_r_e34954a0",
+          "triangleCount": 2112,
+          "atlasKind": "muscle",
+          "displayName": "Spinalis capitis muscle.r"
+        },
+        {
+          "nodeId": "atlas_spinalis_colli_muscle_r_c2d2b32d",
+          "meshName": "atlas_spinalis_colli_muscle_r_c2d2b32d",
+          "triangleCount": 490,
+          "atlasKind": "muscle",
+          "displayName": "Spinalis colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_splenius_colli_muscle_r_f5492178",
+          "meshName": "atlas_splenius_colli_muscle_r_f5492178",
+          "triangleCount": 3560,
+          "atlasKind": "muscle",
+          "displayName": "Splenius colli muscle.r"
+        },
+        {
+          "nodeId": "atlas_sternocleidomastoid_muscle_clavicula_e8140902",
+          "meshName": "atlas_sternocleidomastoid_muscle_clavicula_e8140902",
+          "triangleCount": 28,
+          "atlasKind": "muscle",
+          "displayName": "Sternocleidomastoid muscle-Clavicular insertion.r"
+        },
+        {
+          "nodeId": "atlas_sternohyoid_muscle_r_fe62df9c",
+          "meshName": "atlas_sternohyoid_muscle_r_fe62df9c",
+          "triangleCount": 1150,
+          "atlasKind": "muscle",
+          "displayName": "Sternohyoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_sternothyroid_muscle_r_de6ae1b7",
+          "meshName": "atlas_sternothyroid_muscle_r_de6ae1b7",
+          "triangleCount": 896,
+          "atlasKind": "muscle",
+          "displayName": "Sternothyroid muscle.r"
+        },
+        {
+          "nodeId": "atlas_stylohyoid_muscle_r_0e1b5f38",
+          "meshName": "atlas_stylohyoid_muscle_r_0e1b5f38",
+          "triangleCount": 572,
+          "atlasKind": "muscle",
+          "displayName": "Stylohyoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_subclavius_muscle_clavicular_inserti_b83e8531",
+          "meshName": "atlas_subclavius_muscle_clavicular_inserti_b83e8531",
+          "triangleCount": 47,
+          "atlasKind": "muscle",
+          "displayName": "Subclavius muscle-Clavicular insertion.r"
+        },
+        {
+          "nodeId": "atlas_subclavius_muscle_r_be17cbc9",
+          "meshName": "atlas_subclavius_muscle_r_be17cbc9",
+          "triangleCount": 666,
+          "atlasKind": "muscle",
+          "displayName": "Subclavius muscle.r"
+        },
+        {
+          "nodeId": "atlas_subscapularis_muscle_humeral_inserti_0f7f187f",
+          "meshName": "atlas_subscapularis_muscle_humeral_inserti_0f7f187f",
+          "triangleCount": 28,
+          "atlasKind": "muscle",
+          "displayName": "Subscapularis muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_subscapularis_muscle_scapular_insert_e7ead897",
+          "meshName": "atlas_subscapularis_muscle_scapular_insert_e7ead897",
+          "triangleCount": 543,
+          "atlasKind": "muscle",
+          "displayName": "Subscapularis muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_superficial_head_of_pronator_teres_m_280b0596",
+          "meshName": "atlas_superficial_head_of_pronator_teres_m_280b0596",
+          "triangleCount": 2100,
+          "atlasKind": "muscle",
+          "displayName": "Superficial head of pronator teres muscle.r"
+        },
+        {
+          "nodeId": "atlas_superior_head_of_lateral_pterygoid_m_8ffe0ad2",
+          "meshName": "atlas_superior_head_of_lateral_pterygoid_m_8ffe0ad2",
+          "triangleCount": 186,
+          "atlasKind": "muscle",
+          "displayName": "Superior head of lateral pterygoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_superior_oblique_muscle_r_9137fd02",
+          "meshName": "atlas_superior_oblique_muscle_r_9137fd02",
+          "triangleCount": 1444,
+          "atlasKind": "muscle",
+          "displayName": "Superior oblique muscle.r"
+        },
+        {
+          "nodeId": "atlas_superior_rectus_muscle_r_cc8a2b7a",
+          "meshName": "atlas_superior_rectus_muscle_r_cc8a2b7a",
+          "triangleCount": 1054,
+          "atlasKind": "muscle",
+          "displayName": "Superior rectus muscle.r"
+        },
+        {
+          "nodeId": "atlas_superior_tarsus_r_ea000632",
+          "meshName": "atlas_superior_tarsus_r_ea000632",
+          "triangleCount": 117,
+          "atlasKind": "muscle",
+          "displayName": "Superior tarsus.r"
+        },
+        {
+          "nodeId": "atlas_supinator_radial_insertion_r_eb0aca0a",
+          "meshName": "atlas_supinator_radial_insertion_r_eb0aca0a",
+          "triangleCount": 90,
+          "atlasKind": "muscle",
+          "displayName": "Supinator-Radial insertion.r"
+        },
+        {
+          "nodeId": "atlas_supinator_ulnar_insertion_r_040b7d19",
+          "meshName": "atlas_supinator_ulnar_insertion_r_040b7d19",
+          "triangleCount": 29,
+          "atlasKind": "muscle",
+          "displayName": "Supinator-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_supinator_r_50dece6c",
+          "meshName": "atlas_supinator_r_50dece6c",
+          "triangleCount": 2272,
+          "atlasKind": "muscle",
+          "displayName": "Supinator.r"
+        },
+        {
+          "nodeId": "atlas_supraspinatus_muscle_humeral_inserti_582e5c60",
+          "meshName": "atlas_supraspinatus_muscle_humeral_inserti_582e5c60",
+          "triangleCount": 89,
+          "atlasKind": "muscle",
+          "displayName": "Supraspinatus muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_supraspinatus_muscle_scapular_insert_901d9853",
+          "meshName": "atlas_supraspinatus_muscle_scapular_insert_901d9853",
+          "triangleCount": 246,
+          "atlasKind": "muscle",
+          "displayName": "Supraspinatus muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_t1_e2398779",
+          "meshName": "atlas_t1_e2398779",
+          "triangleCount": 702,
+          "atlasKind": "bone",
+          "displayName": "T1"
+        },
+        {
+          "nodeId": "atlas_t10_66c4ace7",
+          "meshName": "atlas_t10_66c4ace7",
+          "triangleCount": 1066,
+          "atlasKind": "bone",
+          "displayName": "T10"
+        },
+        {
+          "nodeId": "atlas_t11_1e0f94c2",
+          "meshName": "atlas_t11_1e0f94c2",
+          "triangleCount": 684,
+          "atlasKind": "bone",
+          "displayName": "T11"
+        },
+        {
+          "nodeId": "atlas_t12_327e217e",
+          "meshName": "atlas_t12_327e217e",
+          "triangleCount": 948,
+          "atlasKind": "bone",
+          "displayName": "T12"
+        },
+        {
+          "nodeId": "atlas_t2_f8cf5510",
+          "meshName": "atlas_t2_f8cf5510",
+          "triangleCount": 738,
+          "atlasKind": "bone",
+          "displayName": "T2"
+        },
+        {
+          "nodeId": "atlas_t3_101beb6f",
+          "meshName": "atlas_t3_101beb6f",
+          "triangleCount": 836,
+          "atlasKind": "bone",
+          "displayName": "T3"
+        },
+        {
+          "nodeId": "atlas_t4_0a80409a",
+          "meshName": "atlas_t4_0a80409a",
+          "triangleCount": 780,
+          "atlasKind": "bone",
+          "displayName": "T4"
+        },
+        {
+          "nodeId": "atlas_t5_a39d900d",
+          "meshName": "atlas_t5_a39d900d",
+          "triangleCount": 858,
+          "atlasKind": "bone",
+          "displayName": "T5"
+        },
+        {
+          "nodeId": "atlas_t6_ee77495c",
+          "meshName": "atlas_t6_ee77495c",
+          "triangleCount": 654,
+          "atlasKind": "bone",
+          "displayName": "T6"
+        },
+        {
+          "nodeId": "atlas_t7_98b8503f",
+          "meshName": "atlas_t7_98b8503f",
+          "triangleCount": 948,
+          "atlasKind": "bone",
+          "displayName": "T7"
+        },
+        {
+          "nodeId": "atlas_t8_f4e82d58",
+          "meshName": "atlas_t8_f4e82d58",
+          "triangleCount": 586,
+          "atlasKind": "bone",
+          "displayName": "T8"
+        },
+        {
+          "nodeId": "atlas_t9_d9e9a583",
+          "meshName": "atlas_t9_d9e9a583",
+          "triangleCount": 1008,
+          "atlasKind": "bone",
+          "displayName": "T9"
+        },
+        {
+          "nodeId": "atlas_temporal_bone_r_d28d5e33",
+          "meshName": "atlas_temporal_bone_r_d28d5e33",
+          "triangleCount": 1742,
+          "atlasKind": "bone",
+          "displayName": "Temporal bone.r"
+        },
+        {
+          "nodeId": "atlas_temporoparietalis_muscle_r_4488937e",
+          "meshName": "atlas_temporoparietalis_muscle_r_4488937e",
+          "triangleCount": 1480,
+          "atlasKind": "muscle",
+          "displayName": "Temporoparietalis muscle.r"
+        },
+        {
+          "nodeId": "atlas_tensor_fasciae_latae_on_upper_anteri_51e07a2b",
+          "meshName": "atlas_tensor_fasciae_latae_on_upper_anteri_51e07a2b",
+          "triangleCount": 19,
+          "atlasKind": "muscle",
+          "displayName": "Tensor fasciae latae on upper anterior iliac spine.r"
+        },
+        {
+          "nodeId": "atlas_teres_major_muscle_humeral_insertion_c559f237",
+          "meshName": "atlas_teres_major_muscle_humeral_insertion_c559f237",
+          "triangleCount": 18,
+          "atlasKind": "muscle",
+          "displayName": "Teres major muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_teres_major_muscle_scapular_insertio_798d71da",
+          "meshName": "atlas_teres_major_muscle_scapular_insertio_798d71da",
+          "triangleCount": 137,
+          "atlasKind": "muscle",
+          "displayName": "Teres major muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_teres_minor_muscle_humeral_insertion_f8e8a650",
+          "meshName": "atlas_teres_minor_muscle_humeral_insertion_f8e8a650",
+          "triangleCount": 51,
+          "atlasKind": "muscle",
+          "displayName": "Teres minor muscle-Humeral insertion.r"
+        },
+        {
+          "nodeId": "atlas_teres_minor_muscle_scapular_insertio_c7bccc7e",
+          "meshName": "atlas_teres_minor_muscle_scapular_insertio_c7bccc7e",
+          "triangleCount": 168,
+          "atlasKind": "muscle",
+          "displayName": "Teres minor muscle-Scapular insertion.r"
+        },
+        {
+          "nodeId": "atlas_thyrohyoid_muscle_r_690d7ebf",
+          "meshName": "atlas_thyrohyoid_muscle_r_690d7ebf",
+          "triangleCount": 572,
+          "atlasKind": "muscle",
+          "displayName": "Thyrohyoid muscle.r"
+        },
+        {
+          "nodeId": "atlas_tibialis_anterior_on_lateral_surface_5316d112",
+          "meshName": "atlas_tibialis_anterior_on_lateral_surface_5316d112",
+          "triangleCount": 156,
+          "atlasKind": "muscle",
+          "displayName": "Tibialis anterior on lateral surface of tibia.r"
+        },
+        {
+          "nodeId": "atlas_tibialis_posterior_muscle_r_7f7b2e54",
+          "meshName": "atlas_tibialis_posterior_muscle_r_7f7b2e54",
+          "triangleCount": 682,
+          "atlasKind": "muscle",
+          "displayName": "Tibialis posterior muscle.r"
+        },
+        {
+          "nodeId": "atlas_tibialis_posterior_on_post_surface_o_1a307b7a",
+          "meshName": "atlas_tibialis_posterior_on_post_surface_o_1a307b7a",
+          "triangleCount": 268,
+          "atlasKind": "muscle",
+          "displayName": "Tibialis posterior on post. surface of interosseus membrane"
+        },
+        {
+          "nodeId": "atlas_tibialis_posterior_on_post_surface_o_0a4fbf0e",
+          "meshName": "atlas_tibialis_posterior_on_post_surface_o_0a4fbf0e",
+          "triangleCount": 268,
+          "atlasKind": "muscle",
+          "displayName": "Tibialis posterior on post. surface of interosseus membrane."
+        },
+        {
+          "nodeId": "atlas_transverse_abdominal_muscle_iliac_in_601d27d4",
+          "meshName": "atlas_transverse_abdominal_muscle_iliac_in_601d27d4",
+          "triangleCount": 57,
+          "atlasKind": "muscle",
+          "displayName": "Transverse abdominal muscle-Iliac insertion.r"
+        },
+        {
+          "nodeId": "atlas_transverse_head_of_adductor_hallucis_a65a4e20",
+          "meshName": "atlas_transverse_head_of_adductor_hallucis_a65a4e20",
+          "triangleCount": 49,
+          "atlasKind": "muscle",
+          "displayName": "Transverse head of adductor hallucis on 4th metatarsal head.r"
+        },
+        {
+          "nodeId": "atlas_transverse_head_of_adductor_hallucis_c8a2f0e7",
+          "meshName": "atlas_transverse_head_of_adductor_hallucis_c8a2f0e7",
+          "triangleCount": 302,
+          "atlasKind": "muscle",
+          "displayName": "Transverse head of adductor hallucis.r"
+        },
+        {
+          "nodeId": "atlas_transverse_head_of_adductor_pollicis_a8480383",
+          "meshName": "atlas_transverse_head_of_adductor_pollicis_a8480383",
+          "triangleCount": 836,
+          "atlasKind": "muscle",
+          "displayName": "Transverse head of adductor pollicis brevis.r"
+        },
+        {
+          "nodeId": "atlas_transversus_abdominis_muscle_r_c20d1664",
+          "meshName": "atlas_transversus_abdominis_muscle_r_c20d1664",
+          "triangleCount": 4126,
+          "atlasKind": "muscle",
+          "displayName": "Transversus abdominis muscle.r"
+        },
+        {
+          "nodeId": "atlas_transversus_thoracis_muscle_r_d3eeb8fd",
+          "meshName": "atlas_transversus_thoracis_muscle_r_d3eeb8fd",
+          "triangleCount": 1378,
+          "atlasKind": "muscle",
+          "displayName": "Transversus thoracis muscle.r"
+        },
+        {
+          "nodeId": "atlas_triceps_brachii_ulnar_insertion_r_7c16362e",
+          "meshName": "atlas_triceps_brachii_ulnar_insertion_r_7c16362e",
+          "triangleCount": 54,
+          "atlasKind": "muscle",
+          "displayName": "Triceps brachii-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_triceps_surae_on_calcaneal_tuberosit_6faee418",
+          "meshName": "atlas_triceps_surae_on_calcaneal_tuberosit_6faee418",
+          "triangleCount": 61,
+          "atlasKind": "muscle",
+          "displayName": "Triceps surae on calcaneal tuberosity.r"
+        },
+        {
+          "nodeId": "atlas_ulnar_head_of_extensor_carpi_ulnaris_1d690ba6",
+          "meshName": "atlas_ulnar_head_of_extensor_carpi_ulnaris_1d690ba6",
+          "triangleCount": 480,
+          "atlasKind": "muscle",
+          "displayName": "Ulnar head of extensor carpi ulnaris.r"
+        },
+        {
+          "nodeId": "atlas_ulnar_head_of_flexor_carpi_ulnaris_u_3cfe7073",
+          "meshName": "atlas_ulnar_head_of_flexor_carpi_ulnaris_u_3cfe7073",
+          "triangleCount": 94,
+          "atlasKind": "muscle",
+          "displayName": "Ulnar head of flexor carpi ulnaris-Ulnar insertion.r"
+        },
+        {
+          "nodeId": "atlas_ulnar_head_of_flexor_carpi_ulnaris_r_af1399da",
+          "meshName": "atlas_ulnar_head_of_flexor_carpi_ulnaris_r_af1399da",
+          "triangleCount": 1208,
+          "atlasKind": "muscle",
+          "displayName": "Ulnar head of flexor carpi ulnaris.r"
+        },
+        {
+          "nodeId": "atlas_ventral_parts_of_lateral_intertransv_b72e1730",
+          "meshName": "atlas_ventral_parts_of_lateral_intertransv_b72e1730",
+          "triangleCount": 822,
+          "atlasKind": "muscle",
+          "displayName": "Ventral parts of lateral intertransversarii lumborum muscles.r"
+        },
+        {
+          "nodeId": "atlas_vomer_d3e3e30b",
+          "meshName": "atlas_vomer_d3e3e30b",
+          "triangleCount": 330,
+          "atlasKind": "bone",
+          "displayName": "Vomer"
+        },
+        {
+          "nodeId": "atlas_dorsal_interossei_muscles_of_hand_r_afbc19ee",
+          "meshName": "atlas_dorsal_interossei_muscles_of_hand_r_afbc19ee",
+          "triangleCount": 1126,
+          "atlasKind": "muscle",
+          "displayName": "dorsal interossei muscles of hand.r"
+        }
+      ],
+      "procedural": false,
+      "source": "z-anatomy"
+    }
+  },
+  "assetRevision": "e8a2e891dc10"
+}

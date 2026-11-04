@@ -1,0 +1,992 @@
+/* ==========================================================================
+   Muscle Memory - Study Mode & Navigation Styles
+   Mobile-optimized, single-pane curriculum study experience
+   ========================================================================== */
+
+/* App Header */
+.muscle-app-header {
+  height: 52px;
+  background: var(--muscle-navy);
+  border-bottom: 1px solid rgba(245, 240, 232, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
+  color: var(--muscle-cream);
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.muscle-app-header__left,
+.muscle-app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.muscle-app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--muscle-cream);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.muscle-app-header__brand:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.muscle-app-header__unit-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 4px 12px;
+  color: var(--muscle-cream);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muscle-app-header__unit-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.muscle-app-header__unit-type {
+  opacity: 0.8;
+  font-size: 0.75rem;
+}
+
+.muscle-app-header__queue-badge {
+  background: rgba(212, 160, 23, 0.2);
+  border: 1px solid var(--muscle-amber);
+  color: #fde68a;
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.muscle-app-header__mode-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.muscle-mode-tab {
+  background: none;
+  border: none;
+  color: rgba(245, 240, 232, 0.7);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.muscle-mode-tab.is-active {
+  background: var(--muscle-lapis);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   Landing Mode Selection Screen
+   ========================================================================== */
+.muscle-mode-selection {
+  min-height: 100dvh;
+  background: radial-gradient(circle at 50% 20%, #24355a 0%, #1a2744 100%);
+  color: var(--muscle-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.muscle-mode-selection__container {
+  max-width: 860px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.muscle-mode-selection__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.muscle-mode-selection__badge {
+  background: rgba(212, 160, 23, 0.18);
+  border: 1px solid var(--muscle-amber);
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.muscle-mode-selection__title {
+  font-family: var(--muscle-font-serif);
+  font-size: 2.8rem;
+  margin: 0;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.muscle-mode-selection__subtitle {
+  font-size: 1.05rem;
+  color: rgba(245, 240, 232, 0.8);
+  max-width: 520px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.muscle-mode-selection__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.muscle-mode-card {
+  background: #ffffff;
+  color: var(--muscle-navy);
+  border-radius: 18px;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  border: 2px solid transparent;
+}
+
+.muscle-mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+.muscle-mode-card--study {
+  border-color: var(--muscle-lapis);
+}
+
+.muscle-mode-card__tag {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--muscle-lapis);
+}
+
+.muscle-mode-card--reference .muscle-mode-card__tag {
+  background: rgba(26, 39, 68, 0.08);
+  color: var(--muscle-muted);
+}
+
+.muscle-mode-card__icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.muscle-mode-card__heading {
+  font-family: var(--muscle-font-serif);
+  font-size: 1.85rem;
+  margin: 0 0 8px;
+  color: var(--muscle-navy);
+}
+
+.muscle-mode-card__description {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #4b5563;
+  margin: 0 0 20px;
+  flex-grow: 1;
+}
+
+.muscle-mode-card__features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.muscle-mode-card__button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: background 120ms ease;
+  width: 100%;
+}
+
+.muscle-mode-card__button--study {
+  background: var(--muscle-lapis);
+  color: #ffffff;
+}
+
+.muscle-mode-card__button--study:hover {
+  background: #1d4ed8;
+}
+
+.muscle-mode-card__button--reference {
+  background: #e5e7eb;
+  color: var(--muscle-navy);
+}
+
+.muscle-mode-card__button--reference:hover {
+  background: #d1d5db;
+}
+
+/* ==========================================================================
+   Study Mode Single-Pane Shell
+   ========================================================================== */
+.muscle-study-shell {
+  width: 100%;
+  height: calc(100dvh - 52px);
+  background: var(--muscle-cream);
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.muscle-study-pane {
+  max-width: 680px;
+  width: 100%;
+  padding: 16px 14px 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Study Card (Text and General) */
+.muscle-study-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 16px rgba(26, 39, 68, 0.08);
+  border: 1px solid var(--muscle-border);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+}
+
+/* Progress Bar */
+.muscle-study-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.muscle-study-progress__info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muscle-muted);
+}
+
+.muscle-study-progress__review {
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
+.muscle-study-progress__bar {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.muscle-study-progress__fill {
+  height: 100%;
+  background: var(--muscle-emerald);
+  transition: width 240ms ease;
+  border-radius: 4px;
+}
+
+/* Question Header */
+.muscle-study-prompt-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.muscle-study-category-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muscle-lapis);
+}
+
+.muscle-study-question-text {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--muscle-navy);
+  font-family: var(--muscle-font-serif);
+  font-weight: 600;
+}
+
+/* 4 Choice Buttons */
+.muscle-study-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.muscle-study-choice-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fcfbfa;
+  border: 1.5px solid rgba(26, 39, 68, 0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+  color: var(--muscle-navy);
+  min-height: 52px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.muscle-study-choice-btn:hover:not(:disabled) {
+  border-color: var(--muscle-lapis);
+  background: #f0f7ff;
+  transform: translateY(-1px);
+}
+
+.muscle-study-choice-letter {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(26, 39, 68, 0.08);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--muscle-navy);
+  flex-shrink: 0;
+}
+
+.muscle-study-choice-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+.muscle-study-choice-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.muscle-study-choice-sub {
+  font-size: 0.78rem;
+  color: var(--muscle-muted);
+}
+
+/* Choice States */
+.muscle-study-choice-btn.is-correct {
+  background: #ecfdf5;
+  border-color: var(--muscle-emerald);
+  color: #065f46;
+}
+
+.muscle-study-choice-btn.is-correct .muscle-study-choice-letter {
+  background: var(--muscle-emerald);
+  color: #ffffff;
+}
+
+.muscle-study-choice-btn.is-incorrect {
+  background: #fef2f2;
+  border-color: var(--muscle-crimson);
+  color: #991b1b;
+}
+
+.muscle-study-choice-btn.is-incorrect .muscle-study-choice-letter {
+  background: var(--muscle-crimson);
+  color: #ffffff;
+}
+
+.muscle-study-choice-btn.is-target-reveal {
+  border: 2px dashed var(--muscle-lapis);
+  background: #eff6ff;
+}
+
+/* Feedback Card */
+.muscle-study-feedback-card {
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 180ms ease;
+}
+
+.muscle-study-feedback-card.is-correct {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.muscle-study-feedback-card.is-incorrect {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.muscle-study-feedback-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.muscle-study-feedback-card__msg {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.muscle-study-feedback-card__explanation {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #374151;
+}
+
+/* Two-Sided Queue Callout */
+.muscle-study-dual-queue-notice {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.muscle-study-dual-queue-notice__icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.muscle-study-dual-queue-notice__text p {
+  margin: 4px 0 0;
+}
+
+.muscle-study-continue-btn {
+  margin-top: 6px;
+  background: var(--muscle-navy);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background 120ms ease;
+}
+
+.muscle-study-continue-btn:hover {
+  background: #253860;
+}
+
+/* ==========================================================================
+   Study 3D Layout (Single-Pane Responsive)
+   ========================================================================== */
+.muscle-study-3d-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.muscle-study-3d-viewport {
+  position: relative;
+  height: 380px;
+  background: #1e3154;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 600px) {
+  .muscle-study-3d-viewport {
+    height: 300px;
+  }
+}
+
+.muscle-study-viewport-controls {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.muscle-study-reset-cam-btn {
+  pointer-events: auto;
+  background: rgba(26, 39, 68, 0.85);
+  color: var(--muscle-cream);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.muscle-study-reset-cam-btn:hover {
+  background: rgba(37, 99, 235, 0.9);
+}
+
+.muscle-study-drag-hint {
+  font-size: 0.72rem;
+  color: rgba(245, 240, 232, 0.65);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.muscle-study-3d-legend {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(26, 39, 68, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.muscle-study-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.muscle-study-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.muscle-study-legend-dot--target {
+  background: var(--muscle-lapis);
+  box-shadow: 0 0 6px var(--muscle-lapis);
+}
+
+.muscle-study-legend-dot--mistake {
+  background: var(--muscle-crimson);
+  box-shadow: 0 0 6px var(--muscle-crimson);
+}
+
+.muscle-study-3d-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(26, 39, 68, 0.08);
+  border: 1px solid var(--muscle-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ==========================================================================
+   Curriculum Navigation Modal / Drawer
+   ========================================================================== */
+.muscle-curriculum-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.muscle-curriculum-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 39, 68, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.muscle-curriculum-modal__content {
+  position: relative;
+  width: min(100%, 420px);
+  height: 100%;
+  background: #ffffff;
+  color: var(--muscle-navy);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInRight 200ms ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.muscle-curriculum-modal__header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--muscle-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.muscle-curriculum-modal__title {
+  margin: 0;
+  font-family: var(--muscle-font-serif);
+  font-size: 1.45rem;
+}
+
+.muscle-curriculum-modal__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--muscle-muted);
+}
+
+.muscle-curriculum-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--muscle-muted);
+  padding: 4px;
+}
+
+.muscle-curriculum-graduation-banner {
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--muscle-border);
+}
+
+.muscle-curriculum-graduation-banner.is-graduated {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.muscle-curriculum-graduation-banner.is-pending {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.muscle-curriculum-graduation-banner__icon {
+  font-size: 1.5rem;
+}
+
+.muscle-curriculum-graduation-banner p {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.muscle-curriculum-modal__list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 12px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.muscle-curriculum-module {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.muscle-curriculum-module__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.muscle-curriculum-module__icon {
+  font-size: 1.3rem;
+}
+
+.muscle-curriculum-module__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.muscle-curriculum-module__desc {
+  font-size: 0.75rem;
+  color: var(--muscle-muted);
+  margin: 0;
+}
+
+.muscle-curriculum-module__units {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 12px;
+}
+
+.muscle-curriculum-unit-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fbf9f6;
+  border: 1px solid var(--muscle-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-family: inherit;
+  color: var(--muscle-navy);
+}
+
+.muscle-curriculum-unit-btn:hover:not(:disabled) {
+  background: #f0f7ff;
+  border-color: var(--muscle-lapis);
+}
+
+.muscle-curriculum-unit-btn.is-active {
+  border-color: var(--muscle-lapis);
+  background: #eff6ff;
+}
+
+.muscle-curriculum-unit-btn.is-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.muscle-curriculum-unit-btn__status {
+  font-size: 0.9rem;
+  width: 18px;
+  text-align: center;
+  color: var(--muscle-muted);
+}
+
+.muscle-curriculum-unit-btn.is-completed .muscle-curriculum-unit-btn__status {
+  color: var(--muscle-emerald);
+  font-weight: 700;
+}
+
+.muscle-curriculum-unit-btn__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+.muscle-curriculum-unit-btn__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.muscle-curriculum-unit-btn__type-tag {
+  font-size: 0.68rem;
+  background: rgba(26, 39, 68, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.muscle-curriculum-unit-btn__sub {
+  font-size: 0.72rem;
+  color: var(--muscle-muted);
+}
+
+/* ==========================================================================
+   Unit Complete Screen
+   ========================================================================== */
+.muscle-unit-complete {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 16px;
+}
+
+.muscle-unit-complete__card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 36px 28px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(26, 39, 68, 0.1);
+  border: 1px solid var(--muscle-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.muscle-unit-complete__badge {
+  font-size: 3.5rem;
+}
+
+.muscle-unit-complete__title {
+  font-family: var(--muscle-font-serif);
+  font-size: 2.1rem;
+  margin: 0;
+  color: var(--muscle-navy);
+}
+
+.muscle-unit-complete__subtitle {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muscle-muted);
+  margin: 0;
+}
+
+.muscle-unit-complete__graduation-box {
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
+  border-radius: 12px;
+  padding: 16px;
+  color: #065f46;
+  text-align: left;
+  margin: 8px 0;
+}
+
+.muscle-unit-complete__graduation-box h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.muscle-unit-complete__graduation-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.muscle-unit-complete__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.muscle-unit-complete__btn {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: all 120ms ease;
+  width: 100%;
+}
+
+.muscle-unit-complete__btn--primary {
+  background: var(--muscle-lapis);
+  color: #ffffff;
+}
+
+.muscle-unit-complete__btn--primary:hover {
+  background: #1d4ed8;
+}
+
+.muscle-unit-complete__secondary-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.muscle-unit-complete__btn--secondary {
+  background: #f3f4f6;
+  color: var(--muscle-navy);
+  font-size: 0.82rem;
+}
+
+.muscle-unit-complete__btn--secondary:hover {
+  background: #e5e7eb;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

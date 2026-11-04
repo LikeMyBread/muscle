@@ -1,0 +1,48 @@
+{
+  "waivers": [
+    {
+      "nodeId": "joint_hip",
+      "reason": "Z-Anatomy hip capsule not yet in fundamentals.glb — export via npm run muscle:export-pipeline -- --region fundamentals"
+    },
+    {
+      "nodeId": "joint_knee",
+      "reason": "Z-Anatomy knee capsule not yet in fundamentals.glb — export via npm run muscle:export-pipeline -- --region fundamentals"
+    },
+    {
+      "nodeId": "bone_ribcage",
+      "reason": "Rib cage study node promoted to fundamentals; atlas meshes still in torso.glb until fundamentals export includes thoracic cage"
+    },
+    {
+      "nodeId": "bone_spine",
+      "reason": "Vertebral column landmark uses procedural fallback until sacrum/spine export lands in fundamentals.glb"
+    },
+    {
+      "nodeId": "joint_acromioclavicular",
+      "reason": "Curriculum joint for synovial typing lesson; shoulder_neck.glb capsule export pending"
+    },
+    {
+      "nodeId": "joint_proximal_radioulnar",
+      "reason": "Curriculum pivot joint for anatomy terms; arm.glb export pending"
+    },
+    {
+      "nodeId": "joint_thumb_cmc",
+      "reason": "Curriculum saddle joint for anatomy terms; hand.glb export pending"
+    },
+    {
+      "nodeId": "joint_intercarpal",
+      "reason": "Curriculum plane joint for anatomy terms; hand.glb export pending"
+    },
+    {
+      "nodeId": "joint_ankle",
+      "reason": "Curriculum hinge joint for anatomy terms; foot.glb export pending"
+    },
+    {
+      "nodeId": "joint_subtalar",
+      "reason": "Curriculum plane joint for anatomy terms; foot.glb export pending"
+    },
+    {
+      "nodeId": "muscle_iliacus",
+      "reason": "Atlas iliacus mesh in manifest but Full body merge inventory extraction pending bridge alignment"
+    }
+  ]
+}

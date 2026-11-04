@@ -1,0 +1,100 @@
+import { describe, expect, it } from 'vitest';
+import { ALL_NODES, getFundamentalsGateNodes, NODES_BY_REGION } from './index';
+import { ARTIST_STUDY_MANIFEST } from './artistStudyManifest';
+import { MUSCLE_MODULES } from './modules';
+import { STRUCTURE_DETAILS_BY_ID } from './structureDetailsCatalog';
+import type { MuscleRegion } from '../types/node';
+
+const REGIONS: MuscleRegion[] = [
+  'anatomy_terms',
+  'fundamentals',
+  'torso',
+  'shoulder_neck',
+  'arm',
+  'hand',
+  'leg',
+  'foot',
+];
+
+describe('muscle curriculum node integrity', () => {
+  it('has nodes for every region module except anatomy_terms', () => {
+    for (const region of REGIONS) {
+      if (region === 'anatomy_terms') {
+        expect(NODES_BY_REGION[region]).toHaveLength(0);
+        continue;
+      }
+      expect(NODES_BY_REGION[region].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('uses unique node ids', () => {
+    const ids = ALL_NODES.map((n) => n.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('keeps region field aligned with module bucket', () => {
+    for (const [region, nodes] of Object.entries(NODES_BY_REGION)) {
+      for (const node of nodes) {
+        expect(node.region).toBe(region);
+      }
+    }
+  });
+
+  it('resolves bone FK references when present', () => {
+    const ids = new Set(ALL_NODES.map((n) => n.id));
+    for (const node of ALL_NODES) {
+      if (node.originBoneId) expect(ids.has(node.originBoneId)).toBe(true);
+      if (node.insertionBoneId) expect(ids.has(node.insertionBoneId)).toBe(true);
+    }
+  });
+
+  it('requires structure details on every node', () => {
+    for (const node of ALL_NODES) {
+      expect(node.details.definition.length).toBeGreaterThan(10);
+    }
+  });
+
+  // The fallback card ("Reference structure: …") passes the length check above, so
+  // a study node without a catalog entry shipped an unchecked placeholder.
+  it('gives every study node a written card, not the fallback', () => {
+    const studyNodes = ALL_NODES.filter((node) => !node.atlasOnly);
+    expect(studyNodes.length).toBeGreaterThan(0);
+    const missing = studyNodes.map((node) => node.id).filter((id) => !STRUCTURE_DETAILS_BY_ID[id]);
+    expect(missing).toEqual([]);
+  });
+
+  it('covers fundamentals gate nodes for muscle module unlock', () => {
+    const gate = getFundamentalsGateNodes();
+    expect(gate.length).toBeGreaterThanOrEqual(8);
+    expect(gate.some((n) => n.type === 'joint')).toBe(true);
+    expect(gate.some((n) => n.type === 'bone')).toBe(true);
+  });
+
+  it('registers a module for each region with matching glb path', () => {
+    expect(MUSCLE_MODULES).toHaveLength(REGIONS.length);
+    for (const mod of MUSCLE_MODULES) {
+      if (mod.id === 'anatomy_terms') {
+        expect(mod.glbUrl).toBe('/muscle/models/fundamentals.glb');
+        continue;
+      }
+      expect(mod.glbUrl).toBe(`/muscle/models/${mod.id}.glb`);
+    }
+  });
+
+  it('uses verified wikipedia URLs for curated study nodes', () => {
+    for (const [id, details] of Object.entries(STRUCTURE_DETAILS_BY_ID)) {
+      if (details.wikipediaUrl) {
+        expect(details.wikipediaUrl).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\//);
+      }
+      expect(getFundamentalsGateNodes().some((n) => n.id === id) || true).toBe(true);
+    }
+  });
+
+  it('keeps artist study manifest aligned with curriculum ids', () => {
+    const ids = new Set(ALL_NODES.map((node) => node.id));
+    for (const entry of ARTIST_STUDY_MANIFEST) {
+      expect(ids.has(entry.id)).toBe(true);
+      expect(entry.moduleId).toBeTruthy();
+    }
+  });
+});

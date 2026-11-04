@@ -1,0 +1,245 @@
+{
+  "generatedAt": "2026-11-04T19:08:50.399Z",
+  "summary": {
+    "curriculumTotal": 94,
+    "manifestNodeIds": 429,
+    "csvRows": 210,
+    "missingCurriculumCount": 15,
+    "missingCsvNodeCount": 6,
+    "atlasCompleteMeshes": 429,
+    "gluteMeshCount": 6
+  },
+  "missingCurriculum": [
+    "bone_spine",
+    "joint_acromioclavicular",
+    "joint_ankle",
+    "joint_elbow",
+    "joint_hip",
+    "joint_intercarpal",
+    "joint_knee",
+    "joint_proximal_radioulnar",
+    "joint_shoulder",
+    "joint_sternoclavicular",
+    "joint_subtalar",
+    "joint_thumb_cmc",
+    "joint_wrist",
+    "muscle_hypothenar_eminence",
+    "muscle_thenar_eminence"
+  ],
+  "missingCsvByNode": [
+    {
+      "zName": "Articular capsule of glenohumeral joint.r",
+      "nodeId": "joint_shoulder",
+      "region": "fundamentals"
+    },
+    {
+      "zName": "Articular capsule of elbow.r",
+      "nodeId": "joint_elbow",
+      "region": "fundamentals"
+    },
+    {
+      "zName": "Articular capsule of sternoclavicular joint*.r",
+      "nodeId": "joint_sternoclavicular",
+      "region": "shoulder_neck"
+    },
+    {
+      "zName": "Thenar eminence.r",
+      "nodeId": "muscle_thenar_eminence",
+      "region": "hand"
+    },
+    {
+      "zName": "Hypothenar eminence.r",
+      "nodeId": "muscle_hypothenar_eminence",
+      "region": "hand"
+    },
+    {
+      "zName": "Articular capsule of wrist.r",
+      "nodeId": "joint_wrist",
+      "region": "arm"
+    }
+  ],
+  "missingCsvByZName": [
+    {
+      "zName": "Articular capsule of glenohumeral joint.r",
+      "nodeId": "joint_shoulder",
+      "region": "fundamentals"
+    },
+    {
+      "zName": "Articular capsule of elbow.r",
+      "nodeId": "joint_elbow",
+      "region": "fundamentals"
+    },
+    {
+      "zName": "Articular capsule of sternoclavicular joint*.r",
+      "nodeId": "joint_sternoclavicular",
+      "region": "shoulder_neck"
+    },
+    {
+      "zName": "Thenar eminence.r",
+      "nodeId": "muscle_thenar_eminence",
+      "region": "hand"
+    },
+    {
+      "zName": "Hypothenar eminence.r",
+      "nodeId": "muscle_hypothenar_eminence",
+      "region": "hand"
+    },
+    {
+      "zName": "Articular capsule of wrist.r",
+      "nodeId": "joint_wrist",
+      "region": "arm"
+    }
+  ],
+  "gluteMeshes": [
+    {
+      "nodeId": "muscle_gemellus_inferior",
+      "tris": 814
+    },
+    {
+      "nodeId": "muscle_gemellus_superior",
+      "tris": 349
+    },
+    {
+      "nodeId": "muscle_piriformis",
+      "tris": 1235
+    },
+    {
+      "nodeId": "atlas_gluteus_medius_on_greater_trochanter_cc517215",
+      "displayName": "Gluteus medius on greater trochanter.l.001",
+      "tris": 37
+    },
+    {
+      "nodeId": "atlas_obturator_internus_pelvic_insertion__fa648da3",
+      "displayName": "Obturator internus-Pelvic insertion.r",
+      "tris": 106
+    },
+    {
+      "nodeId": "atlas_tensor_fasciae_latae_on_upper_anteri_51e07a2b",
+      "displayName": "Tensor fasciae latae on upper anterior iliac spine.r",
+      "tris": 19
+    }
+  ],
+  "missingByBodyArea": {
+    "other": [
+      {
+        "kind": "curriculum",
+        "id": "bone_spine"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_acromioclavicular"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_ankle"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_elbow"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_hip"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_intercarpal"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_knee"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_proximal_radioulnar"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_shoulder"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_sternoclavicular"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_subtalar"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_thumb_cmc"
+      },
+      {
+        "kind": "curriculum",
+        "id": "joint_wrist"
+      },
+      {
+        "kind": "curriculum",
+        "id": "muscle_hypothenar_eminence"
+      },
+      {
+        "kind": "curriculum",
+        "id": "muscle_thenar_eminence"
+      },
+      {
+        "kind": "csv",
+        "id": "joint_shoulder",
+        "zName": "Articular capsule of glenohumeral joint.r"
+      },
+      {
+        "kind": "csv",
+        "id": "joint_elbow",
+        "zName": "Articular capsule of elbow.r"
+      },
+      {
+        "kind": "csv",
+        "id": "joint_sternoclavicular",
+        "zName": "Articular capsule of sternoclavicular joint*.r"
+      },
+      {
+        "kind": "csv",
+        "id": "joint_wrist",
+        "zName": "Articular capsule of wrist.r"
+      }
+    ],
+    "hand": [
+      {
+        "kind": "csv",
+        "id": "muscle_thenar_eminence",
+        "zName": "Thenar eminence.r"
+      },
+      {
+        "kind": "csv",
+        "id": "muscle_hypothenar_eminence",
+        "zName": "Hypothenar eminence.r"
+      }
+    ]
+  },
+  "sampleDisplayNames": [
+    {
+      "region": "atlas_complete",
+      "displayName": "Abductor digiti minimi of foot.r",
+      "nodeId": "atlas_abductor_digiti_minimi_of_foot_r_b4068044"
+    },
+    {
+      "region": "atlas_complete",
+      "displayName": "Abductor digiti minimi.r",
+      "nodeId": "atlas_abductor_digiti_minimi_r_84af0e15"
+    },
+    {
+      "region": "atlas_complete",
+      "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.001",
+      "nodeId": "atlas_abductor_hallucis_on_medial_process__cce19eb1"
+    },
+    {
+      "region": "atlas_complete",
+      "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.002",
+      "nodeId": "atlas_abductor_hallucis_on_medial_process__546add5e"
+    },
+    {
+      "region": "atlas_complete",
+      "displayName": "Abductor hallucis on medial process of calcaneal tuberosity.r",
+      "nodeId": "atlas_abductor_hallucis_on_medial_process__0a26498e"
+    }
+  ]
+}
