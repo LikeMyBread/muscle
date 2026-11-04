@@ -24,9 +24,9 @@ initMaterialIconRuntime();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <LabsErrorBoundary appId="muscle">
     <React.StrictMode>
-    <ThemeProvider theme={getAppTheme('muscle')}>
-      <App />
-    </ThemeProvider>
-  </React.StrictMode>,
+      <ThemeProvider theme={getAppTheme('muscle')}>
+        <App />
+      </ThemeProvider>
+    </React.StrictMode>
   </LabsErrorBoundary>
 );
