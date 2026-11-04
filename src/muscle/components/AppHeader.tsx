@@ -19,8 +19,8 @@ export default function AppHeader() {
         <button
           type="button"
           className="muscle-app-header__brand"
-          onClick={() => setAppMode('selection')}
-          title="Return to Mode Selection"
+          onClick={() => setAppMode('study')}
+          title="Muscle Memory Study"
         >
           <span className="muscle-app-header__logo" aria-hidden="true">
             💪

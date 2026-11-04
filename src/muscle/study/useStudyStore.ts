@@ -74,15 +74,15 @@ function saveStoredCompletedUnits(completed: string[]): void {
 }
 
 function loadStoredAppMode(): AppMode {
-  if (typeof window === 'undefined') return 'selection';
+  if (typeof window === 'undefined') return 'study';
   try {
     const val = localStorage.getItem(STORAGE_KEY_APP_MODE);
-    if (val === 'study' || val === 'reference' || val === 'selection') {
+    if (val === 'study' || val === 'reference') {
       return val;
     }
-    return 'selection';
+    return 'study';
   } catch {
-    return 'selection';
+    return 'study';
   }
 }
 
@@ -150,14 +150,20 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
     useMuscleStore.getState().setStudyActive(true);
   }
 
+  const initialUnit = getUnitById(initialActiveUnitId);
+  const initialQueue = initialUnit ? createInitialQueue(initialUnit.itemIds) : [];
+  const initialTarget = initialQueue.length ? getNextQueueTarget(initialQueue) : null;
+  const initialQuestion =
+    initialTarget && initialUnit ? generateQuestionForTarget(initialTarget.id, initialUnit) : null;
+
   return {
     appMode: initialAppMode,
     activeUnitId: initialActiveUnitId,
     completedUnitIds: initialCompleted,
     debugUnlocked: initialDebugUnlocked,
-    activeQueue: [],
-    currentQuestion: null,
-    lastTargetId: null,
+    activeQueue: initialQueue,
+    currentQuestion: initialQuestion,
+    lastTargetId: initialTarget ? initialTarget.id : null,
     feedback: null,
     unitCompleted: false,
     navOpen: false,

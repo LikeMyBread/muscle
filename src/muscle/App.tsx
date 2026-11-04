@@ -3,7 +3,6 @@ import SkipToMain from '../shared/components/SkipToMain';
 import WorkoutPanel from './components/workout/WorkoutPanel';
 import MuscleAnatomyDebugPanel from './components/debug/MuscleAnatomyDebugPanel';
 import AppHeader from './components/AppHeader';
-import ModeSelectionScreen from './components/ModeSelectionScreen';
 import StudyModeShell from './study/StudyModeShell';
 import { parseMuscleModuleFromSearch } from './routes/muscleAppUrl';
 import { useMuscleStore } from './store/useMuscleStore';
@@ -60,19 +59,7 @@ export default function App() {
     );
   }
 
-  if (appMode === 'selection') {
-    return (
-      <>
-        <SkipToMain />
-        <div className="muscle-app muscle-app--mode-selection" data-testid="muscle-app">
-          <ModeSelectionScreen />
-        </div>
-        <MuscleAnatomyDebugPanel />
-      </>
-    );
-  }
-
-  if (appMode === 'study') {
+  if (appMode !== 'reference') {
     return (
       <>
         <SkipToMain />

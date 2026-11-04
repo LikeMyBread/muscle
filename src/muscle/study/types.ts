@@ -1,7 +1,7 @@
 import type { LayerPeelDepth } from '../layerDepthView';
 import type { MuscleRegion } from '../types/node';
 
-export type AppMode = 'selection' | 'study' | 'reference';
+export type AppMode = 'study' | 'reference';
 
 export type StudyUnitType = 'text' | '3d';
 
