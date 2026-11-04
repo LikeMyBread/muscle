@@ -13,6 +13,7 @@ import { initMaterialIconRuntime } from '../shared/ui/icons/materialIconsBootstr
 import App from './App';
 import '../shared/components/music/appSharedThemes.css';
 import '../shared/styles/labsChrome.css';
+import '../../public/styles/shared.css';
 import './muscle.css';
 import './study/studyMode.css';
 

@@ -16,18 +16,6 @@ export default function AppHeader() {
   return (
     <header className="muscle-app-header" role="banner">
       <div className="muscle-app-header__left">
-        <button
-          type="button"
-          className="muscle-app-header__brand"
-          onClick={() => setAppMode('study')}
-          title="Muscle Memory Study"
-        >
-          <span className="muscle-app-header__logo" aria-hidden="true">
-            💪
-          </span>
-          <span className="muscle-app-header__title">Muscle Memory</span>
-        </button>
-
         {appMode === 'study' && activeUnit ? (
           <button
             type="button"

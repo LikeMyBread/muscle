@@ -25,25 +25,6 @@
   gap: 12px;
 }
 
-.muscle-app-header__brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: var(--muscle-cream);
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-family: inherit;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.muscle-app-header__brand:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
 .muscle-app-header__unit-pill {
   display: flex;
   align-items: center;

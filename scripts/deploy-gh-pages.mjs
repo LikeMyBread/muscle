@@ -23,9 +23,14 @@ try {
 
   const indexPath = path.join(distDir, 'index.html');
   const cnamePath = path.join(distDir, 'CNAME');
+  const nojekyllPath = path.join(distDir, '.nojekyll');
 
   if (!fs.existsSync(indexPath)) {
     throw new Error(`Build output missing: ${indexPath}`);
+  }
+
+  if (!fs.existsSync(nojekyllPath)) {
+    fs.writeFileSync(nojekyllPath, '');
   }
 
   if (!fs.existsSync(cnamePath)) {

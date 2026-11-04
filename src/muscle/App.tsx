@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import SkipToMain from '../shared/components/SkipToMain';
 import WorkoutPanel from './components/workout/WorkoutPanel';
 import MuscleAnatomyDebugPanel from './components/debug/MuscleAnatomyDebugPanel';
 import AppHeader from './components/AppHeader';
@@ -62,7 +61,6 @@ export default function App() {
   if (appMode !== 'reference') {
     return (
       <>
-        <SkipToMain />
         <div
           className="muscle-app muscle-app--study-mode"
           data-testid="muscle-app"
@@ -79,7 +77,6 @@ export default function App() {
   // Reference mode (classic split view with persistent header)
   return (
     <>
-      <SkipToMain />
       <div
         className="muscle-app muscle-app--reference-mode"
         data-testid="muscle-app"
