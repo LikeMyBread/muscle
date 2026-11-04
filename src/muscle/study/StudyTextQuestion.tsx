@@ -12,6 +12,8 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
   const nextQuestion = useStudyStore((s) => s.nextQuestion);
   const feedback = useStudyStore((s) => s.feedback);
   const activeQueue = useStudyStore((s) => s.activeQueue);
+  const randomizeOrder = useStudyStore((s) => s.randomizeOrder);
+  const toggleRandomizeOrder = useStudyStore((s) => s.toggleRandomizeOrder);
 
   const progress = getQueueProgress(activeQueue);
   const isAnswered = Boolean(feedback?.answered);
@@ -24,14 +26,31 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
       {/* Top progress meter */}
       <div className="muscle-study-progress">
         <div className="muscle-study-progress__info">
-          <span>
+          <span className="muscle-study-progress__count">
             {progress.masteredCount} of {progress.totalItems} mastered
           </span>
-          {progress.inReviewCount > 0 ? (
-            <span className="muscle-study-progress__review">
-              ⚡ {progress.inReviewCount} in error review
-            </span>
-          ) : null}
+          <div className="muscle-study-progress__meta">
+            {progress.inReviewCount > 0 ? (
+              <span className="muscle-study-progress__review">
+                ⚡ {progress.inReviewCount} in error review
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className={`muscle-study-shuffle-btn ${randomizeOrder ? 'is-active' : ''}`}
+              onClick={toggleRandomizeOrder}
+              title={
+                randomizeOrder
+                  ? 'Questions randomized (click to present in order)'
+                  : 'Questions presented in order (click to randomize)'
+              }
+              aria-label="Toggle randomize question order"
+              aria-pressed={randomizeOrder}
+            >
+              <span aria-hidden="true">🔀</span>
+              <span>{randomizeOrder ? 'Shuffle On' : 'In Order'}</span>
+            </button>
+          </div>
         </div>
         <div className="muscle-study-progress__bar" role="progressbar" aria-valuenow={progress.progressPercent} aria-valuemin={0} aria-valuemax={100}>
           <div

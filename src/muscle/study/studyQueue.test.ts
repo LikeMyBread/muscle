@@ -6,6 +6,8 @@ import {
   recordIncorrectAnswer,
   isQueueComplete,
   getQueueProgress,
+  reorderQueue,
+  shuffleQueueItems,
   REQUIRED_REPS_ON_MISTAKE,
 } from './studyQueue';
 
@@ -99,5 +101,59 @@ describe('studyQueue two-sided reinforcement', () => {
     queue = recordCorrectAnswer(queue, 'b').updatedQueue;
     progress = getQueueProgress(queue);
     expect(progress.masteredCount).toBe(1);
+  });
+
+  it('randomizes initial queue item order when options.randomize is true', () => {
+    const itemIds = ['1', '2', '3', '4', '5', '6', '7', '8'];
+    // Predictable reverse RNG: always picks index 0
+    let call = 0;
+    const mockRng = () => {
+      call++;
+      return 0; // Moves last items to front
+    };
+
+    const randomizedQueue = createInitialQueue(itemIds, { randomize: true, rng: mockRng });
+    expect(randomizedQueue).toHaveLength(itemIds.length);
+    // Elements should not match original sequential order
+    const randomizedIds = randomizedQueue.map((item) => item.id);
+    expect(randomizedIds).not.toEqual(itemIds);
+    expect(randomizedIds.sort()).toEqual([...itemIds].sort());
+  });
+
+  it('randomly selects next target among pending items when options.randomize is true', () => {
+    const queue = createInitialQueue(['a', 'b', 'c', 'd']);
+    // Pick the last pending item (index 2 of differentPending ['b', 'c', 'd'])
+    const mockRng = () => 0.999;
+    const target = getNextQueueTarget(queue, 'a', { randomize: true, rng: mockRng });
+    expect(target?.id).toBe('d');
+  });
+
+  it('reorders pending queue items when toggling randomize on and off', () => {
+    const original = ['alpha', 'beta', 'gamma', 'delta'];
+    let queue = createInitialQueue(original);
+
+    // Master 'alpha'
+    queue = recordCorrectAnswer(queue, 'alpha').updatedQueue;
+    expect(queue.find((i) => i.id === 'alpha')?.requiredRemaining).toBe(0);
+
+    // Shuffle pending items
+    const shuffled = reorderQueue(queue, true, original, () => 0);
+    // Alpha must remain in queue
+    expect(shuffled.find((i) => i.id === 'alpha')?.requiredRemaining).toBe(0);
+    // Pending items should be reordered
+    const pendingIds = shuffled.filter((i) => i.requiredRemaining > 0).map((i) => i.id);
+    expect(pendingIds).toHaveLength(3);
+
+    // Restore to in-order
+    const restored = reorderQueue(shuffled, false, original);
+    const restoredPendingIds = restored.filter((i) => i.requiredRemaining > 0).map((i) => i.id);
+    expect(restoredPendingIds).toEqual(['beta', 'gamma', 'delta']);
+  });
+
+  it('shuffleQueueItems produces a permuted copy without mutating original', () => {
+    const original = ['x', 'y', 'z'];
+    const copy = shuffleQueueItems(original, () => 0);
+    expect(original).toEqual(['x', 'y', 'z']);
+    expect(copy.sort()).toEqual(['x', 'y', 'z']);
   });
 });

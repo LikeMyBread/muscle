@@ -13,6 +13,8 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
   const feedback = useStudyStore((s) => s.feedback);
   const activeQueue = useStudyStore((s) => s.activeQueue);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
+  const randomizeOrder = useStudyStore((s) => s.randomizeOrder);
+  const toggleRandomizeOrder = useStudyStore((s) => s.toggleRandomizeOrder);
 
   useEffect(() => {
     useMuscleStore.getState().setStudyActive(true);
@@ -71,14 +73,31 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
         {/* Progress meter */}
         <div className="muscle-study-progress">
           <div className="muscle-study-progress__info">
-            <span>
+            <span className="muscle-study-progress__count">
               {progress.masteredCount} of {progress.totalItems} mastered
             </span>
-            {progress.inReviewCount > 0 ? (
-              <span className="muscle-study-progress__review">
-                ⚡ {progress.inReviewCount} in error review
-              </span>
-            ) : null}
+            <div className="muscle-study-progress__meta">
+              {progress.inReviewCount > 0 ? (
+                <span className="muscle-study-progress__review">
+                  ⚡ {progress.inReviewCount} in error review
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className={`muscle-study-shuffle-btn ${randomizeOrder ? 'is-active' : ''}`}
+                onClick={toggleRandomizeOrder}
+                title={
+                  randomizeOrder
+                    ? 'Questions randomized (click to present in order)'
+                    : 'Questions presented in order (click to randomize)'
+                }
+                aria-label="Toggle randomize question order"
+                aria-pressed={randomizeOrder}
+              >
+                <span aria-hidden="true">🔀</span>
+                <span>{randomizeOrder ? 'Shuffle On' : 'In Order'}</span>
+              </button>
+            </div>
           </div>
           <div
             className="muscle-study-progress__bar"

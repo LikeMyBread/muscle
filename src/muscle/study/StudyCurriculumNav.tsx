@@ -27,6 +27,8 @@ export default function StudyCurriculumNav() {
   const completedUnitIds = useStudyStore((s) => s.completedUnitIds);
   const debugUnlocked = useStudyStore((s) => s.debugUnlocked);
   const toggleDebugUnlock = useStudyStore((s) => s.toggleDebugUnlock);
+  const randomizeOrder = useStudyStore((s) => s.randomizeOrder);
+  const toggleRandomizeOrder = useStudyStore((s) => s.toggleRandomizeOrder);
 
   if (!navOpen) return null;
 
@@ -53,8 +55,21 @@ export default function StudyCurriculumNav() {
           </button>
         </header>
 
-        {/* Debug Unlock Toggle Bar */}
+        {/* Debug Unlock and Question Ordering Controls */}
         <div className="muscle-curriculum-debug-bar">
+          <button
+            type="button"
+            onClick={toggleRandomizeOrder}
+            className={`muscle-study-shuffle-nav-btn ${randomizeOrder ? 'is-active' : ''}`}
+            title={
+              randomizeOrder
+                ? 'Question order: Randomized (click for in-order)'
+                : 'Question order: In order (click to randomize)'
+            }
+            aria-pressed={randomizeOrder}
+          >
+            {randomizeOrder ? '🔀 Questions: Randomized' : '➡️ Questions: In Order'}
+          </button>
           <button
             type="button"
             onClick={toggleDebugUnlock}
