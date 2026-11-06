@@ -1211,51 +1211,6 @@
   border-radius: 6px;
 }
 
-.muscle-study-lesson-preview {
-  background: #fdfbf7;
-  border: 1.5px dashed rgba(37, 99, 235, 0.4);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.muscle-study-lesson-preview__header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.muscle-study-lesson-preview__icon {
-  font-size: 1.1rem;
-}
-
-.muscle-study-lesson-preview__title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muscle-lapis);
-}
-
-.muscle-study-lesson-preview__prompt {
-  font-size: 0.86rem;
-  color: var(--muscle-muted);
-  margin: 0;
-  font-style: italic;
-}
-
-.muscle-study-lesson-preview__answer {
-  font-size: 0.92rem;
-  color: #065f46;
-  margin: 0;
-  background: #ecfdf5;
-  padding: 6px 10px;
-  border-radius: 6px;
-  display: inline-block;
-}
-
 .muscle-study-lesson-nav {
   display: flex;
   justify-content: space-between;

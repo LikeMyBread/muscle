@@ -20,7 +20,7 @@ describe('StudyUnitLesson', () => {
     });
   });
 
-  it('renders text unit lesson with definition and upcoming quiz preview', () => {
+  it('renders text unit lesson with definition and diagram', () => {
     const unit = getUnitById('unit_terms_planes')!;
     const onNext = vi.fn();
     const onPrev = vi.fn();
@@ -41,7 +41,7 @@ describe('StudyUnitLesson', () => {
     expect(screen.getByTestId('muscle-study-lesson')).toBeInTheDocument();
     expect(screen.getByText(/LESSON 1 OF 5/i)).toBeInTheDocument();
     expect(screen.getAllByText('Anatomical position').length).toBeGreaterThan(0);
-    expect(screen.getByText(/Upcoming Quiz Question Preview/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Upcoming Quiz Question Preview/i)).not.toBeInTheDocument();
 
     // Previous is disabled on first slide
     const prevBtn = screen.getByText('← Previous');

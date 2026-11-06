@@ -112,20 +112,6 @@ export default function StudyUnitLesson({
             {term.visualization || term.example ? (
               <StudyTermVisualExample targetTerm={term} isCorrect={true} />
             ) : null}
-
-            {/* Answer and Quiz Preview */}
-            <div className="muscle-study-lesson-preview">
-              <div className="muscle-study-lesson-preview__header">
-                <span className="muscle-study-lesson-preview__icon">💡</span>
-                <span className="muscle-study-lesson-preview__title">Upcoming Quiz Question Preview</span>
-              </div>
-              <p className="muscle-study-lesson-preview__prompt">
-                Prompt: &ldquo;{term.definition}&rdquo;
-              </p>
-              <p className="muscle-study-lesson-preview__answer">
-                Correct Answer: <strong>{term.label}</strong>
-              </p>
-            </div>
           </div>
         ) : null}
 
@@ -285,20 +271,6 @@ export default function StudyUnitLesson({
                 <em>Common name: {node.details.colloquialNames.join(', ')}</em>
               </p>
             ) : null}
-
-            {/* Quiz Preview */}
-            <div className="muscle-study-lesson-preview">
-              <div className="muscle-study-lesson-preview__header">
-                <span className="muscle-study-lesson-preview__icon">💡</span>
-                <span className="muscle-study-lesson-preview__title">Upcoming Quiz Question Preview</span>
-              </div>
-              <p className="muscle-study-lesson-preview__prompt">
-                Prompt: &ldquo;Identify the highlighted anatomical structure:&rdquo;
-              </p>
-              <p className="muscle-study-lesson-preview__answer">
-                Correct Answer: <strong>{node.name}</strong>
-              </p>
-            </div>
           </div>
         ) : null}
 
