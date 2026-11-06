@@ -9,17 +9,40 @@ describe('useStudyStore', () => {
     store.selectUnit('unit_terms_planes');
   });
 
-  it('initializes queue and current question when unit is selected', () => {
+  it('initializes queue, current question, and starts in lesson phase on unit selection', () => {
     const store = useStudyStore.getState();
     expect(store.activeUnitId).toBe('unit_terms_planes');
+    expect(store.unitPhase).toBe('lesson');
+    expect(store.lessonIndex).toBe(0);
     expect(store.activeQueue.length).toBeGreaterThan(0);
     expect(store.currentQuestion).not.toBeNull();
     expect(store.feedback).toBeNull();
   });
 
-  it('correctly handles correct answer submission', () => {
+  it('navigates lesson steps and starts quiz', () => {
     const store = useStudyStore.getState();
+    expect(store.unitPhase).toBe('lesson');
+    expect(store.lessonIndex).toBe(0);
+
+    store.nextLessonStep();
+    expect(useStudyStore.getState().lessonIndex).toBe(1);
+
+    store.prevLessonStep();
+    expect(useStudyStore.getState().lessonIndex).toBe(0);
+
+    store.startUnitQuiz();
+    expect(useStudyStore.getState().unitPhase).toBe('quiz');
+
+    store.reviewLesson();
+    expect(useStudyStore.getState().unitPhase).toBe('lesson');
+    expect(useStudyStore.getState().lessonIndex).toBe(0);
+  });
+
+  it('correctly handles correct answer submission and updates staleness log', () => {
+    const store = useStudyStore.getState();
+    store.startUnitQuiz();
     const targetId = store.currentQuestion!.targetId;
+    const initialCount = store.globalQuestionCount;
 
     store.submitAnswer(targetId);
 
@@ -27,12 +50,14 @@ describe('useStudyStore', () => {
     expect(updated.feedback).not.toBeNull();
     expect(updated.feedback?.isCorrect).toBe(true);
     expect(updated.feedback?.twoSidedReinforcement).toBeNull();
+    expect(updated.globalQuestionCount).toBe(initialCount + 1);
+    expect(updated.itemLastSeenLog[targetId]).toBe(initialCount + 1);
   });
 
   it('correctly handles incorrect answer submission with two-sided reinforcement', () => {
     const store = useStudyStore.getState();
+    store.startUnitQuiz();
     const targetId = store.currentQuestion!.targetId;
-    // Find an incorrect choice
     const wrongChoice = store.currentQuestion!.choices.find((c) => c.id !== targetId)!.id;
 
     store.submitAnswer(wrongChoice);
@@ -90,13 +115,15 @@ describe('useStudyStore', () => {
 
     muscleStore.setStudyActive(false);
     muscleStore.setHoveredNodeId('bone_sternum');
-    // flush hover raf
     expect(useMuscleStore.getState().studyActive).toBe(false);
   });
 
-  it('updates 3D visual target and mistake on correct/incorrect answers', () => {
+  it('updates 3D visual target and mistake on correct/incorrect answers during quiz', () => {
     // Select a 3D unit
     useStudyStore.getState().selectUnit('unit_fund_head_torso');
+    // Start quiz
+    useStudyStore.getState().startUnitQuiz();
+
     const question1 = useStudyStore.getState().currentQuestion;
     expect(question1).not.toBeNull();
     expect(question1?.type).toBe('3d');
@@ -134,7 +161,6 @@ describe('useStudyStore', () => {
     store.selectUnit('unit_terms_planes');
     const unitQueue = useStudyStore.getState().activeQueue;
     expect(unitQueue).toHaveLength(5);
-    // All items from the unit are present
     const ids = unitQueue.map((q) => q.id).sort();
     expect(ids).toEqual([
       'term_anatomical_position',

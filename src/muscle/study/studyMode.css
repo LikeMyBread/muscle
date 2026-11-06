@@ -1086,3 +1086,278 @@
     transform: translateY(0);
   }
 }
+
+/* ==========================================================================
+   Pre-Quiz Lesson Mode & Spaced Review Styles
+   ========================================================================== */
+.muscle-study-category-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.muscle-study-review-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(212, 160, 23, 0.16);
+  border: 1px solid var(--muscle-amber, #d4a017);
+  color: #92400e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.muscle-study-progress__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.muscle-study-revisit-lesson-btn {
+  background: transparent;
+  border: 1px solid rgba(26, 39, 68, 0.18);
+  color: var(--muscle-navy);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-family: inherit;
+}
+
+.muscle-study-revisit-lesson-btn:hover {
+  background: rgba(26, 39, 68, 0.08);
+  border-color: var(--muscle-lapis);
+  color: var(--muscle-lapis);
+}
+
+.muscle-study-lesson-card {
+  border-top: 3px solid var(--muscle-lapis);
+  animation: fadeIn 180ms ease;
+}
+
+.muscle-study-lesson-badge {
+  color: var(--muscle-lapis);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.muscle-study-skip-btn {
+  background: transparent;
+  border: none;
+  color: var(--muscle-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 120ms ease;
+  font-family: inherit;
+}
+
+.muscle-study-skip-btn:hover {
+  color: var(--muscle-lapis);
+  text-decoration: underline;
+}
+
+.muscle-study-lesson-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.muscle-study-lesson-definition {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.muscle-study-lesson-subhead {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muscle-muted);
+  margin: 0;
+}
+
+.muscle-study-lesson-subhead-sm {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muscle-muted);
+  margin: 0 0 4px;
+}
+
+.muscle-study-lesson-p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muscle-navy);
+  margin: 0;
+}
+
+.muscle-study-lesson-example {
+  background: #f8fafc;
+  border-left: 3px solid var(--muscle-lapis);
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.muscle-study-lesson-preview {
+  background: #fdfbf7;
+  border: 1.5px dashed rgba(37, 99, 235, 0.4);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.muscle-study-lesson-preview__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.muscle-study-lesson-preview__icon {
+  font-size: 1.1rem;
+}
+
+.muscle-study-lesson-preview__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muscle-lapis);
+}
+
+.muscle-study-lesson-preview__prompt {
+  font-size: 0.86rem;
+  color: var(--muscle-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+.muscle-study-lesson-preview__answer {
+  font-size: 0.92rem;
+  color: #065f46;
+  margin: 0;
+  background: #ecfdf5;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.muscle-study-lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.muscle-study-lesson-nav-btn {
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 120ms ease;
+  font-family: inherit;
+}
+
+.muscle-study-lesson-nav-btn--primary {
+  background: var(--muscle-lapis);
+  color: #ffffff;
+  margin-left: auto;
+}
+
+.muscle-study-lesson-nav-btn--primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.muscle-study-lesson-nav-btn--secondary {
+  background: #f1f5f9;
+  color: var(--muscle-navy);
+}
+
+.muscle-study-lesson-nav-btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.muscle-study-lesson-nav-btn--secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.muscle-study-lesson-viewport-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.muscle-study-lesson-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px #60a5fa;
+}
+
+.muscle-study-lesson-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(26, 39, 68, 0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.muscle-study-fact-row {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.muscle-study-fact-label {
+  font-weight: 700;
+  color: var(--muscle-navy);
+  min-width: 110px;
+  flex-shrink: 0;
+}
+
+.muscle-study-fact-val {
+  color: #334155;
+}
+
+.muscle-study-lesson-aliases {
+  font-size: 0.82rem;
+  color: var(--muscle-muted);
+  margin: 0;
+}
+

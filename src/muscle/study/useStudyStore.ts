@@ -16,13 +16,17 @@ import {
   isQueueComplete,
   getQueueProgress,
 } from './studyQueue';
-import { generateQuestionForTarget } from './questionGenerator';
-import type { AppMode, QueueItem, StudyAnswerFeedback, StudyQuestion, StudyUnit } from './types';
+import { generateQuestionForTarget, computeBestPeelDepthForNode } from './questionGenerator';
+import { buildStudyQueueWithReview } from '../srs/stalenessReview';
+import { saveStudyItemSeen, loadStudyStalenessLog } from '../db/muscleDb';
+import type { AppMode, QueueItem, StudyAnswerFeedback, StudyPhase, StudyQuestion, StudyUnit } from './types';
 
 const STORAGE_KEY_COMPLETED_UNITS = 'muscle_study_completed_units_v1';
 const STORAGE_KEY_ACTIVE_UNIT = 'muscle_study_active_unit_v1';
 const STORAGE_KEY_APP_MODE = 'muscle_app_mode_v1';
 const STORAGE_KEY_DEBUG_UNLOCK = 'muscle_debug_unlock_curriculum_v1';
+const STORAGE_KEY_GLOBAL_QUESTION_COUNT = 'muscle_study_global_question_count_v1';
+const STORAGE_KEY_ITEM_LAST_SEEN = 'muscle_study_item_last_seen_v1';
 
 export function isDebugUnlockRequested(): boolean {
   if (typeof window === 'undefined') return false;
@@ -115,11 +119,56 @@ function saveStoredActiveUnit(unitId: string): void {
   }
 }
 
+function loadStoredGlobalQuestionCount(): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_GLOBAL_QUESTION_COUNT);
+    const parsed = raw ? parseInt(raw, 10) : 0;
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveStoredGlobalQuestionCount(count: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_GLOBAL_QUESTION_COUNT, String(count));
+  } catch {
+    // Ignore storage quota
+  }
+}
+
+function loadStoredItemLastSeenLog(): Record<string, number> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ITEM_LAST_SEEN);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredItemLastSeenLog(log: Record<string, number>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ITEM_LAST_SEEN, JSON.stringify(log));
+  } catch {
+    // Ignore storage quota
+  }
+}
+
 export interface StudyStoreState {
   appMode: AppMode;
   activeUnitId: string;
   completedUnitIds: string[];
   debugUnlocked: boolean;
+  unitPhase: StudyPhase;
+  lessonIndex: number;
+  globalQuestionCount: number;
+  itemLastSeenLog: Record<string, number>;
   activeQueue: QueueItem[];
   currentQuestion: StudyQuestion | null;
   lastTargetId: string | null;
@@ -132,10 +181,16 @@ export interface StudyStoreState {
   setDebugUnlock: (unlocked: boolean) => void;
   toggleDebugUnlock: () => void;
   selectUnit: (unitId: string) => void;
+  startUnitQuiz: () => void;
+  nextLessonStep: () => void;
+  prevLessonStep: () => void;
+  setLessonStep: (index: number) => void;
+  reviewLesson: () => void;
   submitAnswer: (choiceId: string) => void;
   nextQuestion: () => void;
   restartCurrentUnit: () => void;
   syncCanvasForQuestion: (question: StudyQuestion | null) => void;
+  syncCanvasForLessonItem: (itemId: string, unit: StudyUnit) => void;
 }
 
 export const useStudyStore = create<StudyStoreState>((set, get) => {
@@ -143,6 +198,9 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
   const initialAppMode = loadStoredAppMode();
   const initialActiveUnitId = loadStoredActiveUnit();
   const initialDebugUnlocked = isDebugUnlockRequested();
+  const initialGlobalCount = loadStoredGlobalQuestionCount();
+  const initialItemLastSeen = loadStoredItemLastSeenLog();
+
   if (initialDebugUnlocked) {
     useMuscleStore.getState().setDebugCurriculumUnlocked(true);
   }
@@ -151,16 +209,55 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
   }
 
   const initialUnit = getUnitById(initialActiveUnitId);
-  const initialQueue = initialUnit ? createInitialQueue(initialUnit.itemIds) : [];
+  const initialDeck = initialUnit
+    ? buildStudyQueueWithReview({
+        unit: initialUnit,
+        allUnits: STUDY_UNITS,
+        completedUnitIds: initialCompleted,
+        globalQuestionCount: initialGlobalCount,
+        itemLastSeen: initialItemLastSeen,
+      })
+    : { queue: [], reviewItemIds: [] };
+
+  const initialQueue = initialDeck.queue;
   const initialTarget = initialQueue.length ? getNextQueueTarget(initialQueue) : null;
   const initialQuestion =
-    initialTarget && initialUnit ? generateQuestionForTarget(initialTarget.id, initialUnit) : null;
+    initialTarget && initialUnit
+      ? generateQuestionForTarget(initialTarget.id, initialUnit, initialTarget.isReview)
+      : null;
+
+  // Asynchronously hydrate IndexedDB Dexie stats if available
+  if (typeof window !== 'undefined') {
+    loadStudyStalenessLog()
+      .then((dexieMap) => {
+        if (dexieMap && dexieMap.size > 0) {
+          const currentLog = get().itemLastSeenLog;
+          const merged: Record<string, number> = { ...currentLog };
+          let changed = false;
+          for (const [id, count] of dexieMap.entries()) {
+            if (merged[id] === undefined || merged[id] < count) {
+              merged[id] = count;
+              changed = true;
+            }
+          }
+          if (changed) {
+            saveStoredItemLastSeenLog(merged);
+            set({ itemLastSeenLog: merged });
+          }
+        }
+      })
+      .catch(() => {});
+  }
 
   return {
     appMode: initialAppMode,
     activeUnitId: initialActiveUnitId,
     completedUnitIds: initialCompleted,
     debugUnlocked: initialDebugUnlocked,
+    unitPhase: 'lesson',
+    lessonIndex: 0,
+    globalQuestionCount: initialGlobalCount,
+    itemLastSeenLog: initialItemLastSeen,
     activeQueue: initialQueue,
     currentQuestion: initialQuestion,
     lastTargetId: initialTarget ? initialTarget.id : null,
@@ -186,12 +283,14 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       const muscleStore = useMuscleStore.getState();
       if (mode === 'study') {
         muscleStore.setStudyActive(true);
-        // Ensure initial unit is initialized
         const state = get();
-        if (!state.currentQuestion) {
-          state.selectUnit(state.activeUnitId);
-        } else {
+        if (state.unitPhase === 'quiz' && state.currentQuestion) {
           state.syncCanvasForQuestion(state.currentQuestion);
+        } else {
+          const unit = getUnitById(state.activeUnitId);
+          if (unit && unit.itemIds.length > 0) {
+            state.syncCanvasForLessonItem(unit.itemIds[state.lessonIndex] ?? unit.itemIds[0], unit);
+          }
         }
       } else {
         muscleStore.setStudyActive(false);
@@ -217,7 +316,7 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
         muscleStore.setActiveModule(question.moduleId);
       }
 
-      // Set optimal layer peel depth (e.g., bones hide muscles)
+      // Set optimal layer peel depth
       muscleStore.setLayerPeelDepth(question.bestPeelDepth);
 
       // Focus camera on the target structure
@@ -225,17 +324,52 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       muscleStore.focusStructure(question.targetId);
     },
 
+    syncCanvasForLessonItem: (itemId: string, unit: StudyUnit) => {
+      const muscleStore = useMuscleStore.getState();
+      if (unit.type !== '3d') {
+        muscleStore.setStudyTarget(null, null, 'idle');
+        return;
+      }
+
+      const node = getNodeById(itemId);
+      if (!node) return;
+
+      muscleStore.setStudyActive(true);
+
+      if (muscleStore.activeModuleId !== unit.moduleId || muscleStore.bodyView !== 'region') {
+        muscleStore.setBodyView('region');
+        muscleStore.setActiveModule(unit.moduleId);
+      }
+
+      const peel = computeBestPeelDepthForNode(node);
+      muscleStore.setLayerPeelDepth(peel);
+      muscleStore.setStudyTarget(itemId, null, 'idle');
+      muscleStore.focusStructure(itemId);
+    },
+
     selectUnit: (unitId: string) => {
       const unit = getUnitById(unitId);
       if (!unit) return;
 
       saveStoredActiveUnit(unitId);
-      const queue = createInitialQueue(unit.itemIds);
+
+      const { queue } = buildStudyQueueWithReview({
+        unit,
+        allUnits: STUDY_UNITS,
+        completedUnitIds: get().completedUnitIds,
+        globalQuestionCount: get().globalQuestionCount,
+        itemLastSeen: get().itemLastSeenLog,
+      });
+
       const nextTarget = getNextQueueTarget(queue);
-      const firstQuestion = nextTarget ? generateQuestionForTarget(nextTarget.id, unit) : null;
+      const firstQuestion = nextTarget
+        ? generateQuestionForTarget(nextTarget.id, unit, nextTarget.isReview)
+        : null;
 
       set({
         activeUnitId: unitId,
+        unitPhase: 'lesson',
+        lessonIndex: 0,
         activeQueue: queue,
         currentQuestion: firstQuestion,
         lastTargetId: nextTarget ? nextTarget.id : null,
@@ -244,11 +378,90 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
         navOpen: false,
       });
 
-      get().syncCanvasForQuestion(firstQuestion);
+      if (unit.type === '3d' && unit.itemIds.length > 0) {
+        get().syncCanvasForLessonItem(unit.itemIds[0], unit);
+      }
+    },
+
+    startUnitQuiz: () => {
+      const { currentQuestion, activeQueue, lastTargetId, activeUnitId } = get();
+      const unit = getUnitById(activeUnitId);
+      if (!unit) return;
+
+      let question = currentQuestion;
+      if (!question) {
+        const nextTarget = getNextQueueTarget(activeQueue, lastTargetId);
+        if (nextTarget) {
+          question = generateQuestionForTarget(nextTarget.id, unit, nextTarget.isReview);
+        }
+      }
+
+      set({
+        unitPhase: 'quiz',
+        currentQuestion: question,
+      });
+
+      get().syncCanvasForQuestion(question);
+    },
+
+    nextLessonStep: () => {
+      const { activeUnitId, lessonIndex } = get();
+      const unit = getUnitById(activeUnitId);
+      if (!unit) return;
+
+      const nextIndex = Math.min(lessonIndex + 1, unit.itemIds.length - 1);
+      set({ lessonIndex: nextIndex });
+
+      const nextItemId = unit.itemIds[nextIndex];
+      if (nextItemId) {
+        get().syncCanvasForLessonItem(nextItemId, unit);
+      }
+    },
+
+    prevLessonStep: () => {
+      const { activeUnitId, lessonIndex } = get();
+      const unit = getUnitById(activeUnitId);
+      if (!unit) return;
+
+      const prevIndex = Math.max(0, lessonIndex - 1);
+      set({ lessonIndex: prevIndex });
+
+      const prevItemId = unit.itemIds[prevIndex];
+      if (prevItemId) {
+        get().syncCanvasForLessonItem(prevItemId, unit);
+      }
+    },
+
+    setLessonStep: (index: number) => {
+      const { activeUnitId } = get();
+      const unit = getUnitById(activeUnitId);
+      if (!unit) return;
+
+      const safeIndex = Math.max(0, Math.min(index, unit.itemIds.length - 1));
+      set({ lessonIndex: safeIndex });
+
+      const itemId = unit.itemIds[safeIndex];
+      if (itemId) {
+        get().syncCanvasForLessonItem(itemId, unit);
+      }
+    },
+
+    reviewLesson: () => {
+      const { activeUnitId } = get();
+      const unit = getUnitById(activeUnitId);
+      set({
+        unitPhase: 'lesson',
+        lessonIndex: 0,
+      });
+
+      if (unit && unit.type === '3d' && unit.itemIds.length > 0) {
+        get().syncCanvasForLessonItem(unit.itemIds[0], unit);
+      }
     },
 
     submitAnswer: (choiceId: string) => {
-      const { currentQuestion, activeQueue, activeUnitId } = get();
+      const { currentQuestion, activeQueue, activeUnitId, globalQuestionCount, itemLastSeenLog } =
+        get();
       if (!currentQuestion) return;
 
       const unit = getUnitById(activeUnitId);
@@ -256,6 +469,17 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
 
       const targetId = currentQuestion.targetId;
       const isCorrect = choiceId === targetId;
+
+      // Update question log and staleness metrics
+      const nextGlobalCount = globalQuestionCount + 1;
+      const nextItemLastSeen = {
+        ...itemLastSeenLog,
+        [targetId]: nextGlobalCount,
+      };
+
+      saveStoredGlobalQuestionCount(nextGlobalCount);
+      saveStoredItemLastSeenLog(nextItemLastSeen);
+      saveStudyItemSeen(targetId, nextGlobalCount);
 
       let updatedQueue: QueueItem[];
       let twoSidedReinforcement: StudyAnswerFeedback['twoSidedReinforcement'] = null;
@@ -266,7 +490,9 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       if (isCorrect) {
         const result = recordCorrectAnswer(activeQueue, targetId);
         updatedQueue = result.updatedQueue;
-        message = `Correct! That's the ${currentQuestion.targetName}.`;
+
+        const reviewPrefix = currentQuestion.isReview ? '🔄 Review Mastered! ' : '';
+        message = `${reviewPrefix}Correct! That's the ${currentQuestion.targetName}.`;
 
         if (currentQuestion.type === '3d') {
           muscleStore.setStudyTarget(targetId, null, 'correct');
@@ -285,7 +511,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
           mistakeName = getNodeById(choiceId)?.name ?? choiceId;
         }
 
-        message = `Incorrect. You chose "${mistakeName}", but the correct answer is "${currentQuestion.targetName}".`;
+        const reviewPrefix = currentQuestion.isReview ? '🔄 Review Check: ' : '';
+        message = `${reviewPrefix}Incorrect. You chose "${mistakeName}", but the correct answer is "${currentQuestion.targetName}".`;
 
         twoSidedReinforcement = {
           targetId,
@@ -299,7 +526,6 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
           // Highlight target in blue and mistake in red side-by-side
           muscleStore.setStudyTarget(targetId, choiceId, 'incorrect');
 
-          // If the mistake node is visible at a different peel depth, adjust peel depth to show both
           const targetNode = getNodeById(targetId);
           const mistakeNode = getNodeById(choiceId);
           if (targetNode && mistakeNode) {
@@ -312,6 +538,8 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
       }
 
       set({
+        globalQuestionCount: nextGlobalCount,
+        itemLastSeenLog: nextItemLastSeen,
         activeQueue: updatedQueue,
         feedback: {
           answered: true,
@@ -354,7 +582,7 @@ export const useStudyStore = create<StudyStoreState>((set, get) => {
         return;
       }
 
-      const question = generateQuestionForTarget(nextTarget.id, unit);
+      const question = generateQuestionForTarget(nextTarget.id, unit, nextTarget.isReview);
       set({
         currentQuestion: question,
         lastTargetId: nextTarget.id,

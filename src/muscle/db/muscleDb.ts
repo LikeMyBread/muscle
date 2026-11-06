@@ -1,10 +1,16 @@
 import Dexie, { type Table } from 'dexie';
 import type { ModuleGuideProgress, WorkoutProgress } from '../types/node';
 
+export interface StudyItemStat {
+  itemId: string;
+  lastSeenAtQuestion: number;
+}
+
 export class MuscleDB extends Dexie {
   workoutProgress!: Table<WorkoutProgress, string>;
   moduleGuideProgress!: Table<ModuleGuideProgress, string>;
   quizPreferences!: Table<{ moduleId: string; quizMode: string }, string>;
+  studyItemStats!: Table<StudyItemStat, string>;
 
   constructor() {
     super('muscle-memory');
@@ -15,6 +21,12 @@ export class MuscleDB extends Dexie {
       workoutProgress: 'nodeId, state, nextReviewDate',
       moduleGuideProgress: 'moduleId, phase',
       quizPreferences: 'moduleId',
+    });
+    this.version(3).stores({
+      workoutProgress: 'nodeId, state, nextReviewDate',
+      moduleGuideProgress: 'moduleId, phase',
+      quizPreferences: 'moduleId',
+      studyItemStats: 'itemId, lastSeenAtQuestion',
     });
   }
 }
@@ -67,6 +79,23 @@ export async function loadQuizModePreference(moduleId: string): Promise<string |
 export async function saveQuizModePreference(moduleId: string, quizMode: string): Promise<void> {
   try {
     await muscleDb.quizPreferences.put({ moduleId, quizMode });
+  } catch {
+    // Ignore storage write error in headless/unsupported environments
+  }
+}
+
+export async function loadStudyStalenessLog(): Promise<Map<string, number>> {
+  try {
+    const rows = await muscleDb.studyItemStats.toArray();
+    return new Map(rows.map((r) => [r.itemId, r.lastSeenAtQuestion]));
+  } catch {
+    return new Map();
+  }
+}
+
+export async function saveStudyItemSeen(itemId: string, lastSeenAtQuestion: number): Promise<void> {
+  try {
+    await muscleDb.studyItemStats.put({ itemId, lastSeenAtQuestion });
   } catch {
     // Ignore storage write error in headless/unsupported environments
   }

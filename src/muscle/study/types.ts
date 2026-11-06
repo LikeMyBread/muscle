@@ -3,6 +3,8 @@ import type { MuscleRegion } from '../types/node';
 
 export type AppMode = 'study' | 'reference';
 
+export type StudyPhase = 'lesson' | 'quiz';
+
 export type StudyUnitType = 'text' | '3d';
 
 export interface StudyUnit {
@@ -22,6 +24,7 @@ export interface QueueItem {
   totalAttempts: number;
   incorrectAttempts: number;
   confusedWith: string[];
+  isReview?: boolean;
 }
 
 export interface StudyChoice {
@@ -42,6 +45,7 @@ export interface StudyQuestion {
   cameraPresetKey?: string;
   moduleId: MuscleRegion;
   explanation?: string;
+  isReview?: boolean;
 }
 
 export interface TwoSidedReinforcement {

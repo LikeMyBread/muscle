@@ -1,6 +1,7 @@
 import { ANATOMY_TERM_BY_ID, ANATOMY_TERMS } from '../curriculum/anatomyTerms';
 import { getNodeById, getNodesForRegion } from '../curriculum';
 import { collectStudyGroupIdsForNode } from '../curriculum/resolveStudyGroupForNode';
+import { findUnitByItemId } from './studyCurriculum';
 import type { LayerPeelDepth } from '../layerDepthView';
 import type { MuscleMemoryNode, MuscleRegion } from '../types/node';
 import type { StudyChoice, StudyQuestion, StudyUnit } from './types';
@@ -177,9 +178,21 @@ export function generate3DQuestion(nodeId: string, unit: StudyUnit): StudyQuesti
 export function generateQuestionForTarget(
   targetId: string,
   unit: StudyUnit,
+  isReview = false,
 ): StudyQuestion | null {
-  if (unit.type === 'text') {
-    return generateTextQuestion(targetId, unit);
+  // If target belongs to another unit (periodic review), use its origin unit for contextual distractors
+  const effectiveUnit = findUnitByItemId(targetId) ?? unit;
+
+  let question: StudyQuestion | null = null;
+  if (effectiveUnit.type === 'text') {
+    question = generateTextQuestion(targetId, effectiveUnit);
+  } else {
+    question = generate3DQuestion(targetId, effectiveUnit);
   }
-  return generate3DQuestion(targetId, unit);
+
+  if (question && isReview) {
+    question.isReview = true;
+  }
+
+  return question;
 }

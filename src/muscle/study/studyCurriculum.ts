@@ -394,6 +394,10 @@ export function getUnitById(id: string): StudyUnit | undefined {
   return STUDY_UNITS.find((u) => u.id === id);
 }
 
+export function findUnitByItemId(itemId: string): StudyUnit | undefined {
+  return STUDY_UNITS.find((u) => u.itemIds.includes(itemId));
+}
+
 export function isUnitUnlocked(
   unitId: string,
   completedUnitIds: string[],

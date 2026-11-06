@@ -12,6 +12,7 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
   const nextQuestion = useStudyStore((s) => s.nextQuestion);
   const feedback = useStudyStore((s) => s.feedback);
   const activeQueue = useStudyStore((s) => s.activeQueue);
+  const reviewLesson = useStudyStore((s) => s.reviewLesson);
 
   const progress = getQueueProgress(activeQueue);
   const isAnswered = Boolean(feedback?.answered);
@@ -27,11 +28,21 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
           <span>
             {progress.masteredCount} of {progress.totalItems} mastered
           </span>
-          {progress.inReviewCount > 0 ? (
-            <span className="muscle-study-progress__review">
-              ⚡ {progress.inReviewCount} in error review
-            </span>
-          ) : null}
+          <div className="muscle-study-progress__actions">
+            {progress.inReviewCount > 0 ? (
+              <span className="muscle-study-progress__review">
+                ⚡ {progress.inReviewCount} in error review
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="muscle-study-revisit-lesson-btn"
+              onClick={reviewLesson}
+              title="Review lesson slides for this unit"
+            >
+              📖 Lesson
+            </button>
+          </div>
         </div>
         <div className="muscle-study-progress__bar" role="progressbar" aria-valuenow={progress.progressPercent} aria-valuemin={0} aria-valuemax={100}>
           <div
@@ -43,7 +54,14 @@ export default function StudyTextQuestion({ question }: { question: StudyQuestio
 
       {/* Question header */}
       <div className="muscle-study-prompt-header">
-        <div className="muscle-study-category-badge">{question.category || 'ANATOMY TERM'}</div>
+        <div className="muscle-study-category-row">
+          <div className="muscle-study-category-badge">{question.category || 'ANATOMY TERM'}</div>
+          {question.isReview ? (
+            <div className="muscle-study-review-badge">
+              🔄 Spaced Review
+            </div>
+          ) : null}
+        </div>
         <h2 className="muscle-study-question-text">{question.prompt}</h2>
       </div>
 

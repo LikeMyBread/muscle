@@ -12,6 +12,7 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
   const nextQuestion = useStudyStore((s) => s.nextQuestion);
   const feedback = useStudyStore((s) => s.feedback);
   const activeQueue = useStudyStore((s) => s.activeQueue);
+  const reviewLesson = useStudyStore((s) => s.reviewLesson);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
 
   useEffect(() => {
@@ -74,11 +75,21 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
             <span>
               {progress.masteredCount} of {progress.totalItems} mastered
             </span>
-            {progress.inReviewCount > 0 ? (
-              <span className="muscle-study-progress__review">
-                ⚡ {progress.inReviewCount} in error review
-              </span>
-            ) : null}
+            <div className="muscle-study-progress__actions">
+              {progress.inReviewCount > 0 ? (
+                <span className="muscle-study-progress__review">
+                  ⚡ {progress.inReviewCount} in error review
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className="muscle-study-revisit-lesson-btn"
+                onClick={reviewLesson}
+                title="Review lesson landmarks for this unit"
+              >
+                📖 Lesson
+              </button>
+            </div>
           </div>
           <div
             className="muscle-study-progress__bar"
@@ -96,7 +107,14 @@ export default function Study3DQuestion({ question }: { question: StudyQuestion 
 
         {/* Question prompt header */}
         <div className="muscle-study-prompt-header">
-          <div className="muscle-study-category-badge">{question.category || '3D ANATOMY'}</div>
+          <div className="muscle-study-category-row">
+            <div className="muscle-study-category-badge">{question.category || '3D ANATOMY'}</div>
+            {question.isReview ? (
+              <div className="muscle-study-review-badge">
+                🔄 Spaced Review
+              </div>
+            ) : null}
+          </div>
           <h2 className="muscle-study-question-text">{question.prompt}</h2>
         </div>
 
