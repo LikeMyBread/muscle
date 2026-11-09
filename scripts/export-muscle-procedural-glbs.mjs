@@ -158,7 +158,14 @@ async function main() {
   const { NODES_BY_REGION } = await loadCurriculum();
   fs.mkdirSync(outDir, { recursive: true });
 
-  const manifest = { version: 1, regions: {} };
+  const manifest = {
+    version: 1,
+    license: 'CC-BY-SA-4.0',
+    source: 'https://github.com/Z-Anatomy/Models-of-human-anatomy',
+    attribution:
+      'Adapted from Z-Anatomy (Gauthier Kervyn, Marcin Zielinski) under CC BY-SA 4.0, including BodyParts3D (DBCLS, CC BY-SA 2.1 JP) and Wikipedia.',
+    regions: {},
+  };
   const manifestPath = path.join(outDir, 'manifest.json');
   if (fs.existsSync(manifestPath)) {
     Object.assign(manifest, JSON.parse(fs.readFileSync(manifestPath, 'utf8')));

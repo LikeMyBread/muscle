@@ -78,3 +78,13 @@ Comprehensive project documentation is indexed in [`docs/README.md`](docs/README
 - **Blender Export Pipeline**: [`docs/skills/muscle-anatomy-export.md`](docs/skills/muscle-anatomy-export.md)
 - **Curriculum & Design**: [`src/muscle/curriculum/ARTIST_CURRICULUM.md`](src/muscle/curriculum/ARTIST_CURRICULUM.md), [`src/muscle/CUJs.md`](src/muscle/CUJs.md), [`src/muscle/DESIGN.md`](src/muscle/DESIGN.md), and [`tools/muscle-anatomy/ANATOMY_COVERAGE.md`](tools/muscle-anatomy/ANATOMY_COVERAGE.md).
 
+## Attribution & License
+
+3D anatomy meshes and spatial models in this project are derived from **[Z-Anatomy (Models of human anatomy)](https://github.com/Z-Anatomy/Models-of-human-anatomy)** (created by Gauthier Kervyn, Marcin Zielinski, and the Z-Anatomy contributors), incorporating data from **BodyParts3D** (© DBCLS, CC BY-SA 2.1 JP) and definitions from **Wikipedia**.
+
+All 3D assets and adapted anatomical content are distributed under the **[Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)**.
+
+- Full license text and modification notice: [`LICENSE.md`](LICENSE.md)
+- Detailed asset attribution and upstream sources: [`src/muscle/ATTRIBUTION.md`](src/muscle/ATTRIBUTION.md)
+
+

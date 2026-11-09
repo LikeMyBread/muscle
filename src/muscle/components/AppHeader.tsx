@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStudyStore } from '../study/useStudyStore';
 import { getUnitById } from '../study/studyCurriculum';
 import { getQueueProgress } from '../study/studyQueue';
+import AttributionModal from './AttributionModal';
 
 export default function AppHeader() {
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const appMode = useStudyStore((s) => s.appMode);
   const setAppMode = useStudyStore((s) => s.setAppMode);
   const activeUnitId = useStudyStore((s) => s.activeUnitId);
@@ -59,7 +61,19 @@ export default function AppHeader() {
             🧭 Reference
           </button>
         </div>
+
+        <button
+          type="button"
+          className="muscle-app-header__credits-btn"
+          onClick={() => setCreditsOpen(true)}
+          title="View data sources, Z-Anatomy citations, and license information"
+          aria-label="View data sources and attribution"
+        >
+          ℹ️ Credits
+        </button>
       </div>
+
+      <AttributionModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
     </header>
   );
 }

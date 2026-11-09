@@ -63,6 +63,28 @@ export default function StudyModeShell() {
             <p>Loading {unit?.title || 'study unit'}…</p>
           </div>
         )}
+
+        <footer className="muscle-study-footer">
+          <p className="muscle-attribution">
+            3D anatomy models adapted from{' '}
+            <a
+              href="https://github.com/Z-Anatomy/Models-of-human-anatomy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Z-Anatomy
+            </a>{' '}
+            (
+            <a
+              href="https://creativecommons.org/licenses/by-sa/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CC BY-SA 4.0
+            </a>
+            )
+          </p>
+        </footer>
       </main>
     </div>
   );

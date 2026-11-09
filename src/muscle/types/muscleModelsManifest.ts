@@ -14,6 +14,10 @@ export type MuscleManifestRegion = {
 
 export type MuscleModelsManifest = {
   version: number;
+  license?: string;
+  source?: string;
+  sourceUrl?: string;
+  attribution?: string;
   /** Content hash of committed GLBs — appended to loader URLs for cache busting. */
   assetRevision?: string;
   regions: Record<string, MuscleManifestRegion>;

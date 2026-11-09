@@ -350,7 +350,7 @@ export default function WorkoutPanel() {
 
       <footer className="muscle-workout-panel__footer">
         <p className="muscle-attribution">
-          Anatomy model by{' '}
+          Anatomy models adapted from{' '}
           <a
             href="https://github.com/Z-Anatomy/Models-of-human-anatomy"
             target="_blank"
@@ -358,7 +358,15 @@ export default function WorkoutPanel() {
           >
             Z-Anatomy
           </a>{' '}
-          (CC BY-SA 4.0)
+          (
+          <a
+            href="https://creativecommons.org/licenses/by-sa/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            CC BY-SA 4.0
+          </a>
+          )
         </p>
         {mode === 'active' ? <ProgressBar /> : null}
       </footer>
