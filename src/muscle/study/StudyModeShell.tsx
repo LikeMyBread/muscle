@@ -44,7 +44,7 @@ export default function StudyModeShell() {
           <StudyUnitComplete />
         ) : unitPhase === 'lesson' && unit ? (
           <StudyUnitLesson
-            key={`lesson_${unit.id}_${lessonIndex}`}
+            key={`lesson_${unit.id}`}
             unit={unit}
             lessonIndex={lessonIndex}
             onNext={nextLessonStep}
@@ -54,9 +54,9 @@ export default function StudyModeShell() {
           />
         ) : currentQuestion ? (
           currentQuestion.type === 'text' ? (
-            <StudyTextQuestion key={currentQuestion.id} question={currentQuestion} />
+            <StudyTextQuestion key={`study_text_${activeUnitId}`} question={currentQuestion} />
           ) : (
-            <Study3DQuestion key={currentQuestion.id} question={currentQuestion} />
+            <Study3DQuestion key={`study_3d_${activeUnitId}`} question={currentQuestion} />
           )
         ) : (
           <div className="muscle-study-loading" role="status" aria-live="polite">

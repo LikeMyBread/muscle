@@ -10,6 +10,7 @@ import { installLabsCrashHandlers } from '../shared/utils/labsCrashLog';
 import LabsErrorBoundary from '../shared/components/LabsErrorBoundary';
 import { getAppTheme } from '../shared/ui/theme/appTheme';
 import { initMaterialIconRuntime } from '../shared/ui/icons/materialIconsBootstrap';
+import { installWebGLShaderDefenses } from './components/canvas/installWebGLShaderDefenses';
 import App from './App';
 import '../shared/components/music/appSharedThemes.css';
 import '../shared/styles/labsChrome.css';
@@ -20,6 +21,7 @@ import './study/studyMode.css';
 installServerLogger('MUSCLE');
 installLabsCrashHandlers('muscle');
 initMaterialIconRuntime();
+installWebGLShaderDefenses();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <LabsErrorBoundary appId="muscle">

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
-import { PMREMGenerator } from 'three';
+import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /**
@@ -15,17 +15,34 @@ export default function AnatomySceneEnvironment() {
   const invalidate = useThree((state) => state.invalidate);
 
   useEffect(() => {
-    const pmrem = new PMREMGenerator(gl);
-    const room = new RoomEnvironment();
-    const envMap = pmrem.fromScene(room, 0.04).texture;
+    // If WebGL context is lost or unavailable, skip PMREM generation
+    const rawGl = (gl.getContext ? gl.getContext() : gl) as WebGLRenderingContext | null;
+    if (rawGl?.isContextLost?.()) return;
+
+    let pmrem: THREE.PMREMGenerator | null = null;
+    let envMap: THREE.Texture | null = null;
+    let room: RoomEnvironment | null = null;
     const previous = scene.environment;
-    scene.environment = envMap;
-    invalidate();
+
+    try {
+      pmrem = new THREE.PMREMGenerator(gl);
+      room = new RoomEnvironment();
+      envMap = pmrem.fromScene(room, 0.04).texture;
+      scene.environment = envMap;
+      invalidate();
+    } catch (err) {
+      console.warn('[AnatomySceneEnvironment] Failed to generate PMREM environment:', err);
+    }
+
     return () => {
       scene.environment = previous;
-      envMap.dispose();
-      pmrem.dispose();
-      (room as unknown as { dispose?: () => void }).dispose?.();
+      try {
+        envMap?.dispose();
+        pmrem?.dispose();
+        (room as unknown as { dispose?: () => void })?.dispose?.();
+      } catch {
+        // Ignore disposal errors on lost context
+      }
     };
   }, [gl, scene, invalidate]);
 

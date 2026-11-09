@@ -15,6 +15,10 @@ import AnatomyFocusCamera from './AnatomyFocusCamera';
 import QuizCameraRig from './QuizCameraRig';
 import { useQuizCameraPreset } from './useQuizCameraPreset';
 import TermSceneOverlay from '../terms/TermSceneOverlay';
+import { installWebGLShaderDefenses } from './installWebGLShaderDefenses';
+
+// Install defenses against WebGL context loss shaderSource crashes immediately
+installWebGLShaderDefenses();
 
 function readPerfFlag(): boolean {
   if (typeof window === 'undefined') return false;
@@ -86,6 +90,7 @@ function AnatomySceneInner({ showPerf }: { showPerf: boolean }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [clearFocus]);
 
+
   return (
     <>
       <PerformanceMonitor
@@ -142,9 +147,34 @@ export default function TrainingCanvas() {
       ) : null}
       <Canvas
         frameloop="demand"
-        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: 'high-performance',
+          failIfMajorPerformanceCaveat: false,
+        }}
         shadows="soft"
         onCreated={({ gl }) => {
+          const canvas = gl.domElement;
+          if (canvas?.addEventListener) {
+            canvas.addEventListener(
+              'webglcontextlost',
+              (e: Event) => {
+                e.preventDefault();
+                console.warn('[TrainingCanvas] WebGL context lost.');
+              },
+              false,
+            );
+            canvas.addEventListener(
+              'webglcontextrestored',
+              () => {
+                console.info('[TrainingCanvas] WebGL context restored.');
+                gl.shadowMap.needsUpdate = true;
+              },
+              false,
+            );
+          }
+
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           // <1.0 keeps the near-white bone + lit muscle from clipping to a flat overexposed wash.
           gl.toneMappingExposure = 0.82;
