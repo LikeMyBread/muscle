@@ -178,6 +178,11 @@ async function main() {
 
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`Wrote manifest → ${manifestPath}`);
+
+  const srcManifestPath = path.join(root, 'src/muscle/models/manifest.json');
+  fs.mkdirSync(path.dirname(srcManifestPath), { recursive: true });
+  fs.writeFileSync(srcManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`Wrote source manifest → ${srcManifestPath}`);
 }
 
 main().catch((err) => {

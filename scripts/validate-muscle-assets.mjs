@@ -199,6 +199,27 @@ function main() {
     process.exit(1);
   }
 
+  const srcManifestPath = path.join(root, 'src/muscle/models/manifest.json');
+  if (
+    !fs.existsSync(srcManifestPath) ||
+    fs.readFileSync(srcManifestPath, 'utf8') !== fs.readFileSync(manifestPath, 'utf8')
+  ) {
+    fs.mkdirSync(path.dirname(srcManifestPath), { recursive: true });
+    fs.copyFileSync(manifestPath, srcManifestPath);
+  }
+
+  const publicSharedCss = path.join(root, 'public/styles/shared.css');
+  const srcSharedCss = path.join(root, 'src/shared/styles/shared.css');
+  if (fs.existsSync(publicSharedCss)) {
+    if (
+      !fs.existsSync(srcSharedCss) ||
+      fs.readFileSync(srcSharedCss, 'utf8') !== fs.readFileSync(publicSharedCss, 'utf8')
+    ) {
+      fs.mkdirSync(path.dirname(srcSharedCss), { recursive: true });
+      fs.copyFileSync(publicSharedCss, srcSharedCss);
+    }
+  }
+
   console.log(
     `muscle:validate-assets OK (${curriculumIds.size} curriculum ids, ${loadCsvMuscleNodeIds().size} mapped muscles, triangle budgets)`,
   );

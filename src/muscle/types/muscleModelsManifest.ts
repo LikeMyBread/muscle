@@ -1,4 +1,4 @@
-import manifestJson from '../../../public/muscle/models/manifest.json';
+import manifestJson from '../models/manifest.json';
 
 export type MuscleManifestMesh = {
   nodeId: string;

@@ -5,9 +5,33 @@ import react from '@vitejs/plugin-react';
 import fs from 'node:fs';
 import path from 'node:path';
 
+function syncSourceAssets(): void {
+  const rootDir = process.cwd();
+  const publicManifest = path.resolve(rootDir, 'public/muscle/models/manifest.json');
+  const srcManifest = path.resolve(rootDir, 'src/muscle/models/manifest.json');
+  if (fs.existsSync(publicManifest)) {
+    if (!fs.existsSync(srcManifest) || fs.readFileSync(srcManifest, 'utf8') !== fs.readFileSync(publicManifest, 'utf8')) {
+      fs.mkdirSync(path.dirname(srcManifest), { recursive: true });
+      fs.copyFileSync(publicManifest, srcManifest);
+    }
+  }
+
+  const publicSharedCss = path.resolve(rootDir, 'public/styles/shared.css');
+  const srcSharedCss = path.resolve(rootDir, 'src/shared/styles/shared.css');
+  if (fs.existsSync(publicSharedCss)) {
+    if (!fs.existsSync(srcSharedCss) || fs.readFileSync(srcSharedCss, 'utf8') !== fs.readFileSync(publicSharedCss, 'utf8')) {
+      fs.mkdirSync(path.dirname(srcSharedCss), { recursive: true });
+      fs.copyFileSync(publicSharedCss, srcSharedCss);
+    }
+  }
+}
+
 function muscleSpaFallback(): Plugin {
   return {
     name: 'muscle-spa-fallback',
+    buildStart() {
+      syncSourceAssets();
+    },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (req.method === 'GET') {
