@@ -9,6 +9,45 @@ import { findSceneObjectForNodeId } from '../canvas/computeAnatomyFocusCamera';
 
 type MotionKind = 'flexion' | 'extension' | 'abduction' | 'adduction' | 'pronation' | 'supination';
 
+/**
+ * Computes motion progress from elapsed time.
+ * For jumpBack motions (flexion and extension/straightening):
+ * - starts at initial pose (0.25s pause)
+ * - smoothly animates to final pose (1.40s duration with ease-in-out)
+ * - holds at final pose (0.55s pause)
+ * - jumps instantaneously back to the initial pose
+ * For non-jumpBack motions:
+ * - oscillates smoothly back and forth via sine wave
+ */
+export function computeMotionProgress(
+  elapsedSeconds: number,
+  jumpBack: boolean,
+  reverseCycle = false,
+): number {
+  if (jumpBack) {
+    const cycleDuration = 2.2;
+    const holdStart = 0.25;
+    const moveDuration = 1.4;
+    const phase = ((elapsedSeconds % cycleDuration) + cycleDuration) % cycleDuration;
+
+    if (phase < holdStart) {
+      return reverseCycle ? 1 : 0;
+    }
+    if (phase < holdStart + moveDuration) {
+      const u = (phase - holdStart) / moveDuration;
+      // Smooth quadratic ease-in-out
+      const ease = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      return reverseCycle ? 1 - ease : ease;
+    }
+    return reverseCycle ? 0 : 1;
+  }
+
+  const t = elapsedSeconds * 1.5;
+  const rawWave = (Math.sin(t - Math.PI / 2) + 1) / 2; // 0 to 1
+  const easeWave = rawWave < 0.5 ? 2 * rawWave * rawWave : 1 - Math.pow(-2 * rawWave + 2, 2) / 2;
+  return reverseCycle ? 1 - easeWave : easeWave;
+}
+
 function motionForTerm(termId: string): MotionKind | null {
   if (termId === 'term_flexion') return 'flexion';
   if (termId === 'term_extension') return 'extension';
@@ -116,11 +155,12 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
         hingePinQuat,
         angleArcRadius: 0.055,
         reverseCycle: false,
+        jumpBack: true,
       };
     }
 
     if (motion === 'extension') {
-      // Knee Extension: Straightening the leg from bent knee (90° flexed) to full extension
+      // Knee Extension / Straightening: Straightening the leg from bent knee (acute angle ~70°) to full extension (obtuse angle ~176°)
       const pivot = resolveWorldLandmark(scene, 'joint_knee', [0.095, 0.435, -0.026], frame);
       const anchor = resolveWorldLandmark(scene, 'joint_hip', [0.09, 0.885, -0.007], frame);
       const straightAnkle = resolveWorldLandmark(scene, 'joint_ankle', [0.08, 0.075, -0.029], frame);
@@ -131,7 +171,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
 
       // Knee flexion swings shin posteriorly (-Z) around transverse knee axis
       const rotationAxis = new THREE.Vector3(-1, 0, 0);
-      const maxFlexion = (85 * Math.PI) / 180;
+      const maxFlexion = (110 * Math.PI) / 180; // 110° flexion gives an acute start angle ~70°
       // Bent starting position (posterior)
       const uShinBent = uShinStraight.clone().applyAxisAngle(rotationAxis, -maxFlexion);
       const restDistal = pivot.clone().addScaledVector(uShinBent, shinLength);
@@ -148,7 +188,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
       }
 
       const arrowPos = straightAnkle.clone();
-      const arrowTangent = new THREE.Vector3(0, -0.2, 0.98).normalize();
+      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uShinStraight).normalize();
       const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 1, 0),
         arrowTangent,
@@ -174,6 +214,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
         hingePinQuat,
         angleArcRadius: 0.06,
         reverseCycle: false,
+        jumpBack: true,
       };
     }
 
@@ -230,6 +271,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
         hingePinQuat,
         angleArcRadius: 0.07,
         reverseCycle: motion === 'adduction',
+        jumpBack: false,
       };
     }
 
@@ -271,10 +313,11 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
       }
     }
 
-    const t = clock.getElapsedTime() * 1.5;
-    const rawWave = (Math.sin(t - Math.PI / 2) + 1) / 2; // 0 to 1
-    const easeWave = rawWave < 0.5 ? 2 * rawWave * rawWave : 1 - Math.pow(-2 * rawWave + 2, 2) / 2;
-    const progress = spec.reverseCycle ? 1 - easeWave : easeWave;
+    const progress = computeMotionProgress(
+      clock.getElapsedTime(),
+      spec.jumpBack,
+      spec.reverseCycle,
+    );
     const currentAngle = progress * spec.maxAngle;
 
     const currentDir = spec.uDistal0.clone().applyAxisAngle(spec.rotationAxis, currentAngle);

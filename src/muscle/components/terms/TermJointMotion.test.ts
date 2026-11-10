@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { DEFAULT_ANATOMY_STAGE_FRAME } from '../../types/anatomyStageFrame';
 import { getAnatomyTermById } from '../../curriculum/anatomyTerms';
-import { resolveWorldLandmark } from './TermJointMotion';
+import { resolveWorldLandmark, computeMotionProgress } from './TermJointMotion';
 
 describe('TermJointMotion kinematics and landmarks', () => {
   const frame = {
@@ -13,6 +13,36 @@ describe('TermJointMotion kinematics and landmarks', () => {
       scale: 1.0522,
     },
   };
+
+  describe('computeMotionProgress', () => {
+    it('executes a jump-back cycle for flexion and straightening', () => {
+      // Phase 1: hold at start pose (0 to 0.25s)
+      expect(computeMotionProgress(0.1, true)).toBe(0);
+
+      // Phase 2: smooth ease movement (0.25 to 1.65s)
+      const halfway = computeMotionProgress(0.25 + 0.7, true);
+      expect(halfway).toBeCloseTo(0.5, 1);
+      expect(halfway).toBeGreaterThan(0.4);
+      expect(halfway).toBeLessThan(0.6);
+
+      // Phase 3: hold at final pose (1.65 to 2.20s)
+      expect(computeMotionProgress(1.8, true)).toBe(1);
+      expect(computeMotionProgress(2.19, true)).toBe(1);
+
+      // Phase 4: jump back to start on next cycle (wrap at 2.20s)
+      expect(computeMotionProgress(2.21, true)).toBe(0);
+      expect(computeMotionProgress(2.35, true)).toBe(0);
+    });
+
+    it('executes smooth sine oscillation when jumpBack is false', () => {
+      // Sine wave starts at 0 at t = 0
+      expect(computeMotionProgress(0, false)).toBeCloseTo(0, 1);
+      // Oscillates smoothly
+      const val = computeMotionProgress(1.0, false);
+      expect(val).toBeGreaterThanOrEqual(0);
+      expect(val).toBeLessThanOrEqual(1);
+    });
+  });
 
   it('resolves world landmark taking ancestor group matrix transforms into account', () => {
     const scene = new THREE.Scene();
@@ -114,7 +144,7 @@ describe('TermJointMotion kinematics and landmarks', () => {
     expect(flexedAngleDeg).toBeLessThan(initialAngleDeg);
   });
 
-  it('knee extension hinges at the knee joint and increases joint angle to full extension', () => {
+  it('knee extension starts bent at an acute angle, straightens to an obtuse angle, and increases joint angle', () => {
     const localKnee: [number, number, number] = [0.095, 0.435, -0.026];
     const localHip: [number, number, number] = [0.09, 0.885, -0.007];
     const localAnkle: [number, number, number] = [0.08, 0.075, -0.029];
@@ -133,5 +163,23 @@ describe('TermJointMotion kinematics and landmarks', () => {
     // Knee is below hip and above ankle
     expect(pivot.y).toBeLessThan(anchor.y);
     expect(pivot.y).toBeGreaterThan(straightAnkle.y);
+
+    const uThigh = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+    const uShinStraight = new THREE.Vector3().subVectors(straightAnkle, pivot).normalize();
+    const rotationAxis = new THREE.Vector3(-1, 0, 0);
+    const maxFlexion = (110 * Math.PI) / 180;
+    const uShinBent = uShinStraight.clone().applyAxisAngle(rotationAxis, -maxFlexion);
+
+    // Starts bent at an acute angle (< 90°, approx 70°)
+    const startAngleDeg = (uShinBent.angleTo(uThigh) * 180) / Math.PI;
+    expect(startAngleDeg).toBeLessThan(80);
+    expect(startAngleDeg).toBeGreaterThan(60);
+
+    // Straightens to an obtuse angle (> 90°, approx 176°)
+    const endAngleDeg = (uShinStraight.angleTo(uThigh) * 180) / Math.PI;
+    expect(endAngleDeg).toBeGreaterThan(170);
+
+    // Extension strictly increases the joint angle (the definition of extension / straightening)
+    expect(endAngleDeg).toBeGreaterThan(startAngleDeg);
   });
 });
