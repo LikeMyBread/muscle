@@ -42,4 +42,16 @@ describe('computeAnatomyFocusCamera', () => {
     expect(preset.target).toEqual([0.2, 1.5, 0.1]);
     expect(preset.position[0]).toBeLessThan(preset.target[0]);
   });
+
+  it('frames knee joint above the floor at anatomical knee height', () => {
+    const kneeLayoutPos: [number, number, number] = [0.28, 0.48, 0.05];
+    const camera = new PerspectiveCamera();
+    camera.position.set(0.35, 0.52, 1.2);
+    const preset = computeFramingPresetFromLayout(kneeLayoutPos, [0.1, 0.1, 0.1], camera.position);
+
+    // Target must be at knee height ~0.48, well above the feet/floor (y > 0.40)
+    expect(preset.target[1]).toBeCloseTo(0.48, 2);
+    expect(preset.target[1]).toBeGreaterThan(0.4);
+    expect(preset.position[1]).toBeGreaterThan(0.4);
+  });
 });

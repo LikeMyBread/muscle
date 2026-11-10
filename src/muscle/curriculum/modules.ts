@@ -8,11 +8,11 @@ const DEFAULT_PRESETS = {
   arm: { position: [2.0, 1.2, 0.5] as [number, number, number], target: [0.5, 1.0, 0] as [number, number, number] },
   elbow: { position: [1.6, 0.9, 1.0] as [number, number, number], target: [0.5, 0.9, 0] as [number, number, number] },
   forearm: { position: [1.8, 0.7, 0.8] as [number, number, number], target: [0.55, 0.7, 0] as [number, number, number] },
-  pelvis: { position: [0, 0.3, 2.0] as [number, number, number], target: [0, 0.2, 0] as [number, number, number] },
-  leg: { position: [0.8, -0.5, 2.0] as [number, number, number], target: [0.2, -0.5, 0] as [number, number, number] },
-  knee: { position: [0.9, -0.65, 1.6] as [number, number, number], target: [0.2, -0.65, 0] as [number, number, number] },
+  pelvis: { position: [0, 1.0, 1.8] as [number, number, number], target: [0.18, 0.88, 0] as [number, number, number] },
+  leg: { position: [0.45, 0.55, 1.6] as [number, number, number], target: [0.28, 0.45, 0] as [number, number, number] },
+  knee: { position: [0.35, 0.52, 1.2] as [number, number, number], target: [0.28, 0.48, 0.05] as [number, number, number] },
   hand: { position: [1.2, 0.5, 1.4] as [number, number, number], target: [0.62, 0.5, 0] as [number, number, number] },
-  foot: { position: [0.6, -1.4, 1.8] as [number, number, number], target: [0.2, -1.4, 0] as [number, number, number] },
+  foot: { position: [0.35, 0.25, 1.2] as [number, number, number], target: [0.26, 0.10, 0.0] as [number, number, number] },
 };
 
 export const MUSCLE_MODULES: MuscleMemoryModule[] = [

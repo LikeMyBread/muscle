@@ -250,4 +250,66 @@ describe('TermJointMotion kinematics and landmarks', () => {
     const arrowTangent = new THREE.Vector3().crossVectors(adductionAxis, uArmRest).normalize();
     expect(arrowTangent.x).toBeLessThan(-0.8); // Points medially toward midline
   });
+
+  it('pronation curves 180 degrees inward around the wrist', () => {
+    const localElbow: [number, number, number] = [0.22, 1.107, -0.037];
+    const localWrist: [number, number, number] = [0.265, 0.852, 0.022];
+
+    const toWorld = (l: [number, number, number]) =>
+      new THREE.Vector3(
+        l[0] * frame.layout.scale + frame.layout.position[0],
+        l[1] * frame.layout.scale + frame.layout.position[1],
+        l[2] * frame.layout.scale + frame.layout.position[2],
+      );
+
+    const pivot = toWorld(localWrist);
+    const anchor = toWorld(localElbow);
+
+    const uForearm = new THREE.Vector3().subVectors(pivot, anchor).normalize();
+    const zAnt = new THREE.Vector3(0, 0, 1);
+    const uAnterior = zAnt.clone().sub(uForearm.clone().multiplyScalar(zAnt.dot(uForearm))).normalize();
+    const uLateral = new THREE.Vector3().crossVectors(uAnterior, uForearm).normalize();
+    const uMedial = uLateral.clone().negate();
+
+    // 180° rotation of lateral starting direction around forearm axis reaches medial direction
+    const endDir = uLateral.clone().applyAxisAngle(uForearm, Math.PI);
+    expect(endDir.distanceTo(uMedial)).toBeCloseTo(0, 3);
+
+    // Lateral is +X, Medial is -X
+    expect(uLateral.x).toBeGreaterThan(0.8);
+    expect(uMedial.x).toBeLessThan(-0.8);
+
+    // Tangent at end of 180° curve points posteriorly in the rotation plane
+    const arrowTangent = new THREE.Vector3().crossVectors(uForearm, uMedial).normalize();
+    expect(arrowTangent.z).toBeLessThan(-0.8);
+  });
+
+  it('supination curves 180 degrees outward around the wrist', () => {
+    const localElbow: [number, number, number] = [0.22, 1.107, -0.037];
+    const localWrist: [number, number, number] = [0.265, 0.852, 0.022];
+
+    const toWorld = (l: [number, number, number]) =>
+      new THREE.Vector3(
+        l[0] * frame.layout.scale + frame.layout.position[0],
+        l[1] * frame.layout.scale + frame.layout.position[1],
+        l[2] * frame.layout.scale + frame.layout.position[2],
+      );
+
+    const pivot = toWorld(localWrist);
+    const anchor = toWorld(localElbow);
+
+    const uForearm = new THREE.Vector3().subVectors(pivot, anchor).normalize();
+    const zAnt = new THREE.Vector3(0, 0, 1);
+    const uAnterior = zAnt.clone().sub(uForearm.clone().multiplyScalar(zAnt.dot(uForearm))).normalize();
+    const uLateral = new THREE.Vector3().crossVectors(uAnterior, uForearm).normalize();
+    const uMedial = uLateral.clone().negate();
+
+    // Outward rotation around -uForearm takes medial starting direction to lateral direction
+    const endDir = uMedial.clone().applyAxisAngle(uForearm.clone().negate(), Math.PI);
+    expect(endDir.distanceTo(uLateral)).toBeCloseTo(0, 3);
+
+    // Tangent at end of 180° outward curve points posteriorly in the rotation plane
+    const arrowTangent = new THREE.Vector3().crossVectors(uForearm.clone().negate(), uLateral).normalize();
+    expect(arrowTangent.z).toBeLessThan(-0.8);
+  });
 });

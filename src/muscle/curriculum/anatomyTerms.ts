@@ -192,7 +192,7 @@ export const ANATOMY_TERMS: AnatomyTerm[] = [
     oppositeTermId: 'term_supination',
     example: 'Typing on a keyboard uses pronation.',
     visualization: 'joint_motion',
-    exampleNodeIds: ['bone_radius', 'bone_ulna'],
+    exampleNodeIds: ['joint_wrist', 'bone_radius', 'bone_ulna'],
   },
   {
     id: 'term_supination',
@@ -202,6 +202,7 @@ export const ANATOMY_TERMS: AnatomyTerm[] = [
     oppositeTermId: 'term_pronation',
     example: 'Holding a bowl of soup uses supination.',
     visualization: 'joint_motion',
+    exampleNodeIds: ['joint_wrist', 'bone_radius', 'bone_ulna'],
   },
   {
     id: 'term_origin',

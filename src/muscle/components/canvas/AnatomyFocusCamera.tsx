@@ -28,8 +28,12 @@ export default function AnatomyFocusCamera() {
       return;
     }
 
-    const object = findSceneObjectForNodeId(scene, targetId);
+    let object = findSceneObjectForNodeId(scene, targetId);
+    if (!object && targetId === 'joint_knee') {
+      object = findSceneObjectForNodeId(scene, 'bone_patella');
+    }
     if (object) {
+      object.updateWorldMatrix(true, false);
       setCameraFocusPreset(computeFramingPresetFromObject(object, camera.position.clone()));
       invalidate();
       return;

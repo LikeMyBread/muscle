@@ -27,6 +27,7 @@ export function computeFramingPresetFromObject(
   viewFrom?: Vector3,
   distanceScale = 2.6,
 ): CameraPreset {
+  object.updateWorldMatrix(true, false);
   box.setFromObject(object);
   if (box.isEmpty()) {
     return { position: [0, 0.95, 2.85], target: [0, 0.875, 0] };

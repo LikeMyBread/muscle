@@ -162,6 +162,10 @@ export default function StudyTermVisualExample({
                 ? '• Arm raises away from midline'
                 : activeTerm.id === 'term_adduction'
                 ? '• Arm lowers toward midline'
+                : activeTerm.id === 'term_pronation'
+                ? '• Forearm rotates inward (palm turns backward)'
+                : activeTerm.id === 'term_supination'
+                ? '• Forearm rotates outward (palm turns forward)'
                 : '• Joint motion demonstration'}
             </span>
           ) : null}
