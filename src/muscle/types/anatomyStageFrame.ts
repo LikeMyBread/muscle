@@ -14,6 +14,6 @@ export type AnatomyStageFrame = {
 
 export const DEFAULT_ANATOMY_STAGE_FRAME: AnatomyStageFrame = {
   center: [0.22, 0.875, 0],
-  layout: { position: [0, 0, 0], scale: 1 },
+  layout: { position: [0.1824, 0.0656, -0.0035], scale: 0.9877 },
   bounds: { min: [0, 0, -0.22], max: [0.44, 1.75, 0.22] },
 };

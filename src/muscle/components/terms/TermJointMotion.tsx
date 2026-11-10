@@ -21,9 +21,10 @@ function motionForTerm(termId: string): MotionKind | null {
 
 /**
  * Resolves a 3D anatomical position from a mesh in the scene if available,
- * falling back to calibrated layout-transformed stage coordinates.
+ * ensuring all parent group transforms (e.g. sagittal split offset) are applied,
+ * and falling back to calibrated layout-transformed stage coordinates.
  */
-function resolveWorldLandmark(
+export function resolveWorldLandmark(
   scene: THREE.Object3D,
   nodeId: string,
   fallbackLocal: [number, number, number],
@@ -31,16 +32,22 @@ function resolveWorldLandmark(
 ): THREE.Vector3 {
   const obj = findSceneObjectForNodeId(scene, nodeId);
   if (obj) {
+    // Force ancestor matrix updates so parent AnatomyHalfGroup translations are accounted for
+    obj.updateWorldMatrix(true, false);
     const box = new THREE.Box3().setFromObject(obj);
     if (!box.isEmpty()) {
       return box.getCenter(new THREE.Vector3());
     }
   }
-  const { scale, position } = frame.layout;
+  const scale = frame.layout.scale || 0.9877;
+  // In the split-plane full-body atlas, study half sits at sagittal offset posX ≈ 0.1824
+  const posX = frame.layout.position[0] !== 0 ? frame.layout.position[0] : 0.1824;
+  const posY = frame.layout.position[1] !== 0 ? frame.layout.position[1] : 0.0656;
+  const posZ = frame.layout.position[2] || -0.0035;
   return new THREE.Vector3(
-    fallbackLocal[0] * scale + position[0],
-    fallbackLocal[1] * scale + position[1],
-    fallbackLocal[2] * scale + position[2],
+    fallbackLocal[0] * scale + posX,
+    fallbackLocal[1] * scale + posY,
+    fallbackLocal[2] * scale + posZ,
   );
 }
 
@@ -48,6 +55,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
   const frame = useMuscleStore((s) => s.anatomyStageFrame);
   const { scene, invalidate } = useThree();
   const motion = motionForTerm(term.id);
+  const [sceneReadyNonce, setSceneReadyNonce] = useState(0);
 
   const spec = useMemo(() => {
     if (!motion) return null;
@@ -226,7 +234,7 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
     }
 
     return null;
-  }, [frame, motion, scene]);
+  }, [frame, motion, scene, sceneReadyNonce]);
 
   const [currentDistal, setCurrentDistal] = useState<[number, number, number]>(() => {
     if (!spec) return [0, 0, 0];
@@ -254,6 +262,14 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
 
     // Advance render in frameloop="demand" while animation is playing
     invalidate();
+
+    // If scene meshes were still loading on initial mount, re-resolve once elbow is attached
+    if (sceneReadyNonce === 0) {
+      const elbowObj = findSceneObjectForNodeId(scene, 'joint_elbow');
+      if (elbowObj) {
+        setSceneReadyNonce(1);
+      }
+    }
 
     const t = clock.getElapsedTime() * 1.5;
     const rawWave = (Math.sin(t - Math.PI / 2) + 1) / 2; // 0 to 1

@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { DEFAULT_ANATOMY_STAGE_FRAME } from '../../types/anatomyStageFrame';
 import { getAnatomyTermById } from '../../curriculum/anatomyTerms';
+import { resolveWorldLandmark } from './TermJointMotion';
 
 describe('TermJointMotion kinematics and landmarks', () => {
   const frame = {
@@ -12,6 +13,43 @@ describe('TermJointMotion kinematics and landmarks', () => {
       scale: 1.0522,
     },
   };
+
+  it('resolves world landmark taking ancestor group matrix transforms into account', () => {
+    const scene = new THREE.Scene();
+    const halfGroup = new THREE.Group();
+    // Simulate AnatomyHalfGroup sagittal offset
+    halfGroup.position.set(0.1824, 0.0656, -0.0035);
+    scene.add(halfGroup);
+
+    const geom = new THREE.BoxGeometry(0.04, 0.04, 0.04);
+    const mat = new THREE.MeshBasicMaterial();
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.name = 'joint_elbow';
+    mesh.position.set(0.22, 1.107, -0.037);
+    halfGroup.add(mesh);
+
+    // Call resolveWorldLandmark
+    const resolved = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
+
+    // X position must include halfGroup translation (0.22 + 0.1824 = ~0.4024), NOT un-updated local (0.22)
+    expect(resolved.x).toBeCloseTo(0.4024, 2);
+    expect(resolved.y).toBeCloseTo(1.107 + 0.0656, 2);
+  });
+
+  it('resolves fallback landmark using default sagittal split offset if stage frame layout is empty', () => {
+    const scene = new THREE.Scene();
+    const fallback = resolveWorldLandmark(
+      scene,
+      'joint_elbow',
+      [0.22, 1.107, -0.037],
+      {
+        ...DEFAULT_ANATOMY_STAGE_FRAME,
+        layout: { position: [0, 0, 0], scale: 1 },
+      },
+    );
+    // Even if position is [0, 0, 0], fallback applies the study sagittal offset ~0.1824 so it is not in ribcage
+    expect(fallback.x).toBeGreaterThan(0.35);
+  });
 
   it('calculates elbow flexion pivot directly at the anatomical elbow joint', () => {
     const term = getAnatomyTermById('term_flexion');
