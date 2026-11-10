@@ -152,6 +152,17 @@ export default function StudyTermVisualExample({
             {activeTerm.category.replace(/_/g, ' ').toUpperCase()}
           </span>
           <span className="muscle-study-visual-badge__name">{activeTerm.label}</span>
+          {activeTerm.visualization === 'joint_motion' ? (
+            <span className="muscle-study-visual-badge__sub">
+              {activeTerm.id === 'term_flexion'
+                ? '• Elbow bends toward upper arm (angle closes)'
+                : activeTerm.id === 'term_extension'
+                ? '• Knee straightens leg (angle opens)'
+                : activeTerm.id === 'term_abduction'
+                ? '• Arm raises away from midline'
+                : '• Joint motion demonstration'}
+            </span>
+          ) : null}
         </div>
       </div>
 
