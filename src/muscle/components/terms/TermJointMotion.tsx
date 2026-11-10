@@ -11,7 +11,7 @@ type MotionKind = 'flexion' | 'extension' | 'abduction' | 'adduction' | 'pronati
 
 /**
  * Computes motion progress from elapsed time.
- * For jumpBack motions (flexion and extension/straightening):
+ * For jumpBack motions (flexion, extension/straightening, abduction, adduction):
  * - starts at initial pose (0.25s pause)
  * - smoothly animates to final pose (1.40s duration with ease-in-out)
  * - holds at final pose (0.55s pause)
@@ -218,8 +218,8 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
       };
     }
 
-    if (motion === 'abduction' || motion === 'adduction') {
-      // Shoulder Abduction / Adduction: Arm raises away from / lowers toward midline in coronal plane
+    if (motion === 'abduction') {
+      // Shoulder Abduction: Arm raises away from midline in coronal plane, then jumps back down to side
       const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
       const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
       const restDistal = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
@@ -270,8 +270,70 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
         arrowQuat,
         hingePinQuat,
         angleArcRadius: 0.07,
-        reverseCycle: motion === 'adduction',
-        jumpBack: false,
+        reverseCycle: false,
+        jumpBack: true,
+      };
+    }
+
+    if (motion === 'adduction') {
+      // Shoulder Adduction: Arm lowers from raised abducted position toward midline, then jumps back up
+      const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
+      const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
+      const wristAtSide = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
+
+      const uTrunk = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+      const uArmRest = new THREE.Vector3().subVectors(wristAtSide, pivot).normalize();
+      const armLength = pivot.distanceTo(wristAtSide);
+
+      // Abducted starting direction (raised ~85° laterally away from midline)
+      const abdAxis = new THREE.Vector3(0, 0, 1);
+      const maxAngle = (85 * Math.PI) / 180;
+      const uArmRaised = uArmRest.clone().applyAxisAngle(abdAxis, maxAngle);
+      const raisedDistal = pivot.clone().addScaledVector(uArmRaised, armLength);
+
+      // Adduction rotates arm back down toward midline around -Z axis
+      const rotationAxis = new THREE.Vector3(0, 0, -1);
+
+      const trajectoryArcPoints: [number, number, number][] = [];
+      const steps = 24;
+      for (let i = 0; i <= steps; i++) {
+        const a = (i / steps) * maxAngle;
+        const pt = pivot.clone().addScaledVector(
+          uArmRaised.clone().applyAxisAngle(rotationAxis, a),
+          armLength,
+        );
+        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
+      }
+
+      // Arrowhead at the lowered position at side, pointing down/medially in direction of adduction
+      const arrowPos = wristAtSide.clone();
+      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uArmRest).normalize();
+      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        arrowTangent,
+      );
+      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        abdAxis,
+      );
+
+      return {
+        motion,
+        pivot,
+        anchor,
+        restDistal: raisedDistal, // Ghosted reference line marks the starting raised position
+        uAnchor: uTrunk,
+        uDistal0: uArmRaised,
+        distalLength: armLength,
+        rotationAxis,
+        maxAngle,
+        trajectoryArcPoints,
+        arrowPos,
+        arrowQuat,
+        hingePinQuat,
+        angleArcRadius: 0.07,
+        reverseCycle: false,
+        jumpBack: true,
       };
     }
 

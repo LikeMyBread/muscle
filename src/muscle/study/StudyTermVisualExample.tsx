@@ -160,6 +160,8 @@ export default function StudyTermVisualExample({
                 ? '• Knee straightens leg (angle opens)'
                 : activeTerm.id === 'term_abduction'
                 ? '• Arm raises away from midline'
+                : activeTerm.id === 'term_adduction'
+                ? '• Arm lowers toward midline'
                 : '• Joint motion demonstration'}
             </span>
           ) : null}

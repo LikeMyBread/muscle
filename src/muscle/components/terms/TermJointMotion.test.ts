@@ -182,4 +182,72 @@ describe('TermJointMotion kinematics and landmarks', () => {
     // Extension strictly increases the joint angle (the definition of extension / straightening)
     expect(endAngleDeg).toBeGreaterThan(startAngleDeg);
   });
+
+  it('shoulder abduction starts at side, raises away from midline, and increases lateral distance', () => {
+    const localShoulder: [number, number, number] = [0.163, 1.378, -0.028];
+    const localWrist: [number, number, number] = [0.265, 0.852, 0.022];
+
+    const toWorld = (l: [number, number, number]) =>
+      new THREE.Vector3(
+        l[0] * frame.layout.scale + frame.layout.position[0],
+        l[1] * frame.layout.scale + frame.layout.position[1],
+        l[2] * frame.layout.scale + frame.layout.position[2],
+      );
+
+    const pivot = toWorld(localShoulder);
+    const wristAtSide = toWorld(localWrist);
+    const armLength = pivot.distanceTo(wristAtSide);
+
+    const uArmRest = new THREE.Vector3().subVectors(wristAtSide, pivot).normalize();
+    const rotationAxis = new THREE.Vector3(0, 0, 1);
+    const maxAngle = (85 * Math.PI) / 180;
+    const raisedDir = uArmRest.clone().applyAxisAngle(rotationAxis, maxAngle);
+    const raisedWrist = pivot.clone().addScaledVector(raisedDir, armLength);
+
+    // Lateral distance (X) from shoulder to wrist must increase significantly
+    expect(raisedWrist.x).toBeGreaterThan(wristAtSide.x + 0.3);
+    // Vertical position (Y) raises up
+    expect(raisedWrist.y).toBeGreaterThan(wristAtSide.y + 0.3);
+
+    // Arrow tangent at raised position points in direction of abduction (upward and slightly lateral)
+    const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, raisedDir).normalize();
+    expect(arrowTangent.y).toBeGreaterThan(0.8);
+  });
+
+  it('shoulder adduction starts raised, lowers toward midline, and decreases lateral distance', () => {
+    const localShoulder: [number, number, number] = [0.163, 1.378, -0.028];
+    const localWrist: [number, number, number] = [0.265, 0.852, 0.022];
+
+    const toWorld = (l: [number, number, number]) =>
+      new THREE.Vector3(
+        l[0] * frame.layout.scale + frame.layout.position[0],
+        l[1] * frame.layout.scale + frame.layout.position[1],
+        l[2] * frame.layout.scale + frame.layout.position[2],
+      );
+
+    const pivot = toWorld(localShoulder);
+    const wristAtSide = toWorld(localWrist);
+    const armLength = pivot.distanceTo(wristAtSide);
+
+    const uArmRest = new THREE.Vector3().subVectors(wristAtSide, pivot).normalize();
+    const maxAngle = (85 * Math.PI) / 180;
+    const uArmRaised = uArmRest.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), maxAngle);
+    const raisedWrist = pivot.clone().addScaledVector(uArmRaised, armLength);
+
+    // Adduction rotates around -Z axis back down to side
+    const adductionAxis = new THREE.Vector3(0, 0, -1);
+    const loweredDir = uArmRaised.clone().applyAxisAngle(adductionAxis, maxAngle);
+    const finalWrist = pivot.clone().addScaledVector(loweredDir, armLength);
+
+    // Starts raised at high X
+    expect(raisedWrist.x).toBeGreaterThan(wristAtSide.x + 0.3);
+
+    // Ends lowered back at side (finalWrist matches wristAtSide)
+    expect(finalWrist.distanceTo(wristAtSide)).toBeCloseTo(0, 3);
+    expect(finalWrist.x).toBeLessThan(raisedWrist.x - 0.3);
+
+    // Arrow tangent at lowered position points medially and down (direction of adduction)
+    const arrowTangent = new THREE.Vector3().crossVectors(adductionAxis, uArmRest).normalize();
+    expect(arrowTangent.x).toBeLessThan(-0.8); // Points medially toward midline
+  });
 });
