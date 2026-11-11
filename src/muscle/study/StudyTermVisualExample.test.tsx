@@ -20,15 +20,19 @@ describe('StudyTermVisualExample', () => {
     });
   });
 
-  it('renders visual example for target term when answered correctly', () => {
+  it('renders visual example viewport without redundant details box when answered correctly', () => {
     const sagittal = getAnatomyTermById('term_plane_sagittal')!;
-    render(<StudyTermVisualExample targetTerm={sagittal} isCorrect={true} />);
+    const { container } = render(<StudyTermVisualExample targetTerm={sagittal} isCorrect={true} />);
 
     expect(screen.getByTestId('muscle-study-visual-example')).toBeInTheDocument();
     expect(screen.getAllByText('Sagittal plane').length).toBeGreaterThan(0);
+
+    // Redundant details box and chip controls are omitted
+    expect(container.querySelector('.muscle-study-visual-details')).toBeNull();
+    expect(screen.queryByText(/Cardinal planes:/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText('Vertical plane that splits the body into left and right halves.'),
-    ).toBeInTheDocument();
+      screen.queryByText('Vertical plane that splits the body into left and right halves.'),
+    ).not.toBeInTheDocument();
 
     // No comparison tabs when correct
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
@@ -41,7 +45,7 @@ describe('StudyTermVisualExample', () => {
     const sagittal = getAnatomyTermById('term_plane_sagittal')!;
     const coronal = getAnatomyTermById('term_plane_coronal')!;
 
-    render(
+    const { container } = render(
       <StudyTermVisualExample
         targetTerm={sagittal}
         mistakeTerm={coronal}
@@ -56,27 +60,29 @@ describe('StudyTermVisualExample', () => {
 
     // Default active is target
     expect(useMuscleStore.getState().activeTermId).toBe('term_plane_sagittal');
+    expect(container.querySelector('.muscle-study-visual-badge__name')).toHaveTextContent(
+      'Sagittal plane',
+    );
 
     // Click mistake tab
     fireEvent.click(screen.getByText('✗ Your choice'));
 
     // Should switch to coronal plane
     expect(useMuscleStore.getState().activeTermId).toBe('term_plane_coronal');
-    expect(
-      screen.getByText('Vertical plane that splits the body into front (anterior) and back (posterior).'),
-    ).toBeInTheDocument();
+    expect(container.querySelector('.muscle-study-visual-badge__name')).toHaveTextContent(
+      'Coronal plane',
+    );
   });
 
-  it('renders matching structure chips on the model for terms with highlight nodes', () => {
+  it('automatically focuses matching model structures without rendering highlight chip controls', () => {
     const anterior = getAnatomyTermById('term_anterior')!;
-    render(<StudyTermVisualExample targetTerm={anterior} isCorrect={true} />);
+    const { container } = render(<StudyTermVisualExample targetTerm={anterior} isCorrect={true} />);
 
-    // Sternum is the example structure for anterior
-    expect(screen.getByText('Sternum')).toBeInTheDocument();
-    expect(screen.getByText(/On the 3D model/i)).toBeInTheDocument();
+    expect(screen.queryByText(/On the 3D model/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Sternum')).not.toBeInTheDocument();
+    expect(container.querySelector('.muscle-study-visual-chip')).toBeNull();
 
-    // Clicking the chip focuses the structure
-    fireEvent.click(screen.getByText('Sternum'));
+    // Automatically focuses the example structure in the store
     expect(useMuscleStore.getState().focusedNodeId).toBe('bone_sternum');
   });
 });

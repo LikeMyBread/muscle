@@ -1,10 +1,7 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import type { AnatomyTerm } from '../types/anatomyTerm';
-import type { MuscleMemoryNode } from '../types/node';
-import { getAnatomyTermById } from '../curriculum/anatomyTerms';
 import { getHighlightNodeIdsForTerm } from '../curriculum/anatomyTermMatches';
 import { getNodeById } from '../curriculum';
-import { PLANE_TERM_IDS } from '../components/terms/anatomyTermPlaneSpecs';
 import { useMuscleStore } from '../store/useMuscleStore';
 
 const TrainingCanvas = lazy(() => import('../components/canvas/TrainingCanvas'));
@@ -15,34 +12,17 @@ export interface StudyTermVisualExampleProps {
   isCorrect: boolean;
 }
 
-function getVisualExampleNodes(term: AnatomyTerm): MuscleMemoryNode[] {
-  const ids = getHighlightNodeIdsForTerm(term);
-  const nodes: MuscleMemoryNode[] = [];
-  const seen = new Set<string>();
-  for (const id of ids) {
-    const node = getNodeById(id);
-    if (node && !seen.has(node.id)) {
-      seen.add(node.id);
-      nodes.push(node);
-    }
-  }
-  return nodes;
-}
-
 export default function StudyTermVisualExample({
   targetTerm,
   mistakeTerm,
   isCorrect,
 }: StudyTermVisualExampleProps): React.ReactElement {
   const [selectedTermId, setSelectedTermId] = useState<string>(targetTerm.id);
-  const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
 
   const activeTerm =
     selectedTermId === mistakeTerm?.id && mistakeTerm ? mistakeTerm : targetTerm;
   const isViewingTarget = activeTerm.id === targetTerm.id;
-
-  const exampleNodes = useMemo(() => getVisualExampleNodes(activeTerm), [activeTerm]);
 
   // Synchronize 3D scene whenever the active term changes
   useEffect(() => {
@@ -170,97 +150,6 @@ export default function StudyTermVisualExample({
             </span>
           ) : null}
         </div>
-      </div>
-
-      {/* Term Details & Reference Information */}
-      <div className="muscle-study-visual-details">
-        <div className="muscle-study-visual-meta">
-          <div className="muscle-study-visual-header-row">
-            <h3 className="muscle-study-visual-heading">{activeTerm.label}</h3>
-            <span className="muscle-study-visual-category-pill">
-              {activeTerm.category.replace(/_/g, ' ')}
-            </span>
-          </div>
-          <p className="muscle-study-visual-definition">{activeTerm.definition}</p>
-          {activeTerm.example ? (
-            <p className="muscle-study-visual-example-note">
-              <strong>Example:</strong> {activeTerm.example}
-            </p>
-          ) : null}
-        </div>
-
-        {/* Cardinal reference planes switcher */}
-        {activeTerm.category === 'plane' ? (
-          <div className="muscle-study-visual-planes">
-            <span className="muscle-study-visual-chips-title">Cardinal planes:</span>
-            <div className="muscle-study-visual-chips-row">
-              {(['sagittal', 'coronal', 'transverse'] as const).map((kind) => {
-                const planeTermId = PLANE_TERM_IDS[kind];
-                const planeTerm = getAnatomyTermById(planeTermId);
-                const isActive = activeTerm.id === planeTermId;
-                return (
-                  <button
-                    key={planeTermId}
-                    type="button"
-                    className={`muscle-study-visual-chip${isActive ? ' is-active' : ''}`}
-                    onClick={() => setSelectedTermId(planeTermId)}
-                  >
-                    {planeTerm?.label ?? kind}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Structures highlighted on the 3D model */}
-        {exampleNodes.length > 0 ? (
-          <div className="muscle-study-visual-structures">
-            <div className="muscle-study-visual-structures-header">
-              <span className="muscle-study-visual-chips-title">
-                On the 3D model ({exampleNodes.length}{' '}
-                {exampleNodes.length === 1 ? 'structure' : 'structures'}):
-              </span>
-              {exampleNodes.length > 1 ? (
-                <button
-                  type="button"
-                  className="muscle-study-visual-all-btn"
-                  onClick={() => {
-                    const ids = exampleNodes.map((n) => n.id);
-                    useMuscleStore.getState().focusStudyGroup(ids);
-                  }}
-                >
-                  Highlight all
-                </button>
-              ) : null}
-            </div>
-            <div className="muscle-study-visual-chips-row">
-              {exampleNodes.map((node) => {
-                const isNodeActive = focusedNodeId === node.id;
-                return (
-                  <button
-                    key={node.id}
-                    type="button"
-                    className={`muscle-study-visual-chip${isNodeActive ? ' is-active' : ''}`}
-                    onClick={() => {
-                      const muscleStore = useMuscleStore.getState();
-                      muscleStore.focusStructure(node.id);
-                      if (node.type === 'bone' || node.type === 'joint' || node.layerDepth >= 2) {
-                        muscleStore.setLayerPeelDepth(
-                          node.type === 'bone' || node.type === 'joint' ? 3 : 2,
-                        );
-                      } else {
-                        muscleStore.setLayerPeelDepth(0);
-                      }
-                    }}
-                  >
-                    {node.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
       </div>
     </div>
   );
