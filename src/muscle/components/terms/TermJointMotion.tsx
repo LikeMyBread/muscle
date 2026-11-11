@@ -7,7 +7,86 @@ import type { AnatomyStageFrame } from '../../types/anatomyStageFrame';
 import { useMuscleStore } from '../../store/useMuscleStore';
 import { findSceneObjectForNodeId } from '../canvas/computeAnatomyFocusCamera';
 
-type MotionKind = 'flexion' | 'extension' | 'abduction' | 'adduction' | 'pronation' | 'supination';
+export type MotionKind =
+  | 'flexion'
+  | 'extension'
+  | 'abduction'
+  | 'adduction'
+  | 'pronation'
+  | 'supination';
+
+export interface JointMotionSpec {
+  motion: MotionKind;
+  pivot: THREE.Vector3;
+  anchor: THREE.Vector3;
+  restDistal: THREE.Vector3;
+  uAnchor: THREE.Vector3;
+  uDistal0: THREE.Vector3;
+  distalLength: number;
+  rotationAxis: THREE.Vector3;
+  maxAngle: number;
+  trajectoryArcPoints: [number, number, number][];
+  arrowPos: THREE.Vector3;
+  arrowQuat: THREE.Quaternion;
+  hingePinQuat: THREE.Quaternion;
+  angleArcRadius: number;
+  reverseCycle: boolean;
+  jumpBack: boolean;
+}
+
+const EXTENSION_START_ANGLE_RAD = (70 * Math.PI) / 180;
+// Stop at 179° instead of 180° so the interior angle always stays unambiguously on the posterior flexion side.
+const EXTENSION_END_ANGLE_RAD = (179 * Math.PI) / 180;
+
+function buildRotationTrajectory(
+  pivot: THREE.Vector3,
+  uStartDir: THREE.Vector3,
+  rotationAxis: THREE.Vector3,
+  maxAngle: number,
+  radius: number,
+  steps = 24,
+): [number, number, number][] {
+  const pts: [number, number, number][] = [];
+  for (let i = 0; i <= steps; i++) {
+    const a = (i / steps) * maxAngle;
+    const pt = pivot
+      .clone()
+      .addScaledVector(uStartDir.clone().applyAxisAngle(rotationAxis, a), radius);
+    pts.push([pt.x, pt.y, pt.z]);
+  }
+  return pts;
+}
+
+/**
+ * Builds the interior joint angle arc between `currentDir` and `uAnchor`,
+ * choosing a single consistent rotation direction across the entire arc.
+ */
+export function buildAngleArcPoints(
+  pivot: THREE.Vector3,
+  currentDir: THREE.Vector3,
+  uAnchor: THREE.Vector3,
+  rotationAxis: THREE.Vector3,
+  angleArcRadius: number,
+): [number, number, number][] {
+  if (angleArcRadius <= 0) return [];
+  const remainingAngle = currentDir.angleTo(uAnchor);
+  const endPos = currentDir.clone().applyAxisAngle(rotationAxis, remainingAngle);
+  const endNeg = currentDir.clone().applyAxisAngle(rotationAxis, -remainingAngle);
+  const sweepAxis =
+    endPos.angleTo(uAnchor) <= endNeg.angleTo(uAnchor)
+      ? rotationAxis
+      : rotationAxis.clone().negate();
+
+  const steps = 16;
+  const pts: [number, number, number][] = [];
+  for (let i = 0; i <= steps; i++) {
+    const a = (i / steps) * remainingAngle;
+    const dir = currentDir.clone().applyAxisAngle(sweepAxis, a);
+    const pt = pivot.clone().addScaledVector(dir, angleArcRadius);
+    pts.push([pt.x, pt.y, pt.z]);
+  }
+  return pts;
+}
 
 /**
  * Computes motion progress from elapsed time.
@@ -90,381 +169,324 @@ export function resolveWorldLandmark(
   );
 }
 
+/**
+ * Builds the 3D kinematic specification (pivot, axes, trajectory arc, arrowhead, angle arc radius)
+ * for a study term's joint motion demonstration.
+ */
+export function buildJointMotionSpec(
+  motion: MotionKind,
+  scene: THREE.Object3D,
+  frame: AnatomyStageFrame,
+): JointMotionSpec {
+  if (motion === 'flexion') {
+    // Elbow Flexion: Forearm hinges at the elbow joint, swinging anteriorly and upward toward the humerus
+    const pivot = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
+    const anchor = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
+    const restDistal = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
+
+    const uUpper = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+    const uForearm0 = new THREE.Vector3().subVectors(restDistal, pivot).normalize();
+    const forearmLength = pivot.distanceTo(restDistal);
+
+    // Transverse hinge axis passing through the epicondyles
+    const rotationAxis = new THREE.Vector3().crossVectors(uForearm0, uUpper).normalize();
+    const maxAngle = (135 * Math.PI) / 180; // ~135° flexion (closes angle down to ~30°)
+
+    const trajectoryArcPoints = buildRotationTrajectory(
+      pivot,
+      uForearm0,
+      rotationAxis,
+      maxAngle,
+      forearmLength,
+    );
+
+    // Arrowhead at the flexed end of the trajectory
+    const flexedDir = uForearm0.clone().applyAxisAngle(rotationAxis, maxAngle);
+    const arrowPos = pivot.clone().addScaledVector(flexedDir, forearmLength);
+    const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, flexedDir).normalize();
+    const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      arrowTangent,
+    );
+
+    // Transverse hinge pin cylinder along rotation axis
+    const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      rotationAxis,
+    );
+
+    return {
+      motion,
+      pivot,
+      anchor,
+      restDistal,
+      uAnchor: uUpper,
+      uDistal0: uForearm0,
+      distalLength: forearmLength,
+      rotationAxis,
+      maxAngle,
+      trajectoryArcPoints,
+      arrowPos,
+      arrowQuat,
+      hingePinQuat,
+      angleArcRadius: 0.055,
+      reverseCycle: false,
+      jumpBack: true,
+    };
+  }
+
+  if (motion === 'extension') {
+    // Knee Extension / Straightening: Straightens from bent knee (70°) to near-full extension (179°),
+    // stopping 1° shy of 180° so the interior angle always stays unambiguously on the posterior side.
+    const pivot = resolveWorldLandmark(scene, 'joint_knee', [0.095, 0.435, -0.026], frame);
+    const anchor = resolveWorldLandmark(scene, 'joint_hip', [0.09, 0.885, -0.007], frame);
+    const straightAnkle = resolveWorldLandmark(scene, 'joint_ankle', [0.08, 0.075, -0.029], frame);
+
+    const uThigh = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+    const shinLength = pivot.distanceTo(straightAnkle);
+
+    // Knee hinge axis orthogonal to uThigh so extension stays strictly within the posterior sagittal plane
+    const lateralAxis = new THREE.Vector3(-1, 0, 0);
+    const rotationAxis = lateralAxis
+      .clone()
+      .sub(uThigh.clone().multiplyScalar(lateralAxis.dot(uThigh)));
+    if (rotationAxis.lengthSq() < 1e-6) {
+      rotationAxis.set(-1, 0, 0);
+    } else {
+      rotationAxis.normalize();
+    }
+
+    const maxAngle = EXTENSION_END_ANGLE_RAD - EXTENSION_START_ANGLE_RAD;
+    const uShinBent = uThigh.clone().applyAxisAngle(rotationAxis, EXTENSION_START_ANGLE_RAD);
+    const uShinEnd = uThigh.clone().applyAxisAngle(rotationAxis, EXTENSION_END_ANGLE_RAD);
+    const restDistal = pivot.clone().addScaledVector(uShinBent, shinLength);
+    const endDistal = pivot.clone().addScaledVector(uShinEnd, shinLength);
+
+    const trajectoryArcPoints = buildRotationTrajectory(
+      pivot,
+      uShinBent,
+      rotationAxis,
+      maxAngle,
+      shinLength,
+    );
+
+    const arrowPos = endDistal;
+    const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uShinEnd).normalize();
+    const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      arrowTangent,
+    );
+    const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      rotationAxis,
+    );
+
+    return {
+      motion,
+      pivot,
+      anchor,
+      restDistal,
+      uAnchor: uThigh,
+      uDistal0: uShinBent,
+      distalLength: shinLength,
+      rotationAxis,
+      maxAngle,
+      trajectoryArcPoints,
+      arrowPos,
+      arrowQuat,
+      hingePinQuat,
+      angleArcRadius: 0.06,
+      reverseCycle: false,
+      jumpBack: true,
+    };
+  }
+
+  if (motion === 'abduction') {
+    // Shoulder Abduction: Arm raises away from midline in coronal plane, then jumps back down to side
+    const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
+    const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
+    const restDistal = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
+
+    const uTrunk = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+    const uArmRest = new THREE.Vector3().subVectors(restDistal, pivot).normalize();
+    const armLength = pivot.distanceTo(restDistal);
+
+    // Normal to coronal plane (+Z anterior)
+    const rotationAxis = new THREE.Vector3(0, 0, 1);
+    const maxAngle = (85 * Math.PI) / 180; // ~85° abduction
+
+    const trajectoryArcPoints = buildRotationTrajectory(
+      pivot,
+      uArmRest,
+      rotationAxis,
+      maxAngle,
+      armLength,
+    );
+
+    const endDir = uArmRest.clone().applyAxisAngle(rotationAxis, maxAngle);
+    const arrowPos = pivot.clone().addScaledVector(endDir, armLength);
+    const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, endDir).normalize();
+    const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      arrowTangent,
+    );
+    const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      rotationAxis,
+    );
+
+    return {
+      motion,
+      pivot,
+      anchor,
+      restDistal,
+      uAnchor: uTrunk,
+      uDistal0: uArmRest,
+      distalLength: armLength,
+      rotationAxis,
+      maxAngle,
+      trajectoryArcPoints,
+      arrowPos,
+      arrowQuat,
+      hingePinQuat,
+      angleArcRadius: 0.07,
+      reverseCycle: false,
+      jumpBack: true,
+    };
+  }
+
+  if (motion === 'adduction') {
+    // Shoulder Adduction: Arm lowers from raised abducted position toward midline, then jumps back up
+    const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
+    const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
+    const wristAtSide = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
+
+    const uTrunk = new THREE.Vector3().subVectors(anchor, pivot).normalize();
+    const uArmRest = new THREE.Vector3().subVectors(wristAtSide, pivot).normalize();
+    const armLength = pivot.distanceTo(wristAtSide);
+
+    // Abducted starting direction (raised ~85° laterally away from midline)
+    const abdAxis = new THREE.Vector3(0, 0, 1);
+    const maxAngle = (85 * Math.PI) / 180;
+    const uArmRaised = uArmRest.clone().applyAxisAngle(abdAxis, maxAngle);
+    const raisedDistal = pivot.clone().addScaledVector(uArmRaised, armLength);
+
+    // Adduction rotates arm back down toward midline around -Z axis
+    const rotationAxis = new THREE.Vector3(0, 0, -1);
+
+    const trajectoryArcPoints = buildRotationTrajectory(
+      pivot,
+      uArmRaised,
+      rotationAxis,
+      maxAngle,
+      armLength,
+    );
+
+    // Arrowhead at the lowered position at side, pointing down/medially in direction of adduction
+    const arrowPos = wristAtSide.clone();
+    const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uArmRest).normalize();
+    const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      arrowTangent,
+    );
+    const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      abdAxis,
+    );
+
+    return {
+      motion,
+      pivot,
+      anchor,
+      restDistal: raisedDistal, // Ghosted reference line marks the starting raised position
+      uAnchor: uTrunk,
+      uDistal0: uArmRaised,
+      distalLength: armLength,
+      rotationAxis,
+      maxAngle,
+      trajectoryArcPoints,
+      arrowPos,
+      arrowQuat,
+      hingePinQuat,
+      angleArcRadius: 0.07,
+      reverseCycle: false,
+      jumpBack: true,
+    };
+  }
+
+  // Forearm Pronation & Supination: 180° axial rotation centered around wrist
+  const isPronation = motion === 'pronation';
+  const pivot = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
+  const anchor = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
+
+  // Forearm long axis pointing down from elbow to wrist
+  const uForearm = new THREE.Vector3().subVectors(pivot, anchor).normalize();
+
+  // Orthogonal basis vectors in the wrist transverse plane
+  const zAnt = new THREE.Vector3(0, 0, 1);
+  const uAnterior = zAnt.clone().sub(uForearm.clone().multiplyScalar(zAnt.dot(uForearm))).normalize();
+  const uLateral = new THREE.Vector3().crossVectors(uAnterior, uForearm).normalize();
+  const uMedial = uLateral.clone().negate();
+
+  const rotationAxis = isPronation ? uForearm.clone() : uForearm.clone().negate();
+  const startDir = isPronation ? uLateral : uMedial;
+  const endDir = isPronation ? uMedial : uLateral;
+  const maxAngle = Math.PI;
+  const arcRadius = 0.055;
+  const pointerLength = 0.075;
+
+  const trajectoryArcPoints = buildRotationTrajectory(
+    pivot,
+    startDir,
+    rotationAxis,
+    maxAngle,
+    arcRadius,
+  );
+
+  // Arrowhead at the 180° end of the curve, pointing in the direction of rotation
+  const arrowPos = pivot.clone().addScaledVector(endDir, arcRadius);
+  const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, endDir).normalize();
+  const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    arrowTangent,
+  );
+  const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    uForearm,
+  );
+
+  const restDistal = pivot.clone().addScaledVector(startDir, pointerLength);
+
+  return {
+    motion,
+    pivot,
+    anchor,
+    restDistal,
+    uAnchor: uAnterior,
+    uDistal0: startDir,
+    distalLength: pointerLength,
+    rotationAxis,
+    maxAngle,
+    trajectoryArcPoints,
+    arrowPos,
+    arrowQuat,
+    hingePinQuat,
+    angleArcRadius: 0,
+    reverseCycle: false,
+    jumpBack: true,
+  };
+}
+
 export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.ReactElement | null {
   const frame = useMuscleStore((s) => s.anatomyStageFrame);
   const { scene, invalidate } = useThree();
   const motion = motionForTerm(term.id);
   const [sceneReadyNonce, setSceneReadyNonce] = useState(0);
 
-  const spec = useMemo(() => {
-    if (!motion) return null;
-
-    if (motion === 'flexion') {
-      // Elbow Flexion: Forearm hinges at the elbow joint, swinging anteriorly and upward toward the humerus
-      const pivot = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
-      const anchor = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
-      const restDistal = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
-
-      const uUpper = new THREE.Vector3().subVectors(anchor, pivot).normalize();
-      const uForearm0 = new THREE.Vector3().subVectors(restDistal, pivot).normalize();
-      const forearmLength = pivot.distanceTo(restDistal);
-
-      // Transverse hinge axis passing through the epicondyles
-      const rotationAxis = new THREE.Vector3().crossVectors(uForearm0, uUpper).normalize();
-      const maxAngle = (135 * Math.PI) / 180; // ~135° flexion (closes angle down to ~30°)
-
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * maxAngle;
-        const pt = pivot.clone().addScaledVector(
-          uForearm0.clone().applyAxisAngle(rotationAxis, a),
-          forearmLength,
-        );
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      // Arrowhead at the flexed end of the trajectory
-      const flexedDir = uForearm0.clone().applyAxisAngle(rotationAxis, maxAngle);
-      const arrowPos = pivot.clone().addScaledVector(flexedDir, forearmLength);
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, flexedDir).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-
-      // Transverse hinge pin cylinder along rotation axis
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        rotationAxis,
-      );
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal,
-        uAnchor: uUpper,
-        uDistal0: uForearm0,
-        distalLength: forearmLength,
-        rotationAxis,
-        maxAngle,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0.055,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    if (motion === 'extension') {
-      // Knee Extension / Straightening: Straightening the leg from bent knee (acute angle ~70°) to full extension (obtuse angle ~176°)
-      const pivot = resolveWorldLandmark(scene, 'joint_knee', [0.095, 0.435, -0.026], frame);
-      const anchor = resolveWorldLandmark(scene, 'joint_hip', [0.09, 0.885, -0.007], frame);
-      const straightAnkle = resolveWorldLandmark(scene, 'joint_ankle', [0.08, 0.075, -0.029], frame);
-
-      const uThigh = new THREE.Vector3().subVectors(anchor, pivot).normalize();
-      const uShinStraight = new THREE.Vector3().subVectors(straightAnkle, pivot).normalize();
-      const shinLength = pivot.distanceTo(straightAnkle);
-
-      // Knee flexion swings shin posteriorly (-Z) around transverse knee axis
-      const rotationAxis = new THREE.Vector3(-1, 0, 0);
-      const maxFlexion = (110 * Math.PI) / 180; // 110° flexion gives an acute start angle ~70°
-      // Bent starting position (posterior)
-      const uShinBent = uShinStraight.clone().applyAxisAngle(rotationAxis, -maxFlexion);
-      const restDistal = pivot.clone().addScaledVector(uShinBent, shinLength);
-
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = -maxFlexion + (i / steps) * maxFlexion;
-        const pt = pivot.clone().addScaledVector(
-          uShinStraight.clone().applyAxisAngle(rotationAxis, a),
-          shinLength,
-        );
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      const arrowPos = straightAnkle.clone();
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uShinStraight).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        rotationAxis,
-      );
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal,
-        uAnchor: uThigh,
-        uDistal0: uShinBent,
-        distalLength: shinLength,
-        rotationAxis,
-        maxAngle: maxFlexion,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0.06,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    if (motion === 'abduction') {
-      // Shoulder Abduction: Arm raises away from midline in coronal plane, then jumps back down to side
-      const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
-      const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
-      const restDistal = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
-
-      const uTrunk = new THREE.Vector3().subVectors(anchor, pivot).normalize();
-      const uArmRest = new THREE.Vector3().subVectors(restDistal, pivot).normalize();
-      const armLength = pivot.distanceTo(restDistal);
-
-      // Normal to coronal plane (+Z anterior)
-      const rotationAxis = new THREE.Vector3(0, 0, 1);
-      const maxAngle = (85 * Math.PI) / 180; // ~85° abduction
-
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * maxAngle;
-        const pt = pivot.clone().addScaledVector(
-          uArmRest.clone().applyAxisAngle(rotationAxis, a),
-          armLength,
-        );
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      const endDir = uArmRest.clone().applyAxisAngle(rotationAxis, maxAngle);
-      const arrowPos = pivot.clone().addScaledVector(endDir, armLength);
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, endDir).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        rotationAxis,
-      );
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal,
-        uAnchor: uTrunk,
-        uDistal0: uArmRest,
-        distalLength: armLength,
-        rotationAxis,
-        maxAngle,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0.07,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    if (motion === 'adduction') {
-      // Shoulder Adduction: Arm lowers from raised abducted position toward midline, then jumps back up
-      const pivot = resolveWorldLandmark(scene, 'joint_shoulder', [0.163, 1.378, -0.028], frame);
-      const anchor = resolveWorldLandmark(scene, 'bone_spine', [0.0, 1.35, 0.0], frame);
-      const wristAtSide = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
-
-      const uTrunk = new THREE.Vector3().subVectors(anchor, pivot).normalize();
-      const uArmRest = new THREE.Vector3().subVectors(wristAtSide, pivot).normalize();
-      const armLength = pivot.distanceTo(wristAtSide);
-
-      // Abducted starting direction (raised ~85° laterally away from midline)
-      const abdAxis = new THREE.Vector3(0, 0, 1);
-      const maxAngle = (85 * Math.PI) / 180;
-      const uArmRaised = uArmRest.clone().applyAxisAngle(abdAxis, maxAngle);
-      const raisedDistal = pivot.clone().addScaledVector(uArmRaised, armLength);
-
-      // Adduction rotates arm back down toward midline around -Z axis
-      const rotationAxis = new THREE.Vector3(0, 0, -1);
-
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * maxAngle;
-        const pt = pivot.clone().addScaledVector(
-          uArmRaised.clone().applyAxisAngle(rotationAxis, a),
-          armLength,
-        );
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      // Arrowhead at the lowered position at side, pointing down/medially in direction of adduction
-      const arrowPos = wristAtSide.clone();
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uArmRest).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        abdAxis,
-      );
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal: raisedDistal, // Ghosted reference line marks the starting raised position
-        uAnchor: uTrunk,
-        uDistal0: uArmRaised,
-        distalLength: armLength,
-        rotationAxis,
-        maxAngle,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0.07,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    if (motion === 'pronation') {
-      // Forearm Pronation: Radius pivots around ulna, rotating the hand 180° inward so the palm turns posteriorly
-      const pivot = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
-      const anchor = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
-
-      // Forearm long axis pointing down from elbow to wrist
-      const uForearm = new THREE.Vector3().subVectors(pivot, anchor).normalize();
-
-      // Orthogonal basis vectors in the wrist transverse plane
-      const zAnt = new THREE.Vector3(0, 0, 1);
-      const uAnterior = zAnt.clone().sub(uForearm.clone().multiplyScalar(zAnt.dot(uForearm))).normalize();
-      const uLateral = new THREE.Vector3().crossVectors(uAnterior, uForearm).normalize();
-      const uMedial = uLateral.clone().negate();
-
-      // Rotation axis along the forearm (downward)
-      const rotationAxis = uForearm.clone();
-      const maxAngle = Math.PI; // 180° inward rotation
-
-      const arcRadius = 0.055;
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * maxAngle;
-        const dir = uLateral.clone().applyAxisAngle(rotationAxis, a);
-        const pt = pivot.clone().addScaledVector(dir, arcRadius);
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      // Arrowhead at the medial 180° end of the curve, pointing inward/posteriorly in the direction of rotation
-      const arrowPos = pivot.clone().addScaledVector(uMedial, arcRadius);
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uMedial).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        rotationAxis,
-      );
-
-      const pointerLength = 0.075;
-      const restDistal = pivot.clone().addScaledVector(uLateral, pointerLength);
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal, // Ghosted reference line marks starting supinated position (lateral)
-        uAnchor: uAnterior,
-        uDistal0: uLateral,
-        distalLength: pointerLength,
-        rotationAxis,
-        maxAngle,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    if (motion === 'supination') {
-      // Forearm Supination: Forearm uncrosses, rotating the hand 180° outward so the palm turns anteriorly
-      const pivot = resolveWorldLandmark(scene, 'joint_wrist', [0.265, 0.852, 0.022], frame);
-      const anchor = resolveWorldLandmark(scene, 'joint_elbow', [0.22, 1.107, -0.037], frame);
-
-      // Forearm long axis pointing down from elbow to wrist
-      const uForearm = new THREE.Vector3().subVectors(pivot, anchor).normalize();
-
-      // Orthogonal basis vectors in the wrist transverse plane
-      const zAnt = new THREE.Vector3(0, 0, 1);
-      const uAnterior = zAnt.clone().sub(uForearm.clone().multiplyScalar(zAnt.dot(uForearm))).normalize();
-      const uLateral = new THREE.Vector3().crossVectors(uAnterior, uForearm).normalize();
-      const uMedial = uLateral.clone().negate();
-
-      // Outward rotation axis opposite to forearm direction
-      const rotationAxis = uForearm.clone().negate();
-      const maxAngle = Math.PI; // 180° outward rotation
-
-      const arcRadius = 0.055;
-      const trajectoryArcPoints: [number, number, number][] = [];
-      const steps = 24;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * maxAngle;
-        const dir = uMedial.clone().applyAxisAngle(rotationAxis, a);
-        const pt = pivot.clone().addScaledVector(dir, arcRadius);
-        trajectoryArcPoints.push([pt.x, pt.y, pt.z]);
-      }
-
-      // Arrowhead at the lateral 180° end of the curve, pointing outward/posteriorly in the direction of rotation
-      const arrowPos = pivot.clone().addScaledVector(uLateral, arcRadius);
-      const arrowTangent = new THREE.Vector3().crossVectors(rotationAxis, uLateral).normalize();
-      const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        arrowTangent,
-      );
-      const hingePinQuat = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        uForearm,
-      );
-
-      const pointerLength = 0.075;
-      const restDistal = pivot.clone().addScaledVector(uMedial, pointerLength);
-
-      return {
-        motion,
-        pivot,
-        anchor,
-        restDistal, // Ghosted reference line marks starting pronated position (medial)
-        uAnchor: uAnterior,
-        uDistal0: uMedial,
-        distalLength: pointerLength,
-        rotationAxis,
-        maxAngle,
-        trajectoryArcPoints,
-        arrowPos,
-        arrowQuat,
-        hingePinQuat,
-        angleArcRadius: 0,
-        reverseCycle: false,
-        jumpBack: true,
-      };
-    }
-
-    return null;
-  }, [frame, motion, scene, sceneReadyNonce]);
+  const spec = useMemo(
+    () => (motion ? buildJointMotionSpec(motion, scene, frame) : null),
+    [frame, motion, scene, sceneReadyNonce],
+  );
 
   const [currentDistal, setCurrentDistal] = useState<[number, number, number]>(() => {
     if (!spec) return [0, 0, 0];
@@ -472,19 +494,14 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
   });
 
   const [angleArcPoints, setAngleArcPoints] = useState<[number, number, number][]>(() => {
-    if (!spec || spec.angleArcRadius <= 0) return [];
-    const pts: [number, number, number][] = [];
-    const steps = 8;
-    const remaining = spec.uDistal0.angleTo(spec.uAnchor);
-    for (let i = 0; i <= steps; i++) {
-      const a = (i / steps) * remaining;
-      const test = spec.uDistal0.clone().applyAxisAngle(spec.rotationAxis, a);
-      const testNeg = spec.uDistal0.clone().applyAxisAngle(spec.rotationAxis.clone().negate(), a);
-      const dir = test.angleTo(spec.uAnchor) < testNeg.angleTo(spec.uAnchor) ? test : testNeg;
-      const pt = spec.pivot.clone().addScaledVector(dir, spec.angleArcRadius);
-      pts.push([pt.x, pt.y, pt.z]);
-    }
-    return pts;
+    if (!spec) return [];
+    return buildAngleArcPoints(
+      spec.pivot,
+      spec.uDistal0,
+      spec.uAnchor,
+      spec.rotationAxis,
+      spec.angleArcRadius,
+    );
   });
 
   useFrame(({ clock }) => {
@@ -513,22 +530,15 @@ export default function TermJointMotion({ term }: { term: AnatomyTerm }): React.
     setCurrentDistal([movingDistal.x, movingDistal.y, movingDistal.z]);
 
     // Compute joint angle arc points showing the changing angle
-    if (spec.angleArcRadius > 0) {
-      const remainingAngle = currentDir.angleTo(spec.uAnchor);
-      const pts: [number, number, number][] = [];
-      const steps = 8;
-      for (let i = 0; i <= steps; i++) {
-        const a = (i / steps) * remainingAngle;
-        const test = currentDir.clone().applyAxisAngle(spec.rotationAxis, a);
-        const testNeg = currentDir.clone().applyAxisAngle(spec.rotationAxis.clone().negate(), a);
-        const dir = test.angleTo(spec.uAnchor) < testNeg.angleTo(spec.uAnchor) ? test : testNeg;
-        const pt = spec.pivot.clone().addScaledVector(dir, spec.angleArcRadius);
-        pts.push([pt.x, pt.y, pt.z]);
-      }
-      setAngleArcPoints(pts);
-    } else {
-      setAngleArcPoints([]);
-    }
+    setAngleArcPoints(
+      buildAngleArcPoints(
+        spec.pivot,
+        currentDir,
+        spec.uAnchor,
+        spec.rotationAxis,
+        spec.angleArcRadius,
+      ),
+    );
   });
 
   if (!spec) return null;

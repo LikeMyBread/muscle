@@ -3,7 +3,12 @@ import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { DEFAULT_ANATOMY_STAGE_FRAME } from '../../types/anatomyStageFrame';
 import { getAnatomyTermById } from '../../curriculum/anatomyTerms';
-import { resolveWorldLandmark, computeMotionProgress } from './TermJointMotion';
+import {
+  buildAngleArcPoints,
+  buildJointMotionSpec,
+  computeMotionProgress,
+  resolveWorldLandmark,
+} from './TermJointMotion';
 
 describe('TermJointMotion kinematics and landmarks', () => {
   const frame = {
@@ -144,43 +149,43 @@ describe('TermJointMotion kinematics and landmarks', () => {
     expect(flexedAngleDeg).toBeLessThan(initialAngleDeg);
   });
 
-  it('knee extension starts bent at an acute angle, straightens to an obtuse angle, and increases joint angle', () => {
-    const localKnee: [number, number, number] = [0.095, 0.435, -0.026];
-    const localHip: [number, number, number] = [0.09, 0.885, -0.007];
-    const localAnkle: [number, number, number] = [0.08, 0.075, -0.029];
+  it('knee extension starts bent at 70 degrees, stops at 179 degrees, and keeps the interior angle arc posterior', () => {
+    const scene = new THREE.Scene();
+    const spec = buildJointMotionSpec('extension', scene, frame);
 
-    const toWorld = (l: [number, number, number]) =>
-      new THREE.Vector3(
-        l[0] * frame.layout.scale + frame.layout.position[0],
-        l[1] * frame.layout.scale + frame.layout.position[1],
-        l[2] * frame.layout.scale + frame.layout.position[2],
+    // Knee is below hip
+    expect(spec.pivot.y).toBeLessThan(spec.anchor.y);
+
+    // Starts bent at an acute angle (70°)
+    const startAngleDeg = (spec.uDistal0.angleTo(spec.uAnchor) * 180) / Math.PI;
+    expect(startAngleDeg).toBeCloseTo(70, 3);
+
+    // Straightens to 179° (stopping 1° shy of 180° to prevent interior-angle side ambiguity)
+    const endDir = spec.uDistal0.clone().applyAxisAngle(spec.rotationAxis, spec.maxAngle);
+    const endAngleDeg = (endDir.angleTo(spec.uAnchor) * 180) / Math.PI;
+    expect(endAngleDeg).toBeCloseTo(179, 3);
+    expect(endAngleDeg).toBeLessThan(180);
+
+    // Arrowhead sits at the 179° extended target position
+    const expectedEndPos = spec.pivot.clone().addScaledVector(endDir, spec.distalLength);
+    expect(spec.arrowPos.distanceTo(expectedEndPos)).toBeCloseTo(0, 4);
+
+    // Throughout the entire extension sweep including 179°, the interior angle arc stays posterior (-Z)
+    for (const progress of [0, 0.25, 0.5, 0.75, 0.95, 1]) {
+      const dir = spec.uDistal0
+        .clone()
+        .applyAxisAngle(spec.rotationAxis, progress * spec.maxAngle);
+      const arc = buildAngleArcPoints(
+        spec.pivot,
+        dir,
+        spec.uAnchor,
+        spec.rotationAxis,
+        spec.angleArcRadius,
       );
-
-    const pivot = toWorld(localKnee);
-    const anchor = toWorld(localHip);
-    const straightAnkle = toWorld(localAnkle);
-
-    // Knee is below hip and above ankle
-    expect(pivot.y).toBeLessThan(anchor.y);
-    expect(pivot.y).toBeGreaterThan(straightAnkle.y);
-
-    const uThigh = new THREE.Vector3().subVectors(anchor, pivot).normalize();
-    const uShinStraight = new THREE.Vector3().subVectors(straightAnkle, pivot).normalize();
-    const rotationAxis = new THREE.Vector3(-1, 0, 0);
-    const maxFlexion = (110 * Math.PI) / 180;
-    const uShinBent = uShinStraight.clone().applyAxisAngle(rotationAxis, -maxFlexion);
-
-    // Starts bent at an acute angle (< 90°, approx 70°)
-    const startAngleDeg = (uShinBent.angleTo(uThigh) * 180) / Math.PI;
-    expect(startAngleDeg).toBeLessThan(80);
-    expect(startAngleDeg).toBeGreaterThan(60);
-
-    // Straightens to an obtuse angle (> 90°, approx 176°)
-    const endAngleDeg = (uShinStraight.angleTo(uThigh) * 180) / Math.PI;
-    expect(endAngleDeg).toBeGreaterThan(170);
-
-    // Extension strictly increases the joint angle (the definition of extension / straightening)
-    expect(endAngleDeg).toBeGreaterThan(startAngleDeg);
+      expect(arc.length).toBeGreaterThan(2);
+      const midPt = arc[Math.floor(arc.length / 2)];
+      expect(midPt[2]).toBeLessThan(spec.pivot.z);
+    }
   });
 
   it('shoulder abduction starts at side, raises away from midline, and increases lateral distance', () => {
