@@ -1,10 +1,16 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { useStudyStore } from './useStudyStore';
+import { getUnitById } from './studyCurriculum';
 import { useMuscleStore } from '../store/useMuscleStore';
 
 describe('useStudyStore', () => {
   beforeEach(() => {
     // Reset store before each test
+    useStudyStore.setState({
+      completedUnitIds: [],
+      globalQuestionCount: 0,
+      itemLastSeenLog: {},
+    });
     const store = useStudyStore.getState();
     store.selectUnit('unit_terms_planes');
   });
@@ -169,5 +175,39 @@ describe('useStudyStore', () => {
       'term_plane_transverse',
       'term_planes_overview',
     ]);
+  });
+
+  it('never pulls spaced review items from later units when revisiting an earlier lesson', () => {
+    useStudyStore.setState({
+      completedUnitIds: [
+        'unit_terms_planes',
+        'unit_terms_locations',
+        'unit_terms_movement',
+        'unit_terms_joints',
+      ],
+      globalQuestionCount: 50,
+      itemLastSeenLog: {
+        term_anterior: 5,
+        term_flexion: 1,
+        term_joint_hinge: 1,
+        term_plane_sagittal: 10,
+      },
+    });
+
+    // Unit 1 has no prior lessons, so no spaced review items can appear
+    useStudyStore.getState().selectUnit('unit_terms_planes');
+    const unit1Queue = useStudyStore.getState().activeQueue;
+    expect(unit1Queue.every((q) => !q.isReview)).toBe(true);
+    expect(unit1Queue).toHaveLength(5);
+
+    // Unit 2 can only review Unit 1 items, never later units (movement / joints)
+    useStudyStore.getState().selectUnit('unit_terms_locations');
+    const unit2Queue = useStudyStore.getState().activeQueue;
+    const reviewItems = unit2Queue.filter((q) => q.isReview);
+    const unit1ItemIds = new Set(getUnitById('unit_terms_planes')!.itemIds);
+    expect(reviewItems.length).toBeGreaterThan(0);
+    for (const reviewItem of reviewItems) {
+      expect(unit1ItemIds.has(reviewItem.id)).toBe(true);
+    }
   });
 });

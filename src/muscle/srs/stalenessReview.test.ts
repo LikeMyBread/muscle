@@ -86,14 +86,28 @@ describe('stalenessReview pure SRS algorithms', () => {
       expect(candidates).toEqual([]);
     });
 
-    it('includes completed units even if after current in order', () => {
+    it('never pulls items from later units in the curriculum even if marked completed', () => {
       const candidates = getEligibleReviewCandidates({
         currentUnit: unit1,
         allUnits,
-        completedUnitIds: ['unit_2'],
+        completedUnitIds: ['unit_1', 'unit_2'],
       });
 
-      expect(candidates).toEqual(['term_anterior', 'term_posterior', 'term_medial']);
+      expect(candidates).toEqual([]);
+    });
+
+    it('returns no candidates when currentUnit is not present in allUnits', () => {
+      const unknownUnit: StudyUnit = {
+        ...unit1,
+        id: 'unit_unknown',
+      };
+      const candidates = getEligibleReviewCandidates({
+        currentUnit: unknownUnit,
+        allUnits,
+        completedUnitIds: ['unit_1', 'unit_2'],
+      });
+
+      expect(candidates).toEqual([]);
     });
   });
 
@@ -192,6 +206,36 @@ describe('stalenessReview pure SRS algorithms', () => {
 
       const newItem = queue.find((q) => q.id === 'term_anterior');
       expect(newItem?.isReview).toBe(false);
+    });
+
+    it('never schedules review items from later units even when later units are completed and stale', () => {
+      const unit3: StudyUnit = {
+        id: 'unit_3',
+        moduleId: 'anatomy_terms',
+        title: 'Movement',
+        subtitle: 'Movement',
+        type: 'text',
+        groupName: 'Movement',
+        itemIds: ['term_flexion', 'term_extension'],
+      };
+
+      const { queue, reviewItemIds } = buildStudyQueueWithReview({
+        unit: unit2,
+        allUnits: [unit1, unit2, unit3],
+        completedUnitIds: ['unit_1', 'unit_2', 'unit_3'],
+        globalQuestionCount: 50,
+        itemLastSeen: {
+          term_sagittal: 20, // staleness 30 (prior)
+          term_coronal: 40, // staleness 10 (prior)
+          term_flexion: 1, // staleness 49 (staler, but from LATER unit_3!)
+        },
+        maxReviewCount: 2,
+        minStaleness: 2,
+        rng: () => 0.5,
+      });
+
+      expect(reviewItemIds).toEqual(['term_sagittal', 'term_coronal']);
+      expect(queue.some((q) => q.id === 'term_flexion')).toBe(false);
     });
 
     it('builds queue with 0 review items if no prior units exist', () => {

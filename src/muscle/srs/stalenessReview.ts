@@ -23,25 +23,28 @@ export function calculateStaleness(
 }
 
 /**
- * Gathers candidate item IDs from previously completed units (or units prior to current in order)
+ * Gathers candidate item IDs strictly from units earlier in the curriculum than `currentUnit`
  * that match the current unit's presentation type (text vs 3D) and are not part of the current unit.
+ * Never pulls candidates from units at or later than `currentUnit` in `allUnits`.
  */
 export function getEligibleReviewCandidates(params: {
   currentUnit: StudyUnit;
   allUnits: StudyUnit[];
-  completedUnitIds: string[];
+  completedUnitIds?: string[];
 }): string[] {
-  const { currentUnit, allUnits, completedUnitIds } = params;
+  const { currentUnit, allUnits } = params;
   const currentItemSet = new Set(currentUnit.itemIds);
 
   const currentIndex = allUnits.findIndex((u) => u.id === currentUnit.id);
+  if (currentIndex <= 0) {
+    return [];
+  }
+
   const eligibleUnits = allUnits.filter((u, index) => {
+    if (index >= currentIndex) return false;
     if (u.id === currentUnit.id) return false;
     if (u.type !== currentUnit.type) return false;
-    // Eligible if explicitly completed OR if it appeared before the current unit in the curriculum
-    const isCompleted = completedUnitIds.includes(u.id);
-    const isPrior = currentIndex >= 0 && index < currentIndex;
-    return isCompleted || isPrior;
+    return true;
   });
 
   const candidates: string[] = [];
