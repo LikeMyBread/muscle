@@ -26,7 +26,7 @@ export default function App() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const modeParam = params.get('mode');
-    if (modeParam === 'study' || modeParam === 'reference') {
+    if (modeParam === 'study' || modeParam === 'reference' || modeParam === 'pose') {
       setAppMode(modeParam);
     } else if (params.has('e2eSeed')) {
       // E2e smoke tests expect reference mode
@@ -58,7 +58,7 @@ export default function App() {
     );
   }
 
-  if (appMode !== 'reference') {
+  if (appMode === 'study') {
     return (
       <>
         <div
@@ -74,11 +74,11 @@ export default function App() {
     );
   }
 
-  // Reference mode (classic split view with persistent header)
+  // Reference mode or Pose mode (3D view with persistent header and workout drawer)
   return (
     <>
       <div
-        className="muscle-app muscle-app--reference-mode"
+        className={`muscle-app muscle-app--${appMode}-mode`}
         data-testid="muscle-app"
         style={{ flexDirection: 'column' }}
       >

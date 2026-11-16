@@ -60,6 +60,15 @@ export default function AppHeader() {
           >
             🧭 Reference
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={appMode === 'pose'}
+            className={`muscle-mode-tab ${appMode === 'pose' ? 'is-active' : ''}`}
+            onClick={() => setAppMode('pose')}
+          >
+            🧍 Pose
+          </button>
         </div>
 
         <button

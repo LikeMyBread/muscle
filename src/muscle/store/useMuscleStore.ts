@@ -259,7 +259,7 @@ function isInitialStudyActive(): boolean {
     const params = new URLSearchParams(window.location.search);
     const modeParam = params.get('mode');
     if (modeParam === 'study') return true;
-    if (modeParam === 'reference') return false;
+    if (modeParam === 'reference' || modeParam === 'pose') return false;
     return localStorage.getItem('muscle_app_mode_v1') === 'study';
   } catch {
     return false;

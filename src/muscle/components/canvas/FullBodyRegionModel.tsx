@@ -14,6 +14,8 @@ import {
 } from './extractGlbMeshes';
 import GlbAnatomyMesh from './GlbAnatomyMesh';
 import GlbAtlasMirrorMesh from './GlbAtlasMirrorMesh';
+import GlbPoseMesh from './GlbPoseMesh';
+import { useStudyStore } from '../../study/useStudyStore';
 import { mergeFullBodyMeshes, useExtremityModuleMeshes } from './useExtremityModuleMeshes';
 import { useCurriculumDetailMeshes } from './useCurriculumDetailMeshes';
 import { useFundamentalsMeshes } from './useFundamentalsMeshes';
@@ -37,6 +39,7 @@ function alignFullBodyAnatomyMeshes(meshes: ReturnType<typeof mergeFullBodyMeshe
 
 export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionModelProps) {
   const { invalidate } = useThree();
+  const appMode = useStudyStore((s) => s.appMode);
   const atlasMeshes = useAtlasCompleteMeshes();
   const headFaceMeshes = useHeadFaceAtlasMeshes();
   const fundamentalsMeshes = useFundamentalsMeshes();
@@ -85,6 +88,44 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
     setMuscleAnatomyDebugAnatomy(meshes.map((mesh) => mesh.name));
     publishMuscleAnatomyDebugWindow();
   }, [meshes]);
+
+  if (appMode === 'pose') {
+    return (
+      <>
+        {/* Pose view: Symmetrical figure on both halves (-X and +X), portrayed opaquely like
+            the reference half, but with layers hiding as depth is adjusted. */}
+        <AnatomyHalfGroup half="reference" layout={groupLayout}>
+          {meshes.map((mesh) => {
+            const node = getNodeById(mesh.name);
+            if (!node) return null;
+            return (
+              <GlbPoseMesh
+                key={`pose-ref-${mesh.name}`}
+                mesh={mesh}
+                node={node}
+                clippingPlane={referenceClip}
+                isMirrored
+              />
+            );
+          })}
+        </AnatomyHalfGroup>
+        <AnatomyHalfGroup half="study" layout={groupLayout}>
+          {meshes.map((mesh) => {
+            const node = getNodeById(mesh.name);
+            if (!node) return null;
+            return (
+              <GlbPoseMesh
+                key={`pose-study-${mesh.name}`}
+                mesh={mesh}
+                node={node}
+                clippingPlane={studyClip}
+              />
+            );
+          })}
+        </AnatomyHalfGroup>
+      </>
+    );
+  }
 
   return (
     <>

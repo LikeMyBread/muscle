@@ -81,7 +81,7 @@ function loadStoredAppMode(): AppMode {
   if (typeof window === 'undefined') return 'study';
   try {
     const val = localStorage.getItem(STORAGE_KEY_APP_MODE);
-    if (val === 'study' || val === 'reference') {
+    if (val === 'study' || val === 'reference' || val === 'pose') {
       return val;
     }
     return 'study';

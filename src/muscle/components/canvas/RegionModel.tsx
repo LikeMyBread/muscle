@@ -8,12 +8,14 @@ import type { AnatomyStageFrame } from '../../types/anatomyStageFrame';
 import ProceduralRegionModel from './ProceduralRegionModel';
 import { extractGlbMeshes, computeAnatomyGroupTransform, computeStageFrame } from './extractGlbMeshes';
 import GlbAnatomyMesh from './GlbAnatomyMesh';
+import GlbPoseMesh from './GlbPoseMesh';
 import CrossRegionCurriculumMeshes from './CrossRegionCurriculumMeshes';
 import OriginInsertionGizmo from './OriginInsertionGizmo';
 import { Component, type ReactNode } from 'react';
 import { muscleRegionGlbUrl } from './muscleGlbUrl';
 import { useMuscleGltf, preloadMuscleGltf } from './muscleGltfLoader';
 import { useMuscleStore } from '../../store/useMuscleStore';
+import { useStudyStore } from '../../study/useStudyStore';
 
 class GlbFallbackBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -88,6 +90,7 @@ function GlbRegionModel({
   onStageReady?: (frame: AnatomyStageFrame) => void;
 }) {
   const { invalidate } = useThree();
+  const appMode = useStudyStore((s) => s.appMode);
   const { scene } = useMuscleGltf(url);
   const meshes = useMemo(
     () => extractGlbMeshes(scene, (name) => Boolean(resolveCurriculumNodeId(name))),
@@ -122,9 +125,12 @@ function GlbRegionModel({
           const nodeId = resolveCurriculumNodeId(mesh.name);
           const node = nodeId ? getNodeById(nodeId) : undefined;
           if (!node || !nodeId) return null;
+          if (appMode === 'pose') {
+            return <GlbPoseMesh key={mesh.name} mesh={mesh} node={node} />;
+          }
           return <GlbAnatomyMesh key={mesh.name} mesh={mesh} node={node} />;
         })}
-        <OriginInsertionGizmo meshes={meshes} stageScale={groupLayout.scale} />
+        {appMode !== 'pose' && <OriginInsertionGizmo meshes={meshes} stageScale={groupLayout.scale} />}
       </group>
       {(region === 'leg' || region === 'shoulder_neck') && (
         <AtlasSupplementMeshes

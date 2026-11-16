@@ -95,6 +95,10 @@ describe('useStudyStore', () => {
     store.setAppMode('reference');
     expect(useStudyStore.getState().appMode).toBe('reference');
     expect(useMuscleStore.getState().studyActive).toBe(false);
+
+    store.setAppMode('pose');
+    expect(useStudyStore.getState().appMode).toBe('pose');
+    expect(useMuscleStore.getState().studyActive).toBe(false);
   });
 
   it('toggles debug curriculum unlock and synchronizes with muscleStore', () => {
