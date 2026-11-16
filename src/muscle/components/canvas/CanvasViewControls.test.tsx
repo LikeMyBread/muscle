@@ -40,4 +40,20 @@ describe('CanvasViewControls Animate Button', () => {
     expect(btn).toHaveAttribute('aria-pressed', 'false');
     expect(btn.className).not.toContain('is-active');
   });
+
+  it('renders Reset Pose button and resets skeleton pose state on click', () => {
+    useMuscleStore.setState({
+      isSkeletonAnimating: true,
+      skeletonPoseResetCount: 0,
+    });
+
+    render(<CanvasViewControls />);
+    const resetBtn = screen.getByTestId('muscle-reset-pose-btn');
+    expect(resetBtn).toBeInTheDocument();
+    expect(resetBtn).toHaveAttribute('title', 'Reset skeleton pose to resting position');
+
+    fireEvent.click(resetBtn);
+    expect(useMuscleStore.getState().isSkeletonAnimating).toBe(false);
+    expect(useMuscleStore.getState().skeletonPoseResetCount).toBe(1);
+  });
 });

@@ -114,6 +114,34 @@ export interface JointAngleState {
   activeMotionLabel: string;
 }
 
+export interface KinematicPivotRotations {
+  forearmRotationX: number;
+  armRotationZ: number;
+  shinRotationX: number;
+  thighRotationX: number;
+  spineRotationX: number;
+}
+
+/**
+ * Computes exact Euler rotations (in radians) for each joint pivot group in Three.js coordinates.
+ *
+ * In Three.js right-handed coordinate space (where anterior/front is +Z and superior/up is +Y):
+ * - Forearm hangs down (-Y): a negative rotation around X swings it forward (+Z, anterior) -> Elbow flexion.
+ * - Shin hangs down (-Y): a positive rotation around X swings it backward (-Z, posterior) -> Knee flexion.
+ * - Thigh hangs down (-Y): a negative rotation around X swings it forward (+Z, anterior) -> Hip flexion.
+ * - Spine extends up (+Y): a positive rotation around X bends it forward (+Z, anterior) -> Trunk flexion.
+ * - Arm hangs down: a positive rotation around Z swings it laterally (+X) -> Shoulder abduction.
+ */
+export function computeKinematicRotations(angles: JointAngleState): KinematicPivotRotations {
+  return {
+    forearmRotationX: -angles.elbowFlexion,
+    armRotationZ: angles.shoulderAbduction,
+    shinRotationX: angles.kneeFlexion,
+    thighRotationX: -angles.hipFlexion,
+    spineRotationX: angles.spineFlexion,
+  };
+}
+
 export const ANIMATION_CYCLE_DURATION = 16.0;
 
 /**

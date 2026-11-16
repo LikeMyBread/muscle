@@ -1,8 +1,9 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getNodeById } from '../../curriculum';
 import {
+  computeKinematicRotations,
   computeProceduralJointAngles,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
@@ -13,12 +14,14 @@ export type SkeletalKinematicsGroupProps = {
   meshes: readonly THREE.Mesh[];
   renderMesh: (mesh: THREE.Mesh) => React.ReactNode;
   isAnimating: boolean;
+  resetKey?: number;
 };
 
 function SkeletalKinematicsGroupComponent({
   meshes,
   renderMesh,
   isAnimating,
+  resetKey,
 }: SkeletalKinematicsGroupProps) {
   const { invalidate } = useThree();
 
@@ -31,7 +34,17 @@ function SkeletalKinematicsGroupComponent({
   const footPivotRef = useRef<THREE.Group>(null);
 
   const animTimeRef = useRef(0);
-  const settlingRef = useRef(false);
+  const resettingRef = useRef(false);
+  const lastResetKeyRef = useRef(resetKey ?? 0);
+
+  useEffect(() => {
+    if (resetKey !== undefined && resetKey !== lastResetKeyRef.current) {
+      lastResetKeyRef.current = resetKey;
+      animTimeRef.current = 0;
+      resettingRef.current = true;
+      invalidate();
+    }
+  }, [resetKey, invalidate]);
 
   const categorizedMeshes = useMemo(() => {
     const buckets: Record<KinematicSegment, THREE.Mesh[]> = {
@@ -53,67 +66,25 @@ function SkeletalKinematicsGroupComponent({
   }, [meshes]);
 
   useFrame((_, delta) => {
-    if (!isAnimating && !settlingRef.current) return;
+    // If a reset was requested, smoothly lerp all joints back to the 0 rest pose
+    if (resettingRef.current) {
+      const lerpRate = 0.25;
+      if (forearmPivotRef.current) {
+        forearmPivotRef.current.rotation.x = THREE.MathUtils.lerp(forearmPivotRef.current.rotation.x, 0, lerpRate);
+      }
+      if (armPivotRef.current) {
+        armPivotRef.current.rotation.z = THREE.MathUtils.lerp(armPivotRef.current.rotation.z, 0, lerpRate);
+      }
+      if (shinPivotRef.current) {
+        shinPivotRef.current.rotation.x = THREE.MathUtils.lerp(shinPivotRef.current.rotation.x, 0, lerpRate);
+      }
+      if (thighPivotRef.current) {
+        thighPivotRef.current.rotation.x = THREE.MathUtils.lerp(thighPivotRef.current.rotation.x, 0, lerpRate);
+      }
+      if (spinePivotRef.current) {
+        spinePivotRef.current.rotation.x = THREE.MathUtils.lerp(spinePivotRef.current.rotation.x, 0, lerpRate);
+      }
 
-    if (isAnimating) {
-      animTimeRef.current += delta;
-      settlingRef.current = true;
-    }
-
-    const currentAngles = isAnimating
-      ? computeProceduralJointAngles(animTimeRef.current)
-      : {
-          elbowFlexion: 0,
-          shoulderAbduction: 0,
-          kneeFlexion: 0,
-          hipFlexion: 0,
-          spineFlexion: 0,
-          activeMotionLabel: 'Resting pose',
-        };
-
-    const lerpRate = isAnimating ? 0.35 : 0.15;
-
-    if (forearmPivotRef.current) {
-      forearmPivotRef.current.rotation.x = THREE.MathUtils.lerp(
-        forearmPivotRef.current.rotation.x,
-        currentAngles.elbowFlexion,
-        lerpRate,
-      );
-    }
-
-    if (armPivotRef.current) {
-      armPivotRef.current.rotation.z = THREE.MathUtils.lerp(
-        armPivotRef.current.rotation.z,
-        currentAngles.shoulderAbduction,
-        lerpRate,
-      );
-    }
-
-    if (shinPivotRef.current) {
-      shinPivotRef.current.rotation.x = THREE.MathUtils.lerp(
-        shinPivotRef.current.rotation.x,
-        -currentAngles.kneeFlexion,
-        lerpRate,
-      );
-    }
-
-    if (thighPivotRef.current) {
-      thighPivotRef.current.rotation.x = THREE.MathUtils.lerp(
-        thighPivotRef.current.rotation.x,
-        currentAngles.hipFlexion,
-        lerpRate,
-      );
-    }
-
-    if (spinePivotRef.current) {
-      spinePivotRef.current.rotation.x = THREE.MathUtils.lerp(
-        spinePivotRef.current.rotation.x,
-        currentAngles.spineFlexion,
-        lerpRate,
-      );
-    }
-
-    if (!isAnimating) {
       const maxRemaining = Math.max(
         Math.abs(forearmPivotRef.current?.rotation.x ?? 0),
         Math.abs(armPivotRef.current?.rotation.z ?? 0),
@@ -121,15 +92,44 @@ function SkeletalKinematicsGroupComponent({
         Math.abs(thighPivotRef.current?.rotation.x ?? 0),
         Math.abs(spinePivotRef.current?.rotation.x ?? 0),
       );
+
       if (maxRemaining < 0.001) {
         if (forearmPivotRef.current) forearmPivotRef.current.rotation.x = 0;
         if (armPivotRef.current) armPivotRef.current.rotation.z = 0;
         if (shinPivotRef.current) shinPivotRef.current.rotation.x = 0;
         if (thighPivotRef.current) thighPivotRef.current.rotation.x = 0;
         if (spinePivotRef.current) spinePivotRef.current.rotation.x = 0;
-        settlingRef.current = false;
-        animTimeRef.current = 0;
+        resettingRef.current = false;
       }
+      invalidate();
+      return;
+    }
+
+    // When paused, maintain the exact current joint angles without advancing or resetting
+    if (!isAnimating) return;
+
+    animTimeRef.current += delta;
+    const currentAngles = computeProceduralJointAngles(animTimeRef.current);
+    const rotations = computeKinematicRotations(currentAngles);
+
+    if (forearmPivotRef.current) {
+      forearmPivotRef.current.rotation.x = rotations.forearmRotationX;
+    }
+
+    if (armPivotRef.current) {
+      armPivotRef.current.rotation.z = rotations.armRotationZ;
+    }
+
+    if (shinPivotRef.current) {
+      shinPivotRef.current.rotation.x = rotations.shinRotationX;
+    }
+
+    if (thighPivotRef.current) {
+      thighPivotRef.current.rotation.x = rotations.thighRotationX;
+    }
+
+    if (spinePivotRef.current) {
+      spinePivotRef.current.rotation.x = rotations.spineRotationX;
     }
 
     invalidate();

@@ -43,6 +43,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
   const { invalidate } = useThree();
   const appMode = useStudyStore((s) => s.appMode);
   const isSkeletonAnimating = useMuscleStore((s) => s.isSkeletonAnimating);
+  const skeletonPoseResetCount = useMuscleStore((s) => s.skeletonPoseResetCount);
   const atlasMeshes = useAtlasCompleteMeshes();
   const headFaceMeshes = useHeadFaceAtlasMeshes();
   const fundamentalsMeshes = useFundamentalsMeshes();
@@ -101,6 +102,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
           <SkeletalKinematicsGroup
             meshes={meshes}
             isAnimating={isSkeletonAnimating}
+            resetKey={skeletonPoseResetCount}
             renderMesh={(mesh) => {
               const node = getNodeById(mesh.name);
               if (!node) return null;
@@ -120,6 +122,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
           <SkeletalKinematicsGroup
             meshes={meshes}
             isAnimating={isSkeletonAnimating}
+            resetKey={skeletonPoseResetCount}
             renderMesh={(mesh) => {
               const node = getNodeById(mesh.name);
               if (!node) return null;
@@ -146,6 +149,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
         <SkeletalKinematicsGroup
           meshes={meshes}
           isAnimating={isSkeletonAnimating}
+          resetKey={skeletonPoseResetCount}
           renderMesh={(mesh) => {
             const node = getNodeById(mesh.name);
             if (!node) return null;
@@ -160,6 +164,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
         <SkeletalKinematicsGroup
           meshes={meshes}
           isAnimating={isSkeletonAnimating}
+          resetKey={skeletonPoseResetCount}
           renderMesh={(mesh) => {
             const node = getNodeById(mesh.name);
             if (!node) return null;

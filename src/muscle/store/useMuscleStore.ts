@@ -94,8 +94,10 @@ export interface MuscleStoreState {
   setShowAttachments: (show: boolean) => void;
   resetCameraView: () => void;
   isSkeletonAnimating: boolean;
+  skeletonPoseResetCount: number;
   setSkeletonAnimating: (animating: boolean) => void;
   toggleSkeletonAnimation: () => void;
+  resetSkeletonPose: () => void;
   setHoveredNodeId: (nodeId: string | null) => void;
   setReferenceHalfHint: (hint: 'idle' | 'hover' | 'pinned') => void;
   setLayerPeelDepth: (depth: LayerPeelDepth) => void;
@@ -305,8 +307,14 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   debugCurriculumUnlocked: false,
   setDebugCurriculumUnlocked: (unlocked: boolean) => set({ debugCurriculumUnlocked: unlocked }),
   isSkeletonAnimating: false,
+  skeletonPoseResetCount: 0,
   setSkeletonAnimating: (animating: boolean) => set({ isSkeletonAnimating: animating }),
   toggleSkeletonAnimation: () => set((state) => ({ isSkeletonAnimating: !state.isSkeletonAnimating })),
+  resetSkeletonPose: () =>
+    set((state) => ({
+      isSkeletonAnimating: false,
+      skeletonPoseResetCount: state.skeletonPoseResetCount + 1,
+    })),
 
   setStudyActive: (active: boolean) => {
     if (active) {

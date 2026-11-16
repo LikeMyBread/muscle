@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ANIMATION_CYCLE_DURATION,
+  computeKinematicRotations,
   computeProceduralJointAngles,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
@@ -86,5 +87,35 @@ describe('skeletalKinematics', () => {
     expect(hipMid.hipFlexion).toBeGreaterThan(0.5);
     expect(hipMid.spineFlexion).toBeGreaterThan(0.1);
     expect(hipMid.activeMotionLabel).toContain('Hip');
+  });
+
+  it('computes correct rotation signs for anatomical joint movement in Three.js coordinates', () => {
+    // Elbow flexion bends the forearm forward (+Z, anterior), which requires negative X rotation
+    const elbowPose = computeProceduralJointAngles(2.0);
+    const elbowRot = computeKinematicRotations(elbowPose);
+    expect(elbowRot.forearmRotationX).toBeLessThan(0);
+    expect(elbowRot.forearmRotationX).toBeCloseTo(-elbowPose.elbowFlexion, 4);
+
+    // Shoulder abduction raises the arm laterally (+X), which requires positive Z rotation
+    const shoulderPose = computeProceduralJointAngles(6.0);
+    const shoulderRot = computeKinematicRotations(shoulderPose);
+    expect(shoulderRot.armRotationZ).toBeGreaterThan(0);
+    expect(shoulderRot.armRotationZ).toBeCloseTo(shoulderPose.shoulderAbduction, 4);
+
+    // Knee flexion bends the shin backward (-Z, posterior), which requires positive X rotation
+    const kneePose = computeProceduralJointAngles(10.0);
+    const kneeRot = computeKinematicRotations(kneePose);
+    expect(kneeRot.shinRotationX).toBeGreaterThan(0);
+    expect(kneeRot.shinRotationX).toBeCloseTo(kneePose.kneeFlexion, 4);
+
+    // Hip flexion swings the thigh forward (+Z, anterior), which requires negative X rotation
+    const hipPose = computeProceduralJointAngles(14.0);
+    const hipRot = computeKinematicRotations(hipPose);
+    expect(hipRot.thighRotationX).toBeLessThan(0);
+    expect(hipRot.thighRotationX).toBeCloseTo(-hipPose.hipFlexion, 4);
+
+    // Spine flexion bends the trunk forward (+Z), which requires positive X rotation
+    expect(hipRot.spineRotationX).toBeGreaterThan(0);
+    expect(hipRot.spineRotationX).toBeCloseTo(hipPose.spineFlexion, 4);
   });
 });
