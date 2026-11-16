@@ -15,7 +15,9 @@ import {
 import GlbAnatomyMesh from './GlbAnatomyMesh';
 import GlbAtlasMirrorMesh from './GlbAtlasMirrorMesh';
 import GlbPoseMesh from './GlbPoseMesh';
+import SkeletalKinematicsGroup from './SkeletalKinematicsGroup';
 import { useStudyStore } from '../../study/useStudyStore';
+import { useMuscleStore } from '../../store/useMuscleStore';
 import { mergeFullBodyMeshes, useExtremityModuleMeshes } from './useExtremityModuleMeshes';
 import { useCurriculumDetailMeshes } from './useCurriculumDetailMeshes';
 import { useFundamentalsMeshes } from './useFundamentalsMeshes';
@@ -40,6 +42,7 @@ function alignFullBodyAnatomyMeshes(meshes: ReturnType<typeof mergeFullBodyMeshe
 export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionModelProps) {
   const { invalidate } = useThree();
   const appMode = useStudyStore((s) => s.appMode);
+  const isSkeletonAnimating = useMuscleStore((s) => s.isSkeletonAnimating);
   const atlasMeshes = useAtlasCompleteMeshes();
   const headFaceMeshes = useHeadFaceAtlasMeshes();
   const fundamentalsMeshes = useFundamentalsMeshes();
@@ -95,33 +98,41 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
         {/* Pose view: Symmetrical figure on both halves (-X and +X), portrayed opaquely like
             the reference half, but with layers hiding as depth is adjusted. */}
         <AnatomyHalfGroup half="reference" layout={groupLayout}>
-          {meshes.map((mesh) => {
-            const node = getNodeById(mesh.name);
-            if (!node) return null;
-            return (
-              <GlbPoseMesh
-                key={`pose-ref-${mesh.name}`}
-                mesh={mesh}
-                node={node}
-                clippingPlane={referenceClip}
-                isMirrored
-              />
-            );
-          })}
+          <SkeletalKinematicsGroup
+            meshes={meshes}
+            isAnimating={isSkeletonAnimating}
+            renderMesh={(mesh) => {
+              const node = getNodeById(mesh.name);
+              if (!node) return null;
+              return (
+                <GlbPoseMesh
+                  key={`pose-ref-${mesh.name}`}
+                  mesh={mesh}
+                  node={node}
+                  clippingPlane={referenceClip}
+                  isMirrored
+                />
+              );
+            }}
+          />
         </AnatomyHalfGroup>
         <AnatomyHalfGroup half="study" layout={groupLayout}>
-          {meshes.map((mesh) => {
-            const node = getNodeById(mesh.name);
-            if (!node) return null;
-            return (
-              <GlbPoseMesh
-                key={`pose-study-${mesh.name}`}
-                mesh={mesh}
-                node={node}
-                clippingPlane={studyClip}
-              />
-            );
-          })}
+          <SkeletalKinematicsGroup
+            meshes={meshes}
+            isAnimating={isSkeletonAnimating}
+            renderMesh={(mesh) => {
+              const node = getNodeById(mesh.name);
+              if (!node) return null;
+              return (
+                <GlbPoseMesh
+                  key={`pose-study-${mesh.name}`}
+                  mesh={mesh}
+                  node={node}
+                  clippingPlane={studyClip}
+                />
+              );
+            }}
+          />
         </AnatomyHalfGroup>
       </>
     );
@@ -132,21 +143,29 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
       {/* Écorché reference half — the complete human: every muscle layered over every bone, fixed at
           full depth (peel-independent) as a constant anatomical anchor while the study half peels. */}
       <AnatomyHalfGroup half="reference" layout={groupLayout}>
-        {meshes.map((mesh) => {
-          const node = getNodeById(mesh.name);
-          if (!node) return null;
-          return (
-            <GlbAtlasMirrorMesh key={`ref-${mesh.name}`} mesh={mesh} node={node} clippingPlane={referenceClip} />
-          );
-        })}
+        <SkeletalKinematicsGroup
+          meshes={meshes}
+          isAnimating={isSkeletonAnimating}
+          renderMesh={(mesh) => {
+            const node = getNodeById(mesh.name);
+            if (!node) return null;
+            return (
+              <GlbAtlasMirrorMesh key={`ref-${mesh.name}`} mesh={mesh} node={node} clippingPlane={referenceClip} />
+            );
+          }}
+        />
       </AnatomyHalfGroup>
       {/* Study half — full muscle figure, peeled by the depth slider down to the skeleton. */}
       <AnatomyHalfGroup half="study" layout={groupLayout}>
-        {meshes.map((mesh) => {
-          const node = getNodeById(mesh.name);
-          if (!node) return null;
-          return <GlbAnatomyMesh key={mesh.name} mesh={mesh} node={node} clippingPlane={studyClip} />;
-        })}
+        <SkeletalKinematicsGroup
+          meshes={meshes}
+          isAnimating={isSkeletonAnimating}
+          renderMesh={(mesh) => {
+            const node = getNodeById(mesh.name);
+            if (!node) return null;
+            return <GlbAnatomyMesh key={mesh.name} mesh={mesh} node={node} clippingPlane={studyClip} />;
+          }}
+        />
       </AnatomyHalfGroup>
       <ReferenceHalfHitZone />
     </>

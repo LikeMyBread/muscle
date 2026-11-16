@@ -1,14 +1,40 @@
 import CenterFocusStrongOutlinedIcon from '@mui/icons-material/CenterFocusStrongOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
+import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
 import { useMuscleStore } from '../../store/useMuscleStore';
 
 export default function CanvasViewControls() {
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
   const clearFocus = useMuscleStore((s) => s.clearFocus);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
+  const isSkeletonAnimating = useMuscleStore((s) => s.isSkeletonAnimating);
+  const toggleSkeletonAnimation = useMuscleStore((s) => s.toggleSkeletonAnimation);
 
   return (
     <div className="muscle-canvas-view-controls" aria-label="3D view shortcuts">
+      <button
+        type="button"
+        className={`muscle-canvas-view-controls__btn muscle-canvas-view-controls__btn--animate${
+          isSkeletonAnimating ? ' is-active' : ''
+        }`}
+        onClick={toggleSkeletonAnimation}
+        aria-pressed={isSkeletonAnimating}
+        title={isSkeletonAnimating ? 'Pause joint motion' : 'Animate skeleton joints through range of motion'}
+        data-testid="muscle-animate-btn"
+      >
+        {isSkeletonAnimating ? (
+          <>
+            <PauseOutlinedIcon fontSize="small" aria-hidden style={{ marginRight: '0.3rem' }} />
+            <span>Pause</span>
+          </>
+        ) : (
+          <>
+            <PlayArrowOutlinedIcon fontSize="small" aria-hidden style={{ marginRight: '0.3rem' }} />
+            <span>Animate</span>
+          </>
+        )}
+      </button>
       <button
         type="button"
         className="muscle-canvas-view-controls__btn muscle-canvas-view-controls__btn--icon"

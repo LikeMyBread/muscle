@@ -609,6 +609,17 @@ body {
   background: #fff;
 }
 
+.muscle-canvas-view-controls__btn.is-active {
+  background: var(--muscle-lapis);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.muscle-canvas-view-controls__btn--animate {
+  padding: 0.4rem 0.85rem;
+  letter-spacing: 0.02em;
+}
+
 .muscle-structure-index {
   flex: 1 1 auto;
   min-height: 8rem;

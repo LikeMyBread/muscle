@@ -93,6 +93,9 @@ export interface MuscleStoreState {
   setShowLandmarks: (show: boolean) => void;
   setShowAttachments: (show: boolean) => void;
   resetCameraView: () => void;
+  isSkeletonAnimating: boolean;
+  setSkeletonAnimating: (animating: boolean) => void;
+  toggleSkeletonAnimation: () => void;
   setHoveredNodeId: (nodeId: string | null) => void;
   setReferenceHalfHint: (hint: 'idle' | 'hover' | 'pinned') => void;
   setLayerPeelDepth: (depth: LayerPeelDepth) => void;
@@ -301,6 +304,9 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   studyAnswerState: 'idle',
   debugCurriculumUnlocked: false,
   setDebugCurriculumUnlocked: (unlocked: boolean) => set({ debugCurriculumUnlocked: unlocked }),
+  isSkeletonAnimating: false,
+  setSkeletonAnimating: (animating: boolean) => set({ isSkeletonAnimating: animating }),
+  toggleSkeletonAnimation: () => set((state) => ({ isSkeletonAnimating: !state.isSkeletonAnimating })),
 
   setStudyActive: (active: boolean) => {
     if (active) {
