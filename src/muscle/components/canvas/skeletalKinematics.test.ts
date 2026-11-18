@@ -41,14 +41,32 @@ describe('skeletalKinematics', () => {
 
     // Shin
     expect(getKinematicSegmentForNodeId('bone_tibia')).toBe('shin');
+    expect(getKinematicSegmentForNodeId('bone_fibula')).toBe('shin');
     expect(getKinematicSegmentForNodeId('bone_patella')).toBe('shin');
     expect(getKinematicSegmentForNodeId('joint_knee')).toBe('shin');
     expect(getKinematicSegmentForNodeId('muscle_gastrocnemius')).toBe('shin');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_interosseus_membrane_of_leg_r_b30da720',
+        undefined,
+        'Interosseus membrane of leg.r',
+      ),
+    ).toBe('shin');
+    expect(
+      getKinematicSegmentForNodeId('atlas_fibula_r_a2845080', undefined, 'Fibula.r'),
+    ).toBe('shin');
 
     // Foot
     expect(getKinematicSegmentForNodeId('bone_calcaneus')).toBe('foot');
     expect(getKinematicSegmentForNodeId('bone_talus')).toBe('foot');
     expect(getKinematicSegmentForNodeId('joint_ankle')).toBe('foot');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_sesamoid_bones_of_foot_r_9fe412a6',
+        undefined,
+        'Sesamoid bones of foot.r',
+      ),
+    ).toBe('foot');
   });
 
   it('provides calibrated anatomical pivots for primary joints', () => {

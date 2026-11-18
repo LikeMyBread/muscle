@@ -59,7 +59,7 @@ function SkeletalKinematicsGroupComponent({
     };
     for (const mesh of meshes) {
       const node = getNodeById(mesh.name);
-      const segment = getKinematicSegmentForNodeId(mesh.name, node?.region);
+      const segment = getKinematicSegmentForNodeId(mesh.name, node?.region, node?.name);
       buckets[segment].push(mesh);
     }
     return buckets;

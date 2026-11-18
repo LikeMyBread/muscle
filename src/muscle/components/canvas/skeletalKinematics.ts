@@ -27,9 +27,134 @@ export const KINEMATIC_PIVOTS = {
 /**
  * Assigns an anatomy node to its corresponding rigid skeletal kinematic segment.
  */
-export function getKinematicSegmentForNodeId(nodeId: string, nodeRegion?: string): KinematicSegment {
-  if (nodeId === 'bone_pelvis') return 'pelvis';
+export function getKinematicSegmentForNodeId(
+  nodeId: string,
+  nodeRegion?: string,
+  nodeName?: string,
+): KinematicSegment {
+  const text = (nodeId + ' ' + (nodeName || '')).toLowerCase();
 
+  // 1. Pelvis (Root of hip assembly)
+  if (
+    nodeId === 'bone_pelvis' ||
+    text.includes('pelvis') ||
+    text.includes('sacrum') ||
+    text.includes('coccyx') ||
+    text.includes('ilium') ||
+    text.includes('ischium') ||
+    text.includes('pubis') ||
+    text.includes('sacroiliac')
+  ) {
+    return 'pelvis';
+  }
+
+  // 2. Foot
+  const isEyelidTarsus =
+    text.includes('superior_tarsus') ||
+    text.includes('inferior_tarsus') ||
+    text.includes('superior tarsus') ||
+    text.includes('inferior tarsus');
+
+  if (
+    !isEyelidTarsus &&
+    (nodeId === 'bone_calcaneus' ||
+      nodeId === 'bone_talus' ||
+      nodeId === 'bone_tarsals' ||
+      nodeId === 'bone_metatarsals' ||
+      nodeId === 'bone_phalanges_foot' ||
+      nodeId === 'joint_ankle' ||
+      nodeId === 'joint_subtalar' ||
+      nodeRegion === 'foot' ||
+      text.includes('foot') ||
+      text.includes('calcane') ||
+      text.includes('talus') ||
+      text.includes('tarsal') ||
+      text.includes('metatarsal') ||
+      text.includes('plantar') ||
+      text.includes('sesamoid') ||
+      text.includes('cuneiform') ||
+      text.includes('cuboid') ||
+      text.includes('navicular') ||
+      text.includes('hallucis_brevis') ||
+      text.includes('hallucis brevis') ||
+      text.includes('abductor_hallucis') ||
+      text.includes('abductor hallucis') ||
+      text.includes('adductor_hallucis') ||
+      text.includes('adductor hallucis') ||
+      text.includes('digiti_minimi_of_foot') ||
+      text.includes('digiti minimi of foot') ||
+      text.includes('quadratus_plantae') ||
+      text.includes('quadratus plantae') ||
+      text.includes('extensor_digitorum_brevis') ||
+      text.includes('extensor digitorum brevis') ||
+      text.includes('flexor_digitorum_brevis') ||
+      text.includes('flexor digitorum brevis'))
+  ) {
+    return 'foot';
+  }
+
+  // 3. Shin / Lower leg (Parented to knee pivot)
+  if (
+    nodeId === 'bone_tibia' ||
+    nodeId === 'bone_fibula' ||
+    nodeId === 'bone_patella' ||
+    nodeId === 'joint_knee' ||
+    text.includes('tibia') ||
+    text.includes('fibula') ||
+    text.includes('fibular') ||
+    text.includes('patella') ||
+    text.includes('interosseus_membrane_of_leg') ||
+    text.includes('interosseus membrane of leg') ||
+    text.includes('tibialis') ||
+    text.includes('gastrocnemius') ||
+    text.includes('soleus') ||
+    text.includes('solear') ||
+    text.includes('popliteus') ||
+    text.includes('plantaris') ||
+    text.includes('peroneus') ||
+    text.includes('fibularis') ||
+    text.includes('extensor_digitorum_longus') ||
+    text.includes('extensor digitorum longus') ||
+    text.includes('flexor_digitorum_longus') ||
+    text.includes('flexor digitorum longus') ||
+    text.includes('extensor_hallucis_longus') ||
+    text.includes('extensor hallucis longus') ||
+    text.includes('flexor_hallucis_longus') ||
+    text.includes('flexor hallucis longus')
+  ) {
+    return 'shin';
+  }
+
+  // 4. Thigh / Hip (Parented to hip pivot)
+  if (
+    nodeId === 'bone_femur' ||
+    nodeId === 'joint_hip' ||
+    text.includes('femur') ||
+    text.includes('femoris') ||
+    text.includes('thigh') ||
+    text.includes('quadriceps') ||
+    text.includes('vastus') ||
+    text.includes('gluteus') ||
+    text.includes('glute') ||
+    text.includes('adductor') ||
+    text.includes('hamstring') ||
+    text.includes('semitendinosus') ||
+    text.includes('semimembranosus') ||
+    text.includes('sartorius') ||
+    text.includes('gracilis') ||
+    text.includes('pectineus') ||
+    text.includes('piriformis') ||
+    text.includes('obturator') ||
+    text.includes('gemellus') ||
+    text.includes('tensor_fasciae_latae') ||
+    text.includes('iliopsoas') ||
+    text.includes('iliacus') ||
+    text.includes('psoas')
+  ) {
+    return 'thigh';
+  }
+
+  // 5. Hand (Parented to wrist pivot)
   if (
     nodeId === 'bone_carpals' ||
     nodeId === 'bone_metacarpals' ||
@@ -37,71 +162,89 @@ export function getKinematicSegmentForNodeId(nodeId: string, nodeRegion?: string
     nodeId.startsWith('joint_wrist') ||
     nodeId === 'joint_thumb_cmc' ||
     nodeId === 'joint_intercarpal' ||
-    nodeId.includes('hand') ||
-    nodeId.includes('thenar') ||
-    nodeId.includes('digitorum')
+    nodeRegion === 'hand' ||
+    text.includes('hand') ||
+    text.includes('wrist') ||
+    text.includes('carpal') ||
+    text.includes('metacarpal') ||
+    text.includes('thenar') ||
+    text.includes('hypothenar') ||
+    text.includes('palmaris_brevis') ||
+    text.includes('palmaris brevis') ||
+    text.includes('pollicis_brevis') ||
+    text.includes('pollicis brevis') ||
+    text.includes('abductor_pollicis_brevis') ||
+    text.includes('abductor pollicis brevis') ||
+    text.includes('opponens_pollicis') ||
+    text.includes('opponens pollicis') ||
+    text.includes('adductor_pollicis') ||
+    text.includes('adductor pollicis') ||
+    text.includes('interossei_of_hand') ||
+    text.includes('interossei of hand') ||
+    text.includes('lumbricals_of_hand') ||
+    text.includes('lumbricals of hand') ||
+    text.includes('digiti_minimi_of_hand') ||
+    text.includes('digiti minimi of hand') ||
+    text.includes('finger')
   ) {
     return 'hand';
   }
 
+  // 6. Forearm (Parented to elbow pivot)
   if (
     nodeId === 'bone_radius' ||
     nodeId === 'bone_ulna' ||
     nodeId === 'joint_elbow' ||
     nodeId === 'joint_proximal_radioulnar' ||
-    nodeId.includes('brachioradialis') ||
-    nodeId.includes('carpi')
+    text.includes('radius') ||
+    text.includes('radial') ||
+    text.includes('ulna') ||
+    text.includes('ulnar') ||
+    text.includes('elbow') ||
+    text.includes('forearm') ||
+    text.includes('antebrach') ||
+    text.includes('brachioradialis') ||
+    text.includes('carpi') ||
+    text.includes('pronator') ||
+    text.includes('supinator') ||
+    text.includes('anconeus') ||
+    text.includes('palmaris_longus') ||
+    text.includes('palmaris longus') ||
+    text.includes('flexor_digitorum') ||
+    text.includes('flexor digitorum') ||
+    text.includes('extensor_digitorum') ||
+    text.includes('extensor digitorum') ||
+    text.includes('extensor_indicis') ||
+    text.includes('extensor indicis') ||
+    text.includes('extensor_pollicis') ||
+    text.includes('extensor pollicis') ||
+    text.includes('abductor_pollicis_longus') ||
+    text.includes('abductor pollicis longus') ||
+    text.includes('flexor_pollicis_longus') ||
+    text.includes('flexor pollicis longus')
   ) {
     return 'forearm';
   }
 
+  // 7. Arm (Parented to shoulder pivot)
   if (
     nodeId === 'bone_humerus' ||
     nodeId === 'joint_shoulder' ||
-    nodeId.includes('deltoid') ||
-    nodeId.includes('biceps_brachii') ||
-    nodeId.includes('brachialis') ||
-    nodeId.includes('triceps')
+    nodeRegion === 'arm' ||
+    text.includes('humerus') ||
+    text.includes('deltoid') ||
+    text.includes('biceps_brachii') ||
+    text.includes('biceps brachii') ||
+    (text.includes('biceps') && !text.includes('femoris')) ||
+    (text.includes('brachialis') && !text.includes('brachioradialis')) ||
+    (text.includes('triceps') && !text.includes('surae')) ||
+    text.includes('coracobrachialis') ||
+    text.includes('glenohumeral')
   ) {
     return 'arm';
   }
 
-  if (
-    nodeId === 'bone_calcaneus' ||
-    nodeId === 'bone_talus' ||
-    nodeId === 'bone_tarsals' ||
-    nodeId === 'bone_metatarsals' ||
-    nodeId === 'bone_phalanges_foot' ||
-    nodeId === 'joint_ankle' ||
-    nodeId === 'joint_subtalar' ||
-    nodeRegion === 'foot'
-  ) {
-    return 'foot';
-  }
-
-  if (
-    nodeId === 'bone_tibia' ||
-    nodeId === 'bone_patella' ||
-    nodeId === 'joint_knee' ||
-    nodeId.includes('tibialis') ||
-    nodeId.includes('gastrocnemius') ||
-    nodeId.includes('soleus')
-  ) {
-    return 'shin';
-  }
-
-  if (
-    nodeId === 'bone_femur' ||
-    nodeId === 'joint_hip' ||
-    nodeId.includes('quadriceps') ||
-    nodeId.includes('gluteus') ||
-    nodeId.includes('femoris') ||
-    nodeId.includes('adductor') ||
-    nodeId.includes('hamstring')
-  ) {
-    return 'thigh';
-  }
-
+  // 8. Spine / Trunk / Head
   return 'spine';
 }
 
