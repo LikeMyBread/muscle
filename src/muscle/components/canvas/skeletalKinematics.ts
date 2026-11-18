@@ -8,7 +8,8 @@ export type KinematicSegment =
   | 'hand'
   | 'thigh'
   | 'shin'
-  | 'foot';
+  | 'foot'
+  | 'bridging';
 
 /**
  * Calibrated anatomical joint pivot coordinates in local rest space (before layout transform).
@@ -34,6 +35,16 @@ export function getKinematicSegmentForNodeId(
 ): KinematicSegment {
   const text = (nodeId + ' ' + (nodeName || '')).toLowerCase();
 
+  // 0. Bridging dual-anchored muscles (e.g. Psoas major spanning lumbar spine and femur)
+  if (
+    nodeId === 'atlas_psoas_muscle_r_08af9941' ||
+    text === 'psoas muscle.r' ||
+    text.includes('psoas_muscle') ||
+    text.includes('psoas muscle')
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -43,7 +54,9 @@ export function getKinematicSegmentForNodeId(
     text.includes('ilium') ||
     text.includes('ischium') ||
     text.includes('pubis') ||
-    text.includes('sacroiliac')
+    text.includes('sacroiliac') ||
+    text.includes('iliac_fossa') ||
+    text.includes('iliac fossa')
   ) {
     return 'pelvis';
   }
@@ -227,9 +240,8 @@ export function getKinematicSegmentForNodeId(
     text.includes('obturator') ||
     text.includes('gemellus') ||
     text.includes('tensor_fasciae_latae') ||
-    text.includes('iliopsoas') ||
-    text.includes('iliacus') ||
-    text.includes('psoas')
+    text.includes('iliopsoas_ending') ||
+    text.includes('iliopsoas ending')
   ) {
     return 'thigh';
   }
@@ -355,4 +367,81 @@ export function computeProceduralJointAngles(elapsedSeconds: number): JointAngle
     spineFlexion: spineAngle,
     activeMotionLabel: 'Hip & trunk motion',
   };
+}
+
+/**
+ * Deforms a dual-anchored bridging muscle mesh (like Psoas major) between the torso/spine and thigh.
+ * Top vertices (Y >= 1.05) stay rigidly anchored to the lumbar spine / torso.
+ * Bottom vertices (Y <= 0.82) follow the lesser trochanter on the femur.
+ * Intermediate vertices smoothly blend, preventing the muscle from protruding through the back.
+ */
+export function deformBridgingPsoasMesh(
+  mesh: THREE.Mesh,
+  thetaHip: number,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosH = Math.cos(thetaHip);
+  const sinH = Math.sin(thetaHip);
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // Thigh transform around hip pivot
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+    const yThigh = hip.y + (dyH * cosH - dzH * sinH);
+    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
+
+    // Spine transform around spine pivot
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    // Smooth weight between spine (w = 0) and thigh (w = 1)
+    let t = (1.05 - y0) / (1.05 - 0.82);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    arr[idx] = x0;
+    arr[idx + 1] = (1 - w) * ySpine + w * yThigh;
+    arr[idx + 2] = (1 - w) * zSpine + w * zThigh;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function restoreOriginalPsoasPositions(mesh: THREE.Mesh): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr || !geom.userData.origPositions) return;
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const arr = posAttr.array as Float32Array;
+  arr.set(orig);
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
 }

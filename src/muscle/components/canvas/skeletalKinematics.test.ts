@@ -1,16 +1,35 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import {
   ANIMATION_CYCLE_DURATION,
   computeKinematicRotations,
   computeProceduralJointAngles,
+  deformBridgingPsoasMesh,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
+  restoreOriginalPsoasPositions,
 } from './skeletalKinematics';
 
 describe('skeletalKinematics', () => {
   it('maps curriculum bones and joints to correct kinematic segments', () => {
     // Pelvis
     expect(getKinematicSegmentForNodeId('bone_pelvis')).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_origin_of_psoas_minor_on_iliac_fossa_d611611c',
+        undefined,
+        'Origin of psoas minor on Iliac fossa.r',
+      ),
+    ).toBe('pelvis');
+
+    // Bridging dual-anchored muscles (Psoas)
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_psoas_muscle_r_08af9941',
+        undefined,
+        'Psoas muscle.r',
+      ),
+    ).toBe('bridging');
 
     // Spine & upper trunk
     expect(getKinematicSegmentForNodeId('bone_spine')).toBe('spine');
@@ -59,6 +78,13 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('bone_femur')).toBe('thigh');
     expect(getKinematicSegmentForNodeId('joint_hip')).toBe('thigh');
     expect(getKinematicSegmentForNodeId('muscle_quadriceps_rectus_femoris')).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_iliopsoas_ending_on_the_lesser_troch_bc5d086b',
+        undefined,
+        'Iliopsoas ending on the lesser trochanter.r',
+      ),
+    ).toBe('thigh');
 
     // Shin
     expect(getKinematicSegmentForNodeId('bone_tibia')).toBe('shin');
@@ -156,5 +182,46 @@ describe('skeletalKinematics', () => {
     // Spine flexion bends the trunk forward (+Z), which requires positive X rotation
     expect(hipRot.spineRotationX).toBeGreaterThan(0);
     expect(hipRot.spineRotationX).toBeCloseTo(hipPose.spineFlexion, 4);
+  });
+
+  it('deforms bridging psoas mesh without protruding through lumbar spine during hip flexion', () => {
+    // Construct a mock geometry with 3 vertices:
+    // v0: Upper lumbar origin (Y=1.10, Z=-0.04) -> strictly anchored to spine (w = 0)
+    // v1: Lower insertion near lesser trochanter (Y=0.80, Z=0.00) -> strictly anchored to thigh (w = 1)
+    // v2: Middle belly (Y=0.935, Z=-0.02) -> blended weight
+    const rawCoords = [0.05, 1.1, -0.04, 0.06, 0.8, 0.0, 0.055, 0.935, -0.02];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geometry);
+
+    // Apply hip flexion (thetaHip = -0.6 rad, ~34 degrees anterior swing) with neutral spine (thetaSpine = 0)
+    deformBridgingPsoasMesh(mesh, -0.6, 0.0);
+
+    const pos = geometry.attributes.position.array as Float32Array;
+
+    // v0 (upper origin) should remain unchanged at rest coordinates because w = 0 and thetaSpine = 0
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 3);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 3);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 3);
+    // Crucially, it must NOT protrude posteriorly into negative Z (which was the bug where it swung to -0.19)
+    expect(pos[2]).toBeGreaterThanOrEqual(-0.04);
+
+    // v1 (lower insertion) should follow the thigh anteriorly (Z increases in +Z)
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 3);
+    expect(pos[5]).toBeGreaterThan(rawCoords[5]); // moved anteriorly (+Z)
+
+    // v2 (middle belly) smoothly spans between the spine origin and the anterior femur
+    expect(pos[8]).toBeGreaterThan(-0.04); // does not protrude past posterior spine limit
+    expect(pos[8]).toBeGreaterThan(pos[2]);
+    expect(pos[8]).toBeLessThan(pos[5]);
+
+    // Restore original positions
+    restoreOriginalPsoasPositions(mesh);
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
   });
 });

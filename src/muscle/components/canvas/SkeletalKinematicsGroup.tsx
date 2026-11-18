@@ -5,8 +5,10 @@ import { getNodeById } from '../../curriculum';
 import {
   computeKinematicRotations,
   computeProceduralJointAngles,
+  deformBridgingPsoasMesh,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
+  restoreOriginalPsoasPositions,
   type KinematicSegment,
 } from './skeletalKinematics';
 
@@ -56,6 +58,7 @@ function SkeletalKinematicsGroupComponent({
       thigh: [],
       shin: [],
       foot: [],
+      bridging: [],
     };
     for (const mesh of meshes) {
       const node = getNodeById(mesh.name);
@@ -85,6 +88,14 @@ function SkeletalKinematicsGroupComponent({
         spinePivotRef.current.rotation.x = THREE.MathUtils.lerp(spinePivotRef.current.rotation.x, 0, lerpRate);
       }
 
+      for (const mesh of categorizedMeshes.bridging) {
+        deformBridgingPsoasMesh(
+          mesh,
+          thighPivotRef.current?.rotation.x ?? 0,
+          spinePivotRef.current?.rotation.x ?? 0,
+        );
+      }
+
       const maxRemaining = Math.max(
         Math.abs(forearmPivotRef.current?.rotation.x ?? 0),
         Math.abs(armPivotRef.current?.rotation.z ?? 0),
@@ -99,6 +110,9 @@ function SkeletalKinematicsGroupComponent({
         if (shinPivotRef.current) shinPivotRef.current.rotation.x = 0;
         if (thighPivotRef.current) thighPivotRef.current.rotation.x = 0;
         if (spinePivotRef.current) spinePivotRef.current.rotation.x = 0;
+        for (const mesh of categorizedMeshes.bridging) {
+          restoreOriginalPsoasPositions(mesh);
+        }
         resettingRef.current = false;
       }
       invalidate();
@@ -132,6 +146,14 @@ function SkeletalKinematicsGroupComponent({
       spinePivotRef.current.rotation.x = rotations.spineRotationX;
     }
 
+    for (const mesh of categorizedMeshes.bridging) {
+      deformBridgingPsoasMesh(
+        mesh,
+        rotations.thighRotationX,
+        rotations.spineRotationX,
+      );
+    }
+
     invalidate();
   });
 
@@ -142,6 +164,11 @@ function SkeletalKinematicsGroupComponent({
       {/* Pelvis (Root body part) */}
       <group name="segment-pelvis">
         {categorizedMeshes.pelvis.map(renderMesh)}
+      </group>
+
+      {/* Bridging dual-anchored muscles (e.g. Psoas major spanning lumbar spine and femur) */}
+      <group name="segment-bridging">
+        {categorizedMeshes.bridging.map(renderMesh)}
       </group>
 
       {/* Leg kinematic chain: Hip -> Thigh -> Knee -> Shin -> Ankle -> Foot */}
