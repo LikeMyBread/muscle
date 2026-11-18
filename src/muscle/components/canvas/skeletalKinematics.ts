@@ -35,12 +35,21 @@ export function getKinematicSegmentForNodeId(
 ): KinematicSegment {
   const text = (nodeId + ' ' + (nodeName || '')).toLowerCase();
 
-  // 0. Bridging dual-anchored muscles (e.g. Psoas major spanning lumbar spine and femur)
+  // 0. Bridging dual-anchored muscles (e.g. Psoas major spanning lumbar spine and femur, Plantaris spanning femur and shin)
   if (
     nodeId === 'atlas_psoas_muscle_r_08af9941' ||
     text === 'psoas muscle.r' ||
     text.includes('psoas_muscle') ||
     text.includes('psoas muscle')
+  ) {
+    return 'bridging';
+  }
+
+  if (
+    nodeId === 'atlas_plantaris_muscle_r_5a2fd02c' ||
+    text === 'plantaris muscle.r' ||
+    text.includes('plantaris_muscle_r') ||
+    (text.includes('plantaris') && !text.includes('origin') && !text.includes('orig'))
   ) {
     return 'bridging';
   }
@@ -83,7 +92,7 @@ export function getKinematicSegmentForNodeId(
       text.includes('talus') ||
       text.includes('tarsal') ||
       text.includes('metatarsal') ||
-      text.includes('plantar') ||
+      (text.includes('plantar') && !text.includes('plantaris')) ||
       text.includes('sesamoid') ||
       text.includes('cuneiform') ||
       text.includes('cuboid') ||
@@ -119,11 +128,10 @@ export function getKinematicSegmentForNodeId(
     text.includes('interosseus_membrane_of_leg') ||
     text.includes('interosseus membrane of leg') ||
     text.includes('tibialis') ||
-    text.includes('gastrocnemius') ||
+    (text.includes('gastrocnemius') && !text.includes('plantaris')) ||
     text.includes('soleus') ||
     text.includes('solear') ||
     text.includes('popliteus') ||
-    text.includes('plantaris') ||
     text.includes('peroneus') ||
     text.includes('fibularis') ||
     text.includes('extensor_digitorum_longus') ||
@@ -241,7 +249,8 @@ export function getKinematicSegmentForNodeId(
     text.includes('gemellus') ||
     text.includes('tensor_fasciae_latae') ||
     text.includes('iliopsoas_ending') ||
-    text.includes('iliopsoas ending')
+    text.includes('iliopsoas ending') ||
+    (text.includes('plantaris') && (text.includes('origin') || text.includes('orig')))
   ) {
     return 'thigh';
   }
@@ -434,7 +443,104 @@ export function deformBridgingPsoasMesh(
   geom.computeVertexNormals();
 }
 
-export function restoreOriginalPsoasPositions(mesh: THREE.Mesh): void {
+export function isPsoasMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return text.includes('psoas');
+}
+
+export function isPlantarisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return text.includes('plantaris');
+}
+
+/**
+ * Deforms a dual-anchored bridging muscle mesh (Plantaris) across the knee joint between the femur (thigh) and shin/foot.
+ * Top vertices (Y >= 0.485) stay rigidly anchored to the distal posterior femur (thigh).
+ * Lower vertices (Y <= 0.410) follow the shin/calcaneus (knee flexion).
+ * Intermediate vertices smoothly blend across the posterior knee joint, preventing the upper end
+ * from detaching or protruding forward through the femur and knee.
+ */
+export function deformBridgingPlantarisMesh(
+  mesh: THREE.Mesh,
+  thetaThigh: number,
+  thetaShin: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosK = Math.cos(thetaShin);
+  const sinK = Math.sin(thetaShin);
+  const cosH = Math.cos(thetaThigh);
+  const sinH = Math.sin(thetaThigh);
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // Shin transform: rotate around knee pivot
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK = knee.y + (dyK * cosK - dzK * sinK);
+    const zK = knee.z + (dyK * sinK + dzK * cosK);
+
+    // Shin vertex in root space: compound rotation with hip
+    const dyH_K = yK - hip.y;
+    const dzH_K = zK - hip.z;
+    const yShin = hip.y + (dyH_K * cosH - dzH_K * sinH);
+    const zShin = hip.z + (dyH_K * sinH + dzH_K * cosH);
+
+    // Thigh vertex in root space: rotation with hip only (stays fixed to femur)
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+    const yThigh = hip.y + (dyH * cosH - dzH * sinH);
+    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
+
+    // Smooth weight between shin (w = 1 at y0 <= 0.410) and femur (w = 0 at y0 >= 0.485)
+    let t = (0.485 - y0) / (0.485 - 0.410);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const wShin = t * t * (3 - 2 * t);
+    const wThigh = 1 - wShin;
+
+    arr[idx] = x0;
+    arr[idx + 1] = wThigh * yThigh + wShin * yShin;
+    arr[idx + 2] = wThigh * zThigh + wShin * zShin;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+/**
+ * Universal dispatcher to deform any bridging mesh across its anchored kinematic joints.
+ */
+export function deformBridgingMesh(
+  mesh: THREE.Mesh,
+  rotations: KinematicPivotRotations,
+): void {
+  if (isPsoasMesh(mesh)) {
+    deformBridgingPsoasMesh(mesh, rotations.thighRotationX, rotations.spineRotationX);
+  } else if (isPlantarisMesh(mesh)) {
+    deformBridgingPlantarisMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
+  }
+}
+
+export function restoreOriginalMeshPositions(mesh: THREE.Mesh): void {
   const geom = mesh.geometry;
   const posAttr = geom.attributes.position;
   if (!posAttr || !geom.userData.origPositions) return;
@@ -445,3 +551,5 @@ export function restoreOriginalPsoasPositions(mesh: THREE.Mesh): void {
   posAttr.needsUpdate = true;
   geom.computeVertexNormals();
 }
+
+export const restoreOriginalPsoasPositions = restoreOriginalMeshPositions;

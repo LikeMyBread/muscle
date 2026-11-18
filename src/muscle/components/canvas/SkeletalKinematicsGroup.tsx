@@ -5,10 +5,11 @@ import { getNodeById } from '../../curriculum';
 import {
   computeKinematicRotations,
   computeProceduralJointAngles,
-  deformBridgingPsoasMesh,
+  deformBridgingMesh,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
-  restoreOriginalPsoasPositions,
+  restoreOriginalMeshPositions,
+  type KinematicPivotRotations,
   type KinematicSegment,
 } from './skeletalKinematics';
 
@@ -88,12 +89,16 @@ function SkeletalKinematicsGroupComponent({
         spinePivotRef.current.rotation.x = THREE.MathUtils.lerp(spinePivotRef.current.rotation.x, 0, lerpRate);
       }
 
+      const currentRotations: KinematicPivotRotations = {
+        forearmRotationX: forearmPivotRef.current?.rotation.x ?? 0,
+        armRotationZ: armPivotRef.current?.rotation.z ?? 0,
+        shinRotationX: shinPivotRef.current?.rotation.x ?? 0,
+        thighRotationX: thighPivotRef.current?.rotation.x ?? 0,
+        spineRotationX: spinePivotRef.current?.rotation.x ?? 0,
+      };
+
       for (const mesh of categorizedMeshes.bridging) {
-        deformBridgingPsoasMesh(
-          mesh,
-          thighPivotRef.current?.rotation.x ?? 0,
-          spinePivotRef.current?.rotation.x ?? 0,
-        );
+        deformBridgingMesh(mesh, currentRotations);
       }
 
       const maxRemaining = Math.max(
@@ -111,7 +116,7 @@ function SkeletalKinematicsGroupComponent({
         if (thighPivotRef.current) thighPivotRef.current.rotation.x = 0;
         if (spinePivotRef.current) spinePivotRef.current.rotation.x = 0;
         for (const mesh of categorizedMeshes.bridging) {
-          restoreOriginalPsoasPositions(mesh);
+          restoreOriginalMeshPositions(mesh);
         }
         resettingRef.current = false;
       }
@@ -147,11 +152,7 @@ function SkeletalKinematicsGroupComponent({
     }
 
     for (const mesh of categorizedMeshes.bridging) {
-      deformBridgingPsoasMesh(
-        mesh,
-        rotations.thighRotationX,
-        rotations.spineRotationX,
-      );
+      deformBridgingMesh(mesh, rotations);
     }
 
     invalidate();

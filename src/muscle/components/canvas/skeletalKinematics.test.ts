@@ -4,9 +4,12 @@ import {
   ANIMATION_CYCLE_DURATION,
   computeKinematicRotations,
   computeProceduralJointAngles,
+  deformBridgingMesh,
+  deformBridgingPlantarisMesh,
   deformBridgingPsoasMesh,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
+  restoreOriginalMeshPositions,
   restoreOriginalPsoasPositions,
 } from './skeletalKinematics';
 
@@ -22,12 +25,19 @@ describe('skeletalKinematics', () => {
       ),
     ).toBe('pelvis');
 
-    // Bridging dual-anchored muscles (Psoas)
+    // Bridging dual-anchored muscles (Psoas, Plantaris)
     expect(
       getKinematicSegmentForNodeId(
         'atlas_psoas_muscle_r_08af9941',
         undefined,
         'Psoas muscle.r',
+      ),
+    ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_plantaris_muscle_r_5a2fd02c',
+        undefined,
+        'Plantaris muscle.r',
       ),
     ).toBe('bridging');
 
@@ -83,6 +93,20 @@ describe('skeletalKinematics', () => {
         'atlas_iliopsoas_ending_on_the_lesser_troch_bc5d086b',
         undefined,
         'Iliopsoas ending on the lesser trochanter.r',
+      ),
+    ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_plantaris_muscle_medially_to_the_lat_3ef61b75',
+        undefined,
+        'Plantaris muscle medially to the lateral gastrocnemius origin.r',
+      ),
+    ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_plantaris_muscle_medially_to_the_lat_143de19a',
+        undefined,
+        'Plantaris muscle medially to the lateral gastrocnemius orig',
       ),
     ).toBe('thigh');
 
@@ -223,5 +247,81 @@ describe('skeletalKinematics', () => {
     expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
     expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
     expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+  });
+
+  it('deforms bridging plantaris mesh across knee joint, keeping upper origin anchored to femur', () => {
+    // Construct a mock geometry with 3 vertices:
+    // v0: Upper femoral origin (Y=0.50, Z=-0.03) -> strictly anchored to femur (wShin = 0)
+    // v1: Lower calf/tendon (Y=0.35, Z=-0.06) -> strictly anchored to shin (wShin = 1)
+    // v2: Middle belly crossing knee (Y=0.445, Z=-0.04) -> blended weight
+    const rawCoords = [0.09, 0.5, -0.03, 0.08, 0.35, -0.06, 0.085, 0.445, -0.04];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geometry);
+    mesh.name = 'atlas_plantaris_muscle_r_5a2fd02c';
+
+    // Apply knee flexion (thetaShin = 1.3 rad, ~75 degrees posterior swing) with neutral thigh (thetaThigh = 0)
+    deformBridgingPlantarisMesh(mesh, 0.0, 1.3);
+
+    const pos = geometry.attributes.position.array as Float32Array;
+
+    // v0 (upper origin on femur) must remain fixed at rest coordinates
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 3);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 3);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 3);
+    // Crucially, it must NOT swing forward into positive Z (which rigid shin did up to +0.05)
+    expect(pos[2]).toBeLessThanOrEqual(-0.025);
+
+    // v1 (lower tendon) must follow the shin posteriorly into negative Z
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 3);
+    expect(pos[5]).toBeLessThan(rawCoords[5]); // swung posteriorly (-Z)
+
+    // v2 (middle belly) smoothly spans between the femur origin and rotating shin
+    expect(pos[8]).toBeGreaterThan(pos[5]); // stays anterior to the distal shin
+    expect(pos[8]).toBeCloseTo(-0.029, 2);
+
+    // Test restore
+    restoreOriginalMeshPositions(mesh);
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+  });
+
+  it('deformBridgingMesh correctly dispatches between psoas and plantaris', () => {
+    const rawCoords = [0.09, 0.5, -0.03, 0.08, 0.35, -0.06, 0.085, 0.445, -0.04];
+    const geomPlantaris = new THREE.BufferGeometry();
+    geomPlantaris.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const meshPlantaris = new THREE.Mesh(geomPlantaris);
+    meshPlantaris.name = 'atlas_plantaris_muscle_r_5a2fd02c';
+
+    const geomPsoas = new THREE.BufferGeometry();
+    geomPsoas.setAttribute('position', new THREE.Float32BufferAttribute([0.05, 1.1, -0.04], 3));
+    const meshPsoas = new THREE.Mesh(geomPsoas);
+    meshPsoas.name = 'atlas_psoas_muscle_r_08af9941';
+
+    // 1. Knee flexion only: plantaris distal vertex swings posteriorly into negative Z
+    deformBridgingMesh(meshPlantaris, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 1.3,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+    const posPlantaris = geomPlantaris.attributes.position.array as Float32Array;
+    expect(posPlantaris[5]).toBeLessThan(-0.06);
+
+    // 2. Spine flexion: psoas top vertex rotates with spine
+    deformBridgingMesh(meshPsoas, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      spineRotationX: 0.1,
+    });
+    const posPsoas = geomPsoas.attributes.position.array as Float32Array;
+    expect(posPsoas[1]).toBeGreaterThan(1.0);
   });
 });
