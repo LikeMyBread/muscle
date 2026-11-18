@@ -28,11 +28,32 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('bone_ulna')).toBe('forearm');
     expect(getKinematicSegmentForNodeId('joint_elbow')).toBe('forearm');
     expect(getKinematicSegmentForNodeId('muscle_brachioradialis')).toBe('forearm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_deep_head_of_prontaor_teres_muscle_r_5384bfe5',
+        undefined,
+        'Deep head of prontaor teres muscle.r',
+      ),
+    ).toBe('forearm');
 
     // Hand
     expect(getKinematicSegmentForNodeId('bone_carpals')).toBe('hand');
     expect(getKinematicSegmentForNodeId('bone_metacarpals')).toBe('hand');
     expect(getKinematicSegmentForNodeId('joint_wrist')).toBe('hand');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_transverse_head_of_adductor_pollicis_a8480383',
+        undefined,
+        'Transverse head of adductor pollicis brevis.r',
+      ),
+    ).toBe('hand');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_oblique_head_of_adductor_policis_bre_57a81bdb',
+        undefined,
+        'Oblique head of adductor policis brevis.r',
+      ),
+    ).toBe('hand');
 
     // Thigh
     expect(getKinematicSegmentForNodeId('bone_femur')).toBe('thigh');

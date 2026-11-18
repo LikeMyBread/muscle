@@ -125,36 +125,7 @@ export function getKinematicSegmentForNodeId(
     return 'shin';
   }
 
-  // 4. Thigh / Hip (Parented to hip pivot)
-  if (
-    nodeId === 'bone_femur' ||
-    nodeId === 'joint_hip' ||
-    text.includes('femur') ||
-    text.includes('femoris') ||
-    text.includes('thigh') ||
-    text.includes('quadriceps') ||
-    text.includes('vastus') ||
-    text.includes('gluteus') ||
-    text.includes('glute') ||
-    text.includes('adductor') ||
-    text.includes('hamstring') ||
-    text.includes('semitendinosus') ||
-    text.includes('semimembranosus') ||
-    text.includes('sartorius') ||
-    text.includes('gracilis') ||
-    text.includes('pectineus') ||
-    text.includes('piriformis') ||
-    text.includes('obturator') ||
-    text.includes('gemellus') ||
-    text.includes('tensor_fasciae_latae') ||
-    text.includes('iliopsoas') ||
-    text.includes('iliacus') ||
-    text.includes('psoas')
-  ) {
-    return 'thigh';
-  }
-
-  // 5. Hand (Parented to wrist pivot)
+  // 4. Hand (Parented to wrist pivot)
   if (
     nodeId === 'bone_carpals' ||
     nodeId === 'bone_metacarpals' ||
@@ -173,12 +144,16 @@ export function getKinematicSegmentForNodeId(
     text.includes('palmaris brevis') ||
     text.includes('pollicis_brevis') ||
     text.includes('pollicis brevis') ||
+    text.includes('policis_brevis') ||
+    text.includes('policis brevis') ||
     text.includes('abductor_pollicis_brevis') ||
     text.includes('abductor pollicis brevis') ||
     text.includes('opponens_pollicis') ||
     text.includes('opponens pollicis') ||
     text.includes('adductor_pollicis') ||
     text.includes('adductor pollicis') ||
+    text.includes('adductor_policis') ||
+    text.includes('adductor policis') ||
     text.includes('interossei_of_hand') ||
     text.includes('interossei of hand') ||
     text.includes('lumbricals_of_hand') ||
@@ -190,7 +165,7 @@ export function getKinematicSegmentForNodeId(
     return 'hand';
   }
 
-  // 6. Forearm (Parented to elbow pivot)
+  // 5. Forearm (Parented to elbow pivot)
   if (
     nodeId === 'bone_radius' ||
     nodeId === 'bone_ulna' ||
@@ -205,7 +180,8 @@ export function getKinematicSegmentForNodeId(
     text.includes('antebrach') ||
     text.includes('brachioradialis') ||
     text.includes('carpi') ||
-    text.includes('pronator') ||
+    text.includes('pronat') ||
+    text.includes('pronta') ||
     text.includes('supinator') ||
     text.includes('anconeus') ||
     text.includes('palmaris_longus') ||
@@ -224,6 +200,38 @@ export function getKinematicSegmentForNodeId(
     text.includes('flexor pollicis longus')
   ) {
     return 'forearm';
+  }
+
+  // 6. Thigh / Hip (Parented to hip pivot)
+  if (
+    nodeId === 'bone_femur' ||
+    nodeId === 'joint_hip' ||
+    text.includes('femur') ||
+    text.includes('femoris') ||
+    text.includes('thigh') ||
+    text.includes('quadriceps') ||
+    text.includes('vastus') ||
+    text.includes('gluteus') ||
+    text.includes('glute') ||
+    (text.includes('adductor') &&
+      !text.includes('pollicis') &&
+      !text.includes('polic') &&
+      !text.includes('hallucis')) ||
+    text.includes('hamstring') ||
+    text.includes('semitendinosus') ||
+    text.includes('semimembranosus') ||
+    text.includes('sartorius') ||
+    text.includes('gracilis') ||
+    text.includes('pectineus') ||
+    text.includes('piriformis') ||
+    text.includes('obturator') ||
+    text.includes('gemellus') ||
+    text.includes('tensor_fasciae_latae') ||
+    text.includes('iliopsoas') ||
+    text.includes('iliacus') ||
+    text.includes('psoas')
+  ) {
+    return 'thigh';
   }
 
   // 7. Arm (Parented to shoulder pivot)
