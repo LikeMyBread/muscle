@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getNodeById } from '../../curriculum';
+import { useMuscleStore, type SkeletonJointAngles } from '../../store/useMuscleStore';
 import {
   computeKinematicRotations,
   computeProceduralJointAngles,
@@ -18,6 +19,7 @@ export type SkeletalKinematicsGroupProps = {
   renderMesh: (mesh: THREE.Mesh) => React.ReactNode;
   isAnimating: boolean;
   resetKey?: number;
+  syncToStore?: boolean;
 };
 
 function SkeletalKinematicsGroupComponent({
@@ -25,6 +27,7 @@ function SkeletalKinematicsGroupComponent({
   renderMesh,
   isAnimating,
   resetKey,
+  syncToStore,
 }: SkeletalKinematicsGroupProps) {
   const { invalidate } = useThree();
 
@@ -68,6 +71,52 @@ function SkeletalKinematicsGroupComponent({
     }
     return buckets;
   }, [meshes]);
+
+  const applyJointAngles = (angles: SkeletonJointAngles) => {
+    const rotations = computeKinematicRotations(angles);
+
+    if (forearmPivotRef.current) {
+      forearmPivotRef.current.rotation.x = rotations.forearmRotationX;
+    }
+    if (armPivotRef.current) {
+      armPivotRef.current.rotation.z = rotations.armRotationZ;
+    }
+    if (shinPivotRef.current) {
+      shinPivotRef.current.rotation.x = rotations.shinRotationX;
+    }
+    if (thighPivotRef.current) {
+      thighPivotRef.current.rotation.x = rotations.thighRotationX;
+    }
+    if (spinePivotRef.current) {
+      spinePivotRef.current.rotation.x = rotations.spineRotationX;
+    }
+
+    for (const mesh of categorizedMeshes.bridging) {
+      deformBridgingMesh(mesh, rotations);
+    }
+  };
+
+  useEffect(() => {
+    // Apply current angles on mount or when categorized meshes change (if not animating)
+    if (!isAnimating && !resettingRef.current) {
+      applyJointAngles(useMuscleStore.getState().skeletonJointAngles);
+      invalidate();
+    }
+
+    let prevAngles = useMuscleStore.getState().skeletonJointAngles;
+    const unsubscribe = useMuscleStore.subscribe((state) => {
+      if (state.skeletonJointAngles !== prevAngles) {
+        prevAngles = state.skeletonJointAngles;
+        if (state.isSkeletonAnimating || resettingRef.current) {
+          return;
+        }
+        applyJointAngles(state.skeletonJointAngles);
+        invalidate();
+      }
+    });
+
+    return unsubscribe;
+  }, [categorizedMeshes, invalidate, isAnimating]);
 
   useFrame((_, delta) => {
     // If a reset was requested, smoothly lerp all joints back to the 0 rest pose
@@ -153,6 +202,16 @@ function SkeletalKinematicsGroupComponent({
 
     for (const mesh of categorizedMeshes.bridging) {
       deformBridgingMesh(mesh, rotations);
+    }
+
+    if (syncToStore) {
+      useMuscleStore.getState().setSkeletonJointAngles({
+        spineFlexion: currentAngles.spineFlexion,
+        shoulderAbduction: currentAngles.shoulderAbduction,
+        elbowFlexion: currentAngles.elbowFlexion,
+        hipFlexion: currentAngles.hipFlexion,
+        kneeFlexion: currentAngles.kneeFlexion,
+      });
     }
 
     invalidate();

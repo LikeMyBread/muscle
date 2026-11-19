@@ -123,6 +123,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
             meshes={meshes}
             isAnimating={isSkeletonAnimating}
             resetKey={skeletonPoseResetCount}
+            syncToStore
             renderMesh={(mesh) => {
               const node = getNodeById(mesh.name);
               if (!node) return null;
@@ -165,6 +166,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
           meshes={meshes}
           isAnimating={isSkeletonAnimating}
           resetKey={skeletonPoseResetCount}
+          syncToStore
           renderMesh={(mesh) => {
             const node = getNodeById(mesh.name);
             if (!node) return null;

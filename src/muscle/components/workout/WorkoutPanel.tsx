@@ -21,6 +21,7 @@ import { StructureDetailsBody } from './StructureDetailsBody';
 import TermLessonPanel from './TermLessonPanel';
 import WarmupStructureCard from './WarmupStructureCard';
 import StudyGroupFocusCard from './StudyGroupFocusCard';
+import JointPoseSliders from './JointPoseSliders';
 
 function ContextCard() {
   const mode = useMuscleStore((s) => s.mode);
@@ -337,12 +338,14 @@ export default function WorkoutPanel() {
             <div className="muscle-panel-stack" data-testid="muscle-panel-stack">
               <div className="muscle-structure-focus-zone muscle-panel-stack__study">
                 <ContextCard />
+                <JointPoseSliders />
               </div>
               <StudyIndex kind={studyIndexKind} itemCount={studyIndexCount} />
             </div>
           ) : (
             <div className="muscle-structure-focus-zone">
               <ContextCard />
+              <JointPoseSliders />
             </div>
           )}
         </div>

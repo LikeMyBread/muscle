@@ -37,6 +37,22 @@ import type {
   WorkoutProgress,
 } from '../types/node';
 
+export interface SkeletonJointAngles {
+  spineFlexion: number;
+  shoulderAbduction: number;
+  elbowFlexion: number;
+  hipFlexion: number;
+  kneeFlexion: number;
+}
+
+export const DEFAULT_SKELETON_JOINT_ANGLES: SkeletonJointAngles = {
+  spineFlexion: 0,
+  shoulderAbduction: 0,
+  elbowFlexion: 0,
+  hipFlexion: 0,
+  kneeFlexion: 0,
+};
+
 export interface MuscleStoreState {
   hydrated: boolean;
   saveError: string | null;
@@ -95,9 +111,12 @@ export interface MuscleStoreState {
   resetCameraView: () => void;
   isSkeletonAnimating: boolean;
   skeletonPoseResetCount: number;
+  skeletonJointAngles: SkeletonJointAngles;
   setSkeletonAnimating: (animating: boolean) => void;
   toggleSkeletonAnimation: () => void;
   resetSkeletonPose: () => void;
+  setSkeletonJointAngles: (angles: Partial<SkeletonJointAngles>) => void;
+  setSkeletonJointAngle: (joint: keyof SkeletonJointAngles, angle: number) => void;
   setHoveredNodeId: (nodeId: string | null) => void;
   setReferenceHalfHint: (hint: 'idle' | 'hover' | 'pinned') => void;
   setLayerPeelDepth: (depth: LayerPeelDepth) => void;
@@ -308,12 +327,29 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   setDebugCurriculumUnlocked: (unlocked: boolean) => set({ debugCurriculumUnlocked: unlocked }),
   isSkeletonAnimating: false,
   skeletonPoseResetCount: 0,
+  skeletonJointAngles: { ...DEFAULT_SKELETON_JOINT_ANGLES },
   setSkeletonAnimating: (animating: boolean) => set({ isSkeletonAnimating: animating }),
   toggleSkeletonAnimation: () => set((state) => ({ isSkeletonAnimating: !state.isSkeletonAnimating })),
   resetSkeletonPose: () =>
     set((state) => ({
       isSkeletonAnimating: false,
       skeletonPoseResetCount: state.skeletonPoseResetCount + 1,
+      skeletonJointAngles: { ...DEFAULT_SKELETON_JOINT_ANGLES },
+    })),
+  setSkeletonJointAngles: (angles: Partial<SkeletonJointAngles>) =>
+    set((state) => ({
+      skeletonJointAngles: {
+        ...state.skeletonJointAngles,
+        ...angles,
+      },
+    })),
+  setSkeletonJointAngle: (joint: keyof SkeletonJointAngles, angle: number) =>
+    set((state) => ({
+      isSkeletonAnimating: false,
+      skeletonJointAngles: {
+        ...state.skeletonJointAngles,
+        [joint]: angle,
+      },
     })),
 
   setStudyActive: (active: boolean) => {

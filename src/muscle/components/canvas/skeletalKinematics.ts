@@ -293,7 +293,7 @@ export interface JointAngleState {
   kneeFlexion: number;
   hipFlexion: number;
   spineFlexion: number;
-  activeMotionLabel: string;
+  activeMotionLabel?: string;
 }
 
 export interface KinematicPivotRotations {
