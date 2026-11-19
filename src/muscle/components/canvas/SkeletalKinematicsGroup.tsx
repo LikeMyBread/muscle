@@ -10,9 +10,12 @@ import {
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
+  type JointAngleState,
   type KinematicPivotRotations,
   type KinematicSegment,
 } from './skeletalKinematics';
+
+export type KinematicSide = 'left' | 'right';
 
 export type SkeletalKinematicsGroupProps = {
   meshes: readonly THREE.Mesh[];
@@ -20,7 +23,21 @@ export type SkeletalKinematicsGroupProps = {
   isAnimating: boolean;
   resetKey?: number;
   syncToStore?: boolean;
+  side?: KinematicSide;
 };
+
+function extractJointAnglesForSide(
+  angles: SkeletonJointAngles | { [k in keyof SkeletonJointAngles]?: number },
+  side: KinematicSide,
+): JointAngleState {
+  return {
+    spineFlexion: angles.spineFlexion ?? 0,
+    shoulderAbduction: (side === 'left' ? angles.leftShoulderAbduction : angles.rightShoulderAbduction) ?? 0,
+    elbowFlexion: (side === 'left' ? angles.leftElbowFlexion : angles.rightElbowFlexion) ?? 0,
+    hipFlexion: (side === 'left' ? angles.leftHipFlexion : angles.rightHipFlexion) ?? 0,
+    kneeFlexion: (side === 'left' ? angles.leftKneeFlexion : angles.rightKneeFlexion) ?? 0,
+  };
+}
 
 function SkeletalKinematicsGroupComponent({
   meshes,
@@ -28,6 +45,7 @@ function SkeletalKinematicsGroupComponent({
   isAnimating,
   resetKey,
   syncToStore,
+  side = 'right',
 }: SkeletalKinematicsGroupProps) {
   const { invalidate } = useThree();
 
@@ -73,7 +91,8 @@ function SkeletalKinematicsGroupComponent({
   }, [meshes]);
 
   const applyJointAngles = (angles: SkeletonJointAngles) => {
-    const rotations = computeKinematicRotations(angles);
+    const sideAngles = extractJointAnglesForSide(angles, side);
+    const rotations = computeKinematicRotations(sideAngles);
 
     if (forearmPivotRef.current) {
       forearmPivotRef.current.rotation.x = rotations.forearmRotationX;
@@ -116,7 +135,7 @@ function SkeletalKinematicsGroupComponent({
     });
 
     return unsubscribe;
-  }, [categorizedMeshes, invalidate, isAnimating]);
+  }, [categorizedMeshes, invalidate, isAnimating, side]);
 
   useFrame((_, delta) => {
     // If a reset was requested, smoothly lerp all joints back to the 0 rest pose
@@ -178,7 +197,8 @@ function SkeletalKinematicsGroupComponent({
 
     animTimeRef.current += delta;
     const currentAngles = computeProceduralJointAngles(animTimeRef.current);
-    const rotations = computeKinematicRotations(currentAngles);
+    const sideAngles = extractJointAnglesForSide(currentAngles, side);
+    const rotations = computeKinematicRotations(sideAngles);
 
     if (forearmPivotRef.current) {
       forearmPivotRef.current.rotation.x = rotations.forearmRotationX;
@@ -207,10 +227,14 @@ function SkeletalKinematicsGroupComponent({
     if (syncToStore) {
       useMuscleStore.getState().setSkeletonJointAngles({
         spineFlexion: currentAngles.spineFlexion,
-        shoulderAbduction: currentAngles.shoulderAbduction,
-        elbowFlexion: currentAngles.elbowFlexion,
-        hipFlexion: currentAngles.hipFlexion,
-        kneeFlexion: currentAngles.kneeFlexion,
+        leftShoulderAbduction: currentAngles.leftShoulderAbduction,
+        rightShoulderAbduction: currentAngles.rightShoulderAbduction,
+        leftElbowFlexion: currentAngles.leftElbowFlexion,
+        rightElbowFlexion: currentAngles.rightElbowFlexion,
+        leftHipFlexion: currentAngles.leftHipFlexion,
+        rightHipFlexion: currentAngles.rightHipFlexion,
+        leftKneeFlexion: currentAngles.leftKneeFlexion,
+        rightKneeFlexion: currentAngles.rightKneeFlexion,
       });
     }
 

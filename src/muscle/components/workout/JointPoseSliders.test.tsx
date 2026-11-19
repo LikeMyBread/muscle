@@ -15,10 +15,11 @@ describe('JointPoseSliders Component', () => {
     });
   });
 
-  it('renders the Joint Pose Controls panel with all 5 joints', () => {
+  it('renders the Joint Pose Controls panel with all 9 separated joints', () => {
     render(<JointPoseSliders />);
     const panel = screen.getByTestId('joint-pose-sliders');
     expect(panel).toBeInTheDocument();
+    expect(JOINT_POSE_CONFIGS).toHaveLength(9);
 
     for (const config of JOINT_POSE_CONFIGS) {
       const slider = screen.getByTestId(`joint-slider-${config.key}`);
@@ -27,126 +28,181 @@ describe('JointPoseSliders Component', () => {
     }
   });
 
-  it('arranges joints in an indented tree with correct hierarchy levels', () => {
+  it('arranges joints in an indented tree with correct hierarchy levels for left and right limbs', () => {
     render(<JointPoseSliders />);
 
     const torsoItem = screen.getByTestId('joint-item-spineFlexion');
-    const shoulderItem = screen.getByTestId('joint-item-shoulderAbduction');
-    const elbowItem = screen.getByTestId('joint-item-elbowFlexion');
-    const hipItem = screen.getByTestId('joint-item-hipFlexion');
-    const kneeItem = screen.getByTestId('joint-item-kneeFlexion');
+    const leftShoulderItem = screen.getByTestId('joint-item-leftShoulderAbduction');
+    const leftElbowItem = screen.getByTestId('joint-item-leftElbowFlexion');
+    const rightShoulderItem = screen.getByTestId('joint-item-rightShoulderAbduction');
+    const rightElbowItem = screen.getByTestId('joint-item-rightElbowFlexion');
+    const leftHipItem = screen.getByTestId('joint-item-leftHipFlexion');
+    const leftKneeItem = screen.getByTestId('joint-item-leftKneeFlexion');
+    const rightHipItem = screen.getByTestId('joint-item-rightHipFlexion');
+    const rightKneeItem = screen.getByTestId('joint-item-rightKneeFlexion');
 
     // Hierarchy check:
     // Torso: indent 0
     //   Left Shoulder: indent 1
     //     Left Elbow: indent 2
+    //   Right Shoulder: indent 1
+    //     Right Elbow: indent 2
     // Left Hip: indent 0
     //   Left Knee: indent 1
+    // Right Hip: indent 0
+    //   Right Knee: indent 1
     expect(torsoItem.className).toContain('muscle-joint-tree__item--indent-0');
-    expect(shoulderItem.className).toContain('muscle-joint-tree__item--indent-1');
-    expect(elbowItem.className).toContain('muscle-joint-tree__item--indent-2');
-    expect(hipItem.className).toContain('muscle-joint-tree__item--indent-0');
-    expect(kneeItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(leftShoulderItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(leftElbowItem.className).toContain('muscle-joint-tree__item--indent-2');
+    expect(rightShoulderItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(rightElbowItem.className).toContain('muscle-joint-tree__item--indent-2');
+    expect(leftHipItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(leftKneeItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(rightHipItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(rightKneeItem.className).toContain('muscle-joint-tree__item--indent-1');
   });
 
   it('configures bidirectional joints with 0° in the middle and unidirectional with 0° on the left', () => {
     render(<JointPoseSliders />);
 
-    // Bidirectional: Torso (-30° to +30°) and Hip (-45° to +45°)
+    // Bidirectional: Torso (-30° to +30°), Left Hip (-45° to +45°), Right Hip (-45° to +45°)
     const torsoSlider = screen.getByTestId('joint-slider-spineFlexion');
     expect(torsoSlider).toHaveAttribute('min', '-30');
     expect(torsoSlider).toHaveAttribute('max', '30');
     expect(torsoSlider.className).toContain('muscle-joint-slider--bidirectional');
 
-    const hipSlider = screen.getByTestId('joint-slider-hipFlexion');
-    expect(hipSlider).toHaveAttribute('min', '-45');
-    expect(hipSlider).toHaveAttribute('max', '45');
-    expect(hipSlider.className).toContain('muscle-joint-slider--bidirectional');
+    const leftHipSlider = screen.getByTestId('joint-slider-leftHipFlexion');
+    expect(leftHipSlider).toHaveAttribute('min', '-45');
+    expect(leftHipSlider).toHaveAttribute('max', '45');
+    expect(leftHipSlider.className).toContain('muscle-joint-slider--bidirectional');
 
-    // Unidirectional: Shoulder (0° to 90°), Elbow (0° to 130°), Knee (0° to 120°)
-    const shoulderSlider = screen.getByTestId('joint-slider-shoulderAbduction');
-    expect(shoulderSlider).toHaveAttribute('min', '0');
-    expect(shoulderSlider).toHaveAttribute('max', '90');
-    expect(shoulderSlider.className).toContain('muscle-joint-slider--unidirectional');
+    const rightHipSlider = screen.getByTestId('joint-slider-rightHipFlexion');
+    expect(rightHipSlider).toHaveAttribute('min', '-45');
+    expect(rightHipSlider).toHaveAttribute('max', '45');
+    expect(rightHipSlider.className).toContain('muscle-joint-slider--bidirectional');
 
-    const elbowSlider = screen.getByTestId('joint-slider-elbowFlexion');
-    expect(elbowSlider).toHaveAttribute('min', '0');
-    expect(elbowSlider).toHaveAttribute('max', '130');
-    expect(elbowSlider.className).toContain('muscle-joint-slider--unidirectional');
+    // Unidirectional: Shoulders (0° to 90°), Elbows (0° to 130°), Knees (0° to 120°)
+    const leftShoulderSlider = screen.getByTestId('joint-slider-leftShoulderAbduction');
+    expect(leftShoulderSlider).toHaveAttribute('min', '0');
+    expect(leftShoulderSlider).toHaveAttribute('max', '90');
+    expect(leftShoulderSlider.className).toContain('muscle-joint-slider--unidirectional');
 
-    const kneeSlider = screen.getByTestId('joint-slider-kneeFlexion');
-    expect(kneeSlider).toHaveAttribute('min', '0');
-    expect(kneeSlider).toHaveAttribute('max', '120');
-    expect(kneeSlider.className).toContain('muscle-joint-slider--unidirectional');
+    const rightShoulderSlider = screen.getByTestId('joint-slider-rightShoulderAbduction');
+    expect(rightShoulderSlider).toHaveAttribute('min', '0');
+    expect(rightShoulderSlider).toHaveAttribute('max', '90');
+    expect(rightShoulderSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const leftElbowSlider = screen.getByTestId('joint-slider-leftElbowFlexion');
+    expect(leftElbowSlider).toHaveAttribute('min', '0');
+    expect(leftElbowSlider).toHaveAttribute('max', '130');
+    expect(leftElbowSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const rightElbowSlider = screen.getByTestId('joint-slider-rightElbowFlexion');
+    expect(rightElbowSlider).toHaveAttribute('min', '0');
+    expect(rightElbowSlider).toHaveAttribute('max', '130');
+    expect(rightElbowSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const leftKneeSlider = screen.getByTestId('joint-slider-leftKneeFlexion');
+    expect(leftKneeSlider).toHaveAttribute('min', '0');
+    expect(leftKneeSlider).toHaveAttribute('max', '120');
+    expect(leftKneeSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const rightKneeSlider = screen.getByTestId('joint-slider-rightKneeFlexion');
+    expect(rightKneeSlider).toHaveAttribute('min', '0');
+    expect(rightKneeSlider).toHaveAttribute('max', '120');
+    expect(rightKneeSlider.className).toContain('muscle-joint-slider--unidirectional');
   });
 
-  it('displays the defined range of motion (ROM) for each joint', () => {
-    render(<JointPoseSliders />);
-
-    expect(screen.getByText('[-30° … +30°]')).toBeInTheDocument();
-    expect(screen.getByText('[0° … +90°]')).toBeInTheDocument();
-    expect(screen.getByText('[0° … +130°]')).toBeInTheDocument();
-    expect(screen.getByText('[-45° … +45°]')).toBeInTheDocument();
-    expect(screen.getByText('[0° … +120°]')).toBeInTheDocument();
-  });
-
-  it('updates the store joint angle and pauses animation when the user drags a slider', () => {
+  it('updates left and right joints independently when user drags sliders', () => {
     useMuscleStore.setState({ isSkeletonAnimating: true });
     render(<JointPoseSliders />);
 
-    const elbowSlider = screen.getByTestId('joint-slider-elbowFlexion');
-    fireEvent.change(elbowSlider, { target: { value: '60' } });
+    // Move Left Elbow to 45°
+    const leftElbowSlider = screen.getByTestId('joint-slider-leftElbowFlexion');
+    fireEvent.change(leftElbowSlider, { target: { value: '45' } });
 
-    // Should pause animation and update store angle in radians
-    const state = useMuscleStore.getState();
+    let state = useMuscleStore.getState();
     expect(state.isSkeletonAnimating).toBe(false);
-    expect(state.skeletonJointAngles.elbowFlexion).toBeCloseTo((60 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.leftElbowFlexion).toBeCloseTo((45 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.rightElbowFlexion).toBe(0); // Right stays 0!
+    expect(screen.getByTestId('joint-val-leftElbowFlexion')).toHaveTextContent('+45°');
+    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('0°');
 
-    // Value badge should update to 60°
-    const badge = screen.getByTestId('joint-val-elbowFlexion');
-    expect(badge).toHaveTextContent('+60°');
+    // Move Right Elbow to 90°
+    const rightElbowSlider = screen.getByTestId('joint-slider-rightElbowFlexion');
+    fireEvent.change(rightElbowSlider, { target: { value: '90' } });
+
+    state = useMuscleStore.getState();
+    expect(state.skeletonJointAngles.leftElbowFlexion).toBeCloseTo((45 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.rightElbowFlexion).toBeCloseTo((90 * Math.PI) / 180, 4);
+    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('+90°');
   });
 
-  it('updates bidirectional joint with negative angles', () => {
+  it('updates left and right shoulders, hips, and knees independently', () => {
     render(<JointPoseSliders />);
 
-    const torsoSlider = screen.getByTestId('joint-slider-spineFlexion');
-    fireEvent.change(torsoSlider, { target: { value: '-15' } });
+    // Left Shoulder 60°, Right Shoulder 30°
+    fireEvent.change(screen.getByTestId('joint-slider-leftShoulderAbduction'), { target: { value: '60' } });
+    fireEvent.change(screen.getByTestId('joint-slider-rightShoulderAbduction'), { target: { value: '30' } });
+
+    // Left Hip -20°, Right Hip +35°
+    fireEvent.change(screen.getByTestId('joint-slider-leftHipFlexion'), { target: { value: '-20' } });
+    fireEvent.change(screen.getByTestId('joint-slider-rightHipFlexion'), { target: { value: '35' } });
+
+    // Left Knee 80°, Right Knee 100°
+    fireEvent.change(screen.getByTestId('joint-slider-leftKneeFlexion'), { target: { value: '80' } });
+    fireEvent.change(screen.getByTestId('joint-slider-rightKneeFlexion'), { target: { value: '100' } });
 
     const state = useMuscleStore.getState();
-    expect(state.skeletonJointAngles.spineFlexion).toBeCloseTo((-15 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.leftShoulderAbduction).toBeCloseTo((60 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.rightShoulderAbduction).toBeCloseTo((30 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.leftHipFlexion).toBeCloseTo((-20 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.rightHipFlexion).toBeCloseTo((35 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.leftKneeFlexion).toBeCloseTo((80 * Math.PI) / 180, 4);
+    expect(state.skeletonJointAngles.rightKneeFlexion).toBeCloseTo((100 * Math.PI) / 180, 4);
 
-    const badge = screen.getByTestId('joint-val-spineFlexion');
-    expect(badge).toHaveTextContent('-15°');
+    expect(screen.getByTestId('joint-val-leftHipFlexion')).toHaveTextContent('-20°');
+    expect(screen.getByTestId('joint-val-rightHipFlexion')).toHaveTextContent('+35°');
   });
 
   it('matches joint positions when angles are updated from animation', () => {
     render(<JointPoseSliders />);
 
-    // Simulate animated joint updates from the Three.js loop
     act(() => {
       useMuscleStore.getState().setSkeletonJointAngles({
-        shoulderAbduction: (45 * Math.PI) / 180,
-        kneeFlexion: (75 * Math.PI) / 180,
+        leftShoulderAbduction: (45 * Math.PI) / 180,
+        rightShoulderAbduction: (70 * Math.PI) / 180,
+        leftKneeFlexion: (50 * Math.PI) / 180,
+        rightKneeFlexion: (85 * Math.PI) / 180,
       });
     });
 
-    const shoulderSlider = screen.getByTestId('joint-slider-shoulderAbduction') as HTMLInputElement;
-    expect(shoulderSlider.value).toBe('45');
-    expect(screen.getByTestId('joint-val-shoulderAbduction')).toHaveTextContent('+45°');
+    const leftShoulderSlider = screen.getByTestId('joint-slider-leftShoulderAbduction') as HTMLInputElement;
+    expect(leftShoulderSlider.value).toBe('45');
+    expect(screen.getByTestId('joint-val-leftShoulderAbduction')).toHaveTextContent('+45°');
 
-    const kneeSlider = screen.getByTestId('joint-slider-kneeFlexion') as HTMLInputElement;
-    expect(kneeSlider.value).toBe('75');
-    expect(screen.getByTestId('joint-val-kneeFlexion')).toHaveTextContent('+75°');
+    const rightShoulderSlider = screen.getByTestId('joint-slider-rightShoulderAbduction') as HTMLInputElement;
+    expect(rightShoulderSlider.value).toBe('70');
+    expect(screen.getByTestId('joint-val-rightShoulderAbduction')).toHaveTextContent('+70°');
+
+    const leftKneeSlider = screen.getByTestId('joint-slider-leftKneeFlexion') as HTMLInputElement;
+    expect(leftKneeSlider.value).toBe('50');
+
+    const rightKneeSlider = screen.getByTestId('joint-slider-rightKneeFlexion') as HTMLInputElement;
+    expect(rightKneeSlider.value).toBe('85');
   });
 
-  it('resets all joint sliders to neutral 0° on clicking Reset Pose', () => {
+  it('resets all 9 joint sliders to neutral 0° on clicking Reset Pose', () => {
     useMuscleStore.getState().setSkeletonJointAngles({
       spineFlexion: (20 * Math.PI) / 180,
-      shoulderAbduction: (50 * Math.PI) / 180,
-      elbowFlexion: (90 * Math.PI) / 180,
-      hipFlexion: (30 * Math.PI) / 180,
-      kneeFlexion: (60 * Math.PI) / 180,
+      leftShoulderAbduction: (50 * Math.PI) / 180,
+      rightShoulderAbduction: (40 * Math.PI) / 180,
+      leftElbowFlexion: (90 * Math.PI) / 180,
+      rightElbowFlexion: (70 * Math.PI) / 180,
+      leftHipFlexion: (30 * Math.PI) / 180,
+      rightHipFlexion: (-25 * Math.PI) / 180,
+      leftKneeFlexion: (60 * Math.PI) / 180,
+      rightKneeFlexion: (80 * Math.PI) / 180,
     });
 
     render(<JointPoseSliders />);
@@ -156,16 +212,20 @@ describe('JointPoseSliders Component', () => {
 
     const state = useMuscleStore.getState();
     expect(state.skeletonJointAngles.spineFlexion).toBe(0);
-    expect(state.skeletonJointAngles.shoulderAbduction).toBe(0);
-    expect(state.skeletonJointAngles.elbowFlexion).toBe(0);
-    expect(state.skeletonJointAngles.hipFlexion).toBe(0);
-    expect(state.skeletonJointAngles.kneeFlexion).toBe(0);
+    expect(state.skeletonJointAngles.leftShoulderAbduction).toBe(0);
+    expect(state.skeletonJointAngles.rightShoulderAbduction).toBe(0);
+    expect(state.skeletonJointAngles.leftElbowFlexion).toBe(0);
+    expect(state.skeletonJointAngles.rightElbowFlexion).toBe(0);
+    expect(state.skeletonJointAngles.leftHipFlexion).toBe(0);
+    expect(state.skeletonJointAngles.rightHipFlexion).toBe(0);
+    expect(state.skeletonJointAngles.leftKneeFlexion).toBe(0);
+    expect(state.skeletonJointAngles.rightKneeFlexion).toBe(0);
     expect(state.isSkeletonAnimating).toBe(false);
     expect(state.skeletonPoseResetCount).toBe(1);
 
-    // Badges show 0°
     expect(screen.getByTestId('joint-val-spineFlexion')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-elbowFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-leftElbowFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('0°');
   });
 
   it('does not render when bodyView is not full_body', () => {

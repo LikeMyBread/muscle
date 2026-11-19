@@ -103,6 +103,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
             meshes={meshes}
             isAnimating={isSkeletonAnimating}
             resetKey={skeletonPoseResetCount}
+            side="left"
             renderMesh={(mesh) => {
               const node = getNodeById(mesh.name);
               if (!node) return null;
@@ -124,6 +125,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
             isAnimating={isSkeletonAnimating}
             resetKey={skeletonPoseResetCount}
             syncToStore
+            side="right"
             renderMesh={(mesh) => {
               const node = getNodeById(mesh.name);
               if (!node) return null;
@@ -151,6 +153,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
           meshes={meshes}
           isAnimating={isSkeletonAnimating}
           resetKey={skeletonPoseResetCount}
+          side="left"
           renderMesh={(mesh) => {
             const node = getNodeById(mesh.name);
             if (!node) return null;
@@ -167,6 +170,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
           isAnimating={isSkeletonAnimating}
           resetKey={skeletonPoseResetCount}
           syncToStore
+          side="right"
           renderMesh={(mesh) => {
             const node = getNodeById(mesh.name);
             if (!node) return null;

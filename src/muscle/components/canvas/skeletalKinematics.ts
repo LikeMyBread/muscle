@@ -296,6 +296,17 @@ export interface JointAngleState {
   activeMotionLabel?: string;
 }
 
+export interface ProceduralJointAngles extends JointAngleState {
+  leftShoulderAbduction: number;
+  rightShoulderAbduction: number;
+  leftElbowFlexion: number;
+  rightElbowFlexion: number;
+  leftHipFlexion: number;
+  rightHipFlexion: number;
+  leftKneeFlexion: number;
+  rightKneeFlexion: number;
+}
+
 export interface KinematicPivotRotations {
   forearmRotationX: number;
   armRotationZ: number;
@@ -329,7 +340,7 @@ export const ANIMATION_CYCLE_DURATION = 16.0;
 /**
  * Computes procedural joint angles across a 16-second demonstration cycle.
  */
-export function computeProceduralJointAngles(elapsedSeconds: number): JointAngleState {
+export function computeProceduralJointAngles(elapsedSeconds: number): ProceduralJointAngles {
   const phase = ((elapsedSeconds % ANIMATION_CYCLE_DURATION) + ANIMATION_CYCLE_DURATION) % ANIMATION_CYCLE_DURATION;
 
   // 0 - 4s: Elbow flexion / extension (0° to 125°)
@@ -342,6 +353,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): JointAngle
       kneeFlexion: 0,
       hipFlexion: 0,
       spineFlexion: 0,
+      leftElbowFlexion: angle,
+      rightElbowFlexion: angle,
+      leftShoulderAbduction: 0,
+      rightShoulderAbduction: 0,
+      leftKneeFlexion: 0,
+      rightKneeFlexion: 0,
+      leftHipFlexion: 0,
+      rightHipFlexion: 0,
       activeMotionLabel: 'Elbow flexion & extension',
     };
   }
@@ -356,6 +375,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): JointAngle
       kneeFlexion: 0,
       hipFlexion: 0,
       spineFlexion: 0,
+      leftElbowFlexion: 0,
+      rightElbowFlexion: 0,
+      leftShoulderAbduction: angle,
+      rightShoulderAbduction: angle,
+      leftKneeFlexion: 0,
+      rightKneeFlexion: 0,
+      leftHipFlexion: 0,
+      rightHipFlexion: 0,
       activeMotionLabel: 'Shoulder abduction & adduction',
     };
   }
@@ -370,6 +397,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): JointAngle
       kneeFlexion: angle,
       hipFlexion: 0,
       spineFlexion: 0,
+      leftElbowFlexion: 0,
+      rightElbowFlexion: 0,
+      leftShoulderAbduction: 0,
+      rightShoulderAbduction: 0,
+      leftKneeFlexion: angle,
+      rightKneeFlexion: angle,
+      leftHipFlexion: 0,
+      rightHipFlexion: 0,
       activeMotionLabel: 'Knee flexion & extension',
     };
   }
@@ -384,6 +419,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): JointAngle
     kneeFlexion: 0,
     hipFlexion: hipAngle,
     spineFlexion: spineAngle,
+    leftElbowFlexion: 0,
+    rightElbowFlexion: 0,
+    leftShoulderAbduction: 0,
+    rightShoulderAbduction: 0,
+    leftKneeFlexion: 0,
+    rightKneeFlexion: 0,
+    leftHipFlexion: hipAngle,
+    rightHipFlexion: hipAngle,
     activeMotionLabel: 'Hip & trunk motion',
   };
 }

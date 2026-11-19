@@ -39,18 +39,26 @@ import type {
 
 export interface SkeletonJointAngles {
   spineFlexion: number;
-  shoulderAbduction: number;
-  elbowFlexion: number;
-  hipFlexion: number;
-  kneeFlexion: number;
+  leftShoulderAbduction: number;
+  rightShoulderAbduction: number;
+  leftElbowFlexion: number;
+  rightElbowFlexion: number;
+  leftHipFlexion: number;
+  rightHipFlexion: number;
+  leftKneeFlexion: number;
+  rightKneeFlexion: number;
 }
 
 export const DEFAULT_SKELETON_JOINT_ANGLES: SkeletonJointAngles = {
   spineFlexion: 0,
-  shoulderAbduction: 0,
-  elbowFlexion: 0,
-  hipFlexion: 0,
-  kneeFlexion: 0,
+  leftShoulderAbduction: 0,
+  rightShoulderAbduction: 0,
+  leftElbowFlexion: 0,
+  rightElbowFlexion: 0,
+  leftHipFlexion: 0,
+  rightHipFlexion: 0,
+  leftKneeFlexion: 0,
+  rightKneeFlexion: 0,
 };
 
 export interface MuscleStoreState {
