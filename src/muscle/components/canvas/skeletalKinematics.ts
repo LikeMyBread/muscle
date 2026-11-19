@@ -54,6 +54,15 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  if (
+    nodeId === 'atlas_transversus_abdominis_muscle_r_c20d1664' ||
+    text === 'transversus abdominis muscle.r' ||
+    text.includes('transversus_abdominis') ||
+    text.includes('transversus abdominis')
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -64,6 +73,7 @@ export function getKinematicSegmentForNodeId(
     text.includes('ischium') ||
     text.includes('pubis') ||
     text.includes('sacroiliac') ||
+    text.includes('iliac') ||
     text.includes('iliac_fossa') ||
     text.includes('iliac fossa')
   ) {
@@ -526,6 +536,90 @@ export function deformBridgingPlantarisMesh(
   geom.computeVertexNormals();
 }
 
+export function isTransversusAbdominisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    text.includes('transversus_abdominis') ||
+    text.includes('transversus abdominis') ||
+    (text.includes('transverse') && text.includes('abdomin') && !text.includes('insertion'))
+  );
+}
+
+/**
+ * Deforms a dual-anchored bridging muscle mesh (Transversus abdominis) between the pelvis and ribcage/thorax.
+ * Lower vertices (along the iliac crest, inguinal ligament, and pubic crest) stay rigidly anchored to the pelvis.
+ * Upper vertices (Y >= 1.12) follow the costal margin on the ribcage.
+ * Intermediate vertices smoothly blend and squash/stretch when the torso flexes or extends,
+ * preventing the lower abdominal wall from detaching or cutting into the pelvic cavity while
+ * preserving abdominal volume.
+ */
+export function deformBridgingTransversusAbdominisMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+
+  const spine = KINEMATIC_PIVOTS.spine;
+  const arr = posAttr.array as Float32Array;
+
+  const C_squash = 0.045;
+  const C_lat = 0.08;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // Spine/ribcage transform around spine pivot
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    // Pelvic attachment contour rises from Y ≈ 0.94 anteriorly (inguinal/pubis)
+    // to Y ≈ 0.98 laterally/posteriorly along the iliac crest
+    const yBot = 0.98 - 0.6 * Math.max(0, z0 - 0.01);
+    const yTop = 1.12;
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    // Squash & stretch: volume preservation of the abdominal cavity
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const bulgeProfile = Math.sin(Math.PI * t);
+      const zFactor = Math.max(0, (z0 - (-0.01)) / 0.11);
+      z += C_squash * sinS * bulgeProfile * zFactor;
+      x += C_lat * sinS * bulgeProfile * zFactor * x0;
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
 /**
  * Universal dispatcher to deform any bridging mesh across its anchored kinematic joints.
  */
@@ -537,6 +631,8 @@ export function deformBridgingMesh(
     deformBridgingPsoasMesh(mesh, rotations.thighRotationX, rotations.spineRotationX);
   } else if (isPlantarisMesh(mesh)) {
     deformBridgingPlantarisMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
+  } else if (isTransversusAbdominisMesh(mesh)) {
+    deformBridgingTransversusAbdominisMesh(mesh, rotations.spineRotationX);
   }
 }
 

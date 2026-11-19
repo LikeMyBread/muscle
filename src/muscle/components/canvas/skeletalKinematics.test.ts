@@ -7,6 +7,7 @@ import {
   deformBridgingMesh,
   deformBridgingPlantarisMesh,
   deformBridgingPsoasMesh,
+  deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
@@ -24,8 +25,15 @@ describe('skeletalKinematics', () => {
         'Origin of psoas minor on Iliac fossa.r',
       ),
     ).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_transverse_abdominal_muscle_iliac_in_601d27d4',
+        undefined,
+        'Transverse abdominal muscle-Iliac insertion.r',
+      ),
+    ).toBe('pelvis');
 
-    // Bridging dual-anchored muscles (Psoas, Plantaris)
+    // Bridging dual-anchored muscles (Psoas, Plantaris, Transversus abdominis)
     expect(
       getKinematicSegmentForNodeId(
         'atlas_psoas_muscle_r_08af9941',
@@ -40,12 +48,26 @@ describe('skeletalKinematics', () => {
         'Plantaris muscle.r',
       ),
     ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_transversus_abdominis_muscle_r_c20d1664',
+        undefined,
+        'Transversus abdominis muscle.r',
+      ),
+    ).toBe('bridging');
 
     // Spine & upper trunk
     expect(getKinematicSegmentForNodeId('bone_spine')).toBe('spine');
     expect(getKinematicSegmentForNodeId('bone_ribcage')).toBe('spine');
     expect(getKinematicSegmentForNodeId('bone_sternum')).toBe('spine');
     expect(getKinematicSegmentForNodeId('bone_skull')).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_transversus_thoracis_muscle_r_d3eeb8fd',
+        undefined,
+        'Transversus thoracis muscle.r',
+      ),
+    ).toBe('spine');
 
     // Upper arm
     expect(getKinematicSegmentForNodeId('bone_humerus')).toBe('arm');
@@ -290,7 +312,51 @@ describe('skeletalKinematics', () => {
     expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
   });
 
-  it('deformBridgingMesh correctly dispatches between psoas and plantaris', () => {
+  it('deforms bridging transversus abdominis mesh across spine flexion with pelvic anchor and squash/stretch', () => {
+    // Construct a mock geometry with 3 vertices:
+    // v0: Lower pelvic border (Y=0.88, Z=0.06) -> strictly anchored to pelvis (w = 0)
+    // v1: Upper costal margin (Y=1.18, Z=0.08) -> strictly anchored to ribcage/spine (w = 1)
+    // v2: Mid-anterior abdominal wall (Y=1.03, Z=0.07) -> flexible squashing/bulging belly
+    const rawCoords = [0.08, 0.88, 0.06, 0.09, 1.18, 0.08, 0.1, 1.03, 0.07];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geometry);
+    mesh.name = 'atlas_transversus_abdominis_muscle_r_c20d1664';
+
+    // Apply forward torso flexion (thetaSpine = 0.25 rad, ~14 degrees)
+    deformBridgingTransversusAbdominisMesh(mesh, 0.25);
+
+    const pos = geometry.attributes.position.array as Float32Array;
+
+    // v0 (pelvic anchor along pubic crest/inguinal ligament) must remain 100% fixed at rest coordinates
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    // Crucially, it must NOT swing backward into negative Z (which rigid spine did by -0.054 into the pelvis)
+    expect(pos[2]).toBeGreaterThanOrEqual(rawCoords[2] - 1e-6);
+
+    // v1 (ribcage anchor) must rotate forward and downward with the ribcage
+    expect(pos[4]).toBeLessThan(rawCoords[4]); // Y lowered
+    expect(pos[5]).toBeGreaterThan(rawCoords[5]); // Z moved forward
+
+    // v2 (mid-anterior belly) squashes vertically (lower Y) and bulges forward (+Z) preserving abdominal volume
+    expect(pos[7]).toBeLessThan(rawCoords[7]); // Y lowered
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]); // Z bulged forward organically rather than collapsing inward
+
+    // Test restore
+    restoreOriginalMeshPositions(mesh);
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+  });
+
+  it('deformBridgingMesh correctly dispatches between psoas, plantaris, and transversus abdominis', () => {
     const rawCoords = [0.09, 0.5, -0.03, 0.08, 0.35, -0.06, 0.085, 0.445, -0.04];
     const geomPlantaris = new THREE.BufferGeometry();
     geomPlantaris.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
@@ -301,6 +367,14 @@ describe('skeletalKinematics', () => {
     geomPsoas.setAttribute('position', new THREE.Float32BufferAttribute([0.05, 1.1, -0.04], 3));
     const meshPsoas = new THREE.Mesh(geomPsoas);
     meshPsoas.name = 'atlas_psoas_muscle_r_08af9941';
+
+    const geomTransversus = new THREE.BufferGeometry();
+    geomTransversus.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([0.08, 0.88, 0.06, 0.09, 1.18, 0.08], 3),
+    );
+    const meshTransversus = new THREE.Mesh(geomTransversus);
+    meshTransversus.name = 'atlas_transversus_abdominis_muscle_r_c20d1664';
 
     // 1. Knee flexion only: plantaris distal vertex swings posteriorly into negative Z
     deformBridgingMesh(meshPlantaris, {
@@ -323,5 +397,18 @@ describe('skeletalKinematics', () => {
     });
     const posPsoas = geomPsoas.attributes.position.array as Float32Array;
     expect(posPsoas[1]).toBeGreaterThan(1.0);
+
+    // 3. Spine flexion: transversus abdominis bottom stays at pelvis, top moves
+    deformBridgingMesh(meshTransversus, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      spineRotationX: 0.25,
+    });
+    const posTrans = geomTransversus.attributes.position.array as Float32Array;
+    expect(posTrans[1]).toBeCloseTo(0.88, 5); // bottom Y fixed to pelvis
+    expect(posTrans[2]).toBeCloseTo(0.06, 5); // bottom Z fixed to pelvis
+    expect(posTrans[4]).toBeLessThan(1.18); // top Y lowered
   });
 });
