@@ -1329,7 +1329,8 @@ export function isBrachioradialisMesh(mesh: THREE.Mesh): boolean {
  * the lateral supracondylar ridge of the humerus (arm) and the styloid process of the radius (forearm).
  * Proximal vertices (Y >= 1.140) follow the arm / shoulder transform.
  * Distal vertices (Y <= 0.950) follow the forearm / elbow transform.
- * Intermediate vertices smoothly blend and squash/bulge anterolaterally during elbow flexion.
+ * Intermediate vertices smoothly blend across the joint and pull tighter inward during elbow flexion,
+ * keeping the muscle bend nestled inside the crook of the elbow joint rather than bowing outward.
  */
 export function deformBridgingBrachioradialisMesh(
   mesh: THREE.Mesh,
@@ -1365,7 +1366,7 @@ export function deformBridgingBrachioradialisMesh(
   const spine = KINEMATIC_PIVOTS.spine;
 
   const thetaFlex = Math.max(0, -thetaForearmX);
-  const sinFlex = Math.sin(thetaFlex);
+  const flexTightness = Math.sin(Math.min(Math.PI / 2, thetaFlex));
 
   const arr = posAttr.array as Float32Array;
 
@@ -1391,11 +1392,12 @@ export function deformBridgingBrachioradialisMesh(
     let yMid = (1 - w) * y0 + w * yFE;
     let zMid = (1 - w) * z0 + w * zFE;
 
-    // 3. Stretch & squash (anterolateral belly bulge during elbow flexion)
+    // 3. Pull tighter across the elbow joint during flexion to keep the bend inside the joint
     if (thetaFlex > 0 && t > 0 && t < 1) {
       const b = Math.sin(Math.PI * t);
-      zMid += 0.022 * sinFlex * b;
-      xMid += 0.016 * sinFlex * b * (x0 >= 0 ? 1 : -1);
+      // Pull inward (medially) and deeper into the crook of the elbow joint
+      xMid -= 0.018 * flexTightness * b * (x0 >= 0 ? 1 : -1);
+      zMid -= 0.014 * flexTightness * b;
     }
 
     // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
