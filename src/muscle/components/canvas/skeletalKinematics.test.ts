@@ -1471,11 +1471,12 @@ describe('skeletalKinematics', () => {
     expect(pos[6]).toBeLessThan(rawCoords[6]);
     expect(pos[7]).toBeGreaterThan(rawCoords[7] + 0.03);
 
-    // Inner edge slides upward and inward along the arc with the mostly rigid muscle
-    expect(pos[9]).toBeLessThan(rawCoords[9]);
-    expect(pos[10]).toBeGreaterThan(rawCoords[10] + 0.03);
+    // Inner edge remains strictly pinned to the skeleton (0 displacement under arm movements)
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
 
-    // Mid-belly flexes upward (+Y) and slides inward along the arc
+    // Mid-belly flexes upward (+Y) and aggressively shrinks horizontally inward
     expect(pos[3]).toBeLessThan(rawCoords[3]);
     expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.03);
 
@@ -1491,6 +1492,11 @@ describe('skeletalKinematics', () => {
     expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.01);
     expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.01);
 
+    // Inner edge remains strictly pinned to skeleton during flexion
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
     // C. Combined 2-axis rotation (Abduction 0.6 rad + Forward Flexion -0.6 rad)
     restoreOriginalMeshPositions(mesh);
     deformBridgingDeltoidMesh(mesh, 0.6, -0.6, 0);
@@ -1504,6 +1510,11 @@ describe('skeletalKinematics', () => {
     expect(pos[6]).toBeLessThan(rawCoords[6]);
     expect(pos[7]).toBeGreaterThan(rawCoords[7]);
     expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+
+    // Inner edge remains strictly pinned during compound movement
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
 
     // D. Restore
     restoreOriginalMeshPositions(mesh);
@@ -1610,9 +1621,10 @@ describe('skeletalKinematics', () => {
       const innerY = pos[10];
       const innerZ = pos[11];
 
-      // 1. Inner edge slides smoothly upward and inward along the arc (no folding or dipping)
-      expect(innerY).toBeGreaterThanOrEqual(rawCoords[10] - 1e-4);
-      expect(innerX).toBeLessThanOrEqual(rawCoords[9] + 1e-4);
+      // 1. Innermost edge remains strictly pinned to skeleton (0 displacement) at every angle
+      expect(innerX).toBeCloseTo(rawCoords[9], 5);
+      expect(innerY).toBeCloseTo(rawCoords[10], 5);
+      expect(innerZ).toBeCloseTo(rawCoords[11], 5);
 
       // 2. Apex lifts monotonically without collapsing or dipping
       expect(apexY).toBeGreaterThanOrEqual(prevApexY - 1e-4);
@@ -1621,7 +1633,7 @@ describe('skeletalKinematics', () => {
       // 3. Lateral flank never collapses below its rest height
       expect(flankY).toBeGreaterThanOrEqual(rawCoords[7] - 1e-3);
 
-      // 4. As shoulder pivots outward, deltoid slides inward along the arc
+      // 4. As shoulder pivots outward, deltoid aggressively contracts and shrinks horizontally
       if (deg >= 30) {
         expect(bellyX).toBeLessThan(rawCoords[3]);
         expect(bellyY).toBeGreaterThan(rawCoords[4]);

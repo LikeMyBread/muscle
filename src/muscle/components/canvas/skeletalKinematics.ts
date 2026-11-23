@@ -2490,15 +2490,15 @@ export function deformBridgingDeltoidMesh(
   const sinS = Math.sin(thetaSpineX);
 
   const abductAngle = Math.max(0, thetaArmZ);
+  const normAbduct = Math.min(1, abductAngle / (Math.PI / 2));
+  // Active contraction factor: aggressively ramps as the arm raises to power abduction
+  const contract = Math.sin(Math.min(Math.PI / 2, normAbduct * 1.5));
 
-  // Circular arc sliding parameters:
-  // As the arm abducts, the deltoid body slides up (+Y) and inward (-X on right, +X on left)
-  // along a smooth circular arc of radius R, keeping the muscle cap mostly rigid and elevated.
+  // Upward arc lift parameters:
+  // As the arm abducts, the contracting deltoid belly flexes and lifts up along an arc
   const R = 0.16;
-  const k = 0.42;
-  const phi = k * abductAngle;
+  const phi = 0.42 * abductAngle;
   const arcDy = R * Math.sin(phi);
-  const arcDx = R * (1 - Math.cos(phi));
 
   // Flexion/extension displacements for forward/backward arm swing
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
@@ -2549,26 +2549,42 @@ export function deformBridgingDeltoidMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
+    const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
     const delta = x0 < 0 ? deltaNeg : deltaPos;
 
-    // Transition blend weight u:
+    // 1. Innermost corner pinning:
+    // Vertices at the medial attachment origins (|X| <= 0.105) along the clavicle and
+    // scapular spine remain strictly pinned to the skeleton (wMobile = 0).
+    // Mobility transitions smoothly to the mobile muscle body by |X| = 0.140.
+    let tPin = (absX - 0.105) / (0.140 - 0.105);
+    if (tPin < 0) tPin = 0;
+    if (tPin > 1) tPin = 1;
+    const wMobile = tPin * tPin * (3 - 2 * tPin);
+
+    // 2. Transition blend weight u:
     // u = 0 at humeral insertion (y0 <= 1.285): purely follows humerus translation without twist.
-    // u = 1 in deltoid body / apex (y0 >= 1.350): purely slides up and inward around the arc.
+    // u = 1 in deltoid body / apex (y0 >= 1.350): mobile contracting belly.
     let u = (y0 - 1.285) / (1.350 - 1.285);
     if (u < 0) u = 0;
     if (u > 1) u = 1;
     const s = u * u * (3 - 2 * u);
 
-    // Blended displacement:
-    // Horizontal X: smoothly bridges humerus outward translation with inward arc sliding.
-    const dispX = (1 - s) * delta.dx - s * (signX * arcDx);
+    // 3. Aggressive horizontal shrinkage:
+    // The muscle contracts aggressively horizontally towards the pinned skeleton anchor,
+    // pulling taut across the shoulder and preventing overlap with bones and adjacent anatomy.
+    const spanFromInner = Math.max(0, absX - 0.105);
+    const shrinkX = spanFromInner * 0.38 * contract;
 
-    // Vertical Y: lifts up with humerus translation and slides upward along the arc.
-    const dispY = (1 - s) * delta.dy + s * (arcDy + arcFlexDy);
+    // Blended displacement:
+    // Horizontal X: bridges humerus outward translation at insertion with aggressive inward contraction in the belly.
+    const dispX = (1 - s) * delta.dx - s * (signX * shrinkX * wMobile);
+
+    // Vertical Y: lifts up with humerus translation and flexes upward along the arc in the mobile belly.
+    const dispY = (1 - s) * delta.dy + s * ((arcDy + arcFlexDy) * wMobile);
 
     // Sagittal Z: tracks humeral swing and anterior/posterior deltoid forward/backward flex.
-    const dispZ = (1 - s) * delta.dz + s * arcDz;
+    const dispZ = (1 - s) * delta.dz + s * (arcDz * wMobile);
 
     const xMid = x0 + dispX;
     const yMid = y0 + dispY;
