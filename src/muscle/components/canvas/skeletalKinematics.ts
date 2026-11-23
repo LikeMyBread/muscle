@@ -2504,40 +2504,11 @@ export function deformBridgingDeltoidMesh(
   const arcDz = 0.040 * sinFlex - 0.030 * sinExt;
   const arcFlexDy = 0.015 * sinFlex;
 
-  // Precompute the pure translation displacement of the humeral insertion landmark
-  // for both right (sign = +1) and left (sign = -1) sides.
-  // The arm attachment point applies pure translation in space without rotational twisting.
-  const calcDeltoidInsertionDelta = (sign: number) => {
-    const sX = sign * shoulder.x;
-    const effZ = sign * thetaArmZ;
-    const cZ = Math.cos(effZ);
-    const sZ = Math.sin(effZ);
-
-    const xIns0 = sign * 0.206;
-    const yIns0 = 1.288;
-    const zIns0 = -0.027;
-
-    const dx = xIns0 - sX;
-    const dy = yIns0 - shoulder.y;
-    const dz = zIns0 - shoulder.z;
-
-    const xSZ = dx * cZ - dy * sZ;
-    const ySZ = dx * sZ + dy * cZ;
-    const zSZ = dz;
-
-    const xPrime = sX + xSZ;
-    const yPrime = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
-    const zPrime = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
-
-    return {
-      dx: xPrime - xIns0,
-      dy: yPrime - yIns0,
-      dz: zPrime - zIns0,
-    };
-  };
-
-  const deltaPos = calcDeltoidInsertionDelta(1);
-  const deltaNeg = calcDeltoidInsertionDelta(-1);
+  // Precompute shoulder rotation trigonometric factors for both right (+1) and left (-1) sides
+  const cZPos = Math.cos(thetaArmZ);
+  const sZPos = Math.sin(thetaArmZ);
+  const cZNeg = Math.cos(-thetaArmZ);
+  const sZNeg = Math.sin(-thetaArmZ);
 
   const arr = posAttr.array as Float32Array;
 
@@ -2549,7 +2520,23 @@ export function deformBridgingDeltoidMesh(
 
     const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
-    const delta = x0 < 0 ? deltaNeg : deltaPos;
+
+    // Exact rigid arm displacement at this vertex (keeps outer attachment exactly tracking the humerus):
+    const sX = signX * shoulder.x;
+    const cZ = signX < 0 ? cZNeg : cZPos;
+    const sZ = signX < 0 ? sZNeg : sZPos;
+
+    const dx = x0 - sX;
+    const dy = y0 - shoulder.y;
+    const dz = z0 - shoulder.z;
+
+    const xSZ = dx * cZ - dy * sZ;
+    const ySZ = dx * sZ + dy * cZ;
+    const zSZ = dz;
+
+    const armDispX = (sX + xSZ) - x0;
+    const armDispY = (shoulder.y + (ySZ * cosAX - zSZ * sinAX)) - y0;
+    const armDispZ = (shoulder.z + (ySZ * sinAX + zSZ * cosAX)) - z0;
 
     // 1. Innermost corner pinning:
     // Vertices at the medial attachment origins (|X| <= 0.105) along the clavicle and
@@ -2561,22 +2548,14 @@ export function deformBridgingDeltoidMesh(
     const wMobile = tPin * tPin * (3 - 2 * tPin);
 
     // 2. Vertical transition between lower humerus shaft and upper shoulder girdle:
-    // Vertices in the lower half (y0 <= 1.320) ride on the outside of the humerus shaft,
-    // following the humerus outward and upward without inward collapse.
-    // The upper shoulder girdle (y0 >= 1.400) contracts horizontally and vertically.
-    let tGirdle = (y0 - 1.320) / (1.400 - 1.320);
+    // Vertices on the humerus shaft (y0 <= 1.350) ride on the outside of the humerus shaft,
+    // following the exact rigid arm raising and outward translation without sinking into bone.
+    // The upper shoulder girdle (y0 >= 1.405) contracts horizontally and vertically.
+    let tGirdle = (y0 - 1.350) / (1.405 - 1.350);
     if (tGirdle < 0) tGirdle = 0;
     if (tGirdle > 1) tGirdle = 1;
     const sGirdle = tGirdle * tGirdle * (3 - 2 * tGirdle);
     const sArm = 1 - sGirdle;
-
-    // Humerus outward displacement at height y0 (tapers from insertion delta at y<=1.285 to 0 at joint y=1.390):
-    let tHumerusY = (1.390 - y0) / (1.390 - 1.285);
-    if (tHumerusY < 0) tHumerusY = 0;
-    if (tHumerusY > 1) tHumerusY = 1;
-    const armDispX = delta.dx * tHumerusY;
-    const armDispY = delta.dy * tHumerusY;
-    const armDispZ = delta.dz * tHumerusY;
 
     // 3. Horizontal contraction across shoulder girdle:
     // Shrinking is applied predominantly toward the outer side of the deltoid (|X| > 0.170)
