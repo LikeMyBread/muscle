@@ -2489,17 +2489,55 @@ export function deformBridgingDeltoidMesh(
   const shoulder = KINEMATIC_PIVOTS.shoulder;
   const spine = KINEMATIC_PIVOTS.spine;
 
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
   const cosS = Math.cos(thetaSpineX);
   const sinS = Math.sin(thetaSpineX);
 
   const abductAngle = Math.max(0, thetaArmZ);
   const liftFactor = Math.sin(Math.min(Math.PI / 2, abductAngle * 1.3));
   const normAbduct = Math.min(1, abductAngle / (Math.PI / 2));
-  // Smooth cubic ease-in-out curve for inward slide so it ramps smoothly with arm rotation without premature lateral hollowing
-  const slideFactor = normAbduct * normAbduct * (3 - 2 * normAbduct);
+  // Smooth sine-based curve for inward slide so it centers smoothly above the joint pivot
+  const slideFactor = Math.sin(Math.min(Math.PI / 2, normAbduct * 2.0));
 
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
   const sinExt = Math.sin(Math.max(0, thetaArmX));
+
+  // Precompute the pure translation displacement of the humeral insertion landmark
+  // for both right (sign = +1) and left (sign = -1) sides.
+  // The arm attachment point applies pure translation in space without rotational twisting.
+  const calcDeltoidInsertionDelta = (sign: number) => {
+    const sX = sign * shoulder.x;
+    const effZ = sign * thetaArmZ;
+    const cZ = Math.cos(effZ);
+    const sZ = Math.sin(effZ);
+
+    const xIns0 = sign * 0.206;
+    const yIns0 = 1.288;
+    const zIns0 = -0.027;
+
+    const dx = xIns0 - sX;
+    const dy = yIns0 - shoulder.y;
+    const dz = zIns0 - shoulder.z;
+
+    const xSZ = dx * cZ - dy * sZ;
+    const ySZ = dx * sZ + dy * cZ;
+    const zSZ = dz;
+
+    const xPrime = sX + xSZ;
+    const yPrime = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zPrime = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    return {
+      dx: xPrime - xIns0,
+      dy: yPrime - yIns0,
+      dz: zPrime - zIns0,
+    };
+  };
+
+  const deltaPos = calcDeltoidInsertionDelta(1);
+  const deltaNeg = calcDeltoidInsertionDelta(-1);
 
   const arr = posAttr.array as Float32Array;
 
@@ -2511,7 +2549,7 @@ export function deformBridgingDeltoidMesh(
 
     const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
-    const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
+    const delta = x0 < 0 ? deltaNeg : deltaPos;
 
     // 1. Inner edge constraint (medial origin on torso bones):
     // The medial origin along the clavicle and scapular spine (|X| <= 0.100) anchors to the torso bones.
@@ -2552,33 +2590,17 @@ export function deformBridgingDeltoidMesh(
     let tY = (yOrigin - y0) / (yOrigin - 1.280);
     if (y0 >= yOrigin - 0.001 || tY < 0) tY = 0;
     if (tY > 1) tY = 1;
-    const wY = tY * tY * (3 - 2 * tY);
+    const wY = tY * tY;
 
     // Combined blend weight: inner edge is strictly 0 (no movement)
     const w = wX * wY;
 
-    // 3. Arc rotation around shoulder pivot:
-    // Effective angles interpolate along the joint rotation arc rather than straight Cartesian chords,
-    // maintaining radial standoff from the joint center and preventing chord collapse into the bone.
-    const effArmZ = signX * w * thetaArmZ;
-    const effArmX = w * thetaArmX;
-
-    const cosAZ = Math.cos(effArmZ);
-    const sinAZ = Math.sin(effArmZ);
-    const cosAX = Math.cos(effArmX);
-    const sinAX = Math.sin(effArmX);
-
-    const dxS = x0 - shoulderX;
-    const dyS = y0 - shoulder.y;
-    const dzS = z0 - shoulder.z;
-
-    const xSZ = dxS * cosAZ - dyS * sinAZ;
-    const ySZ = dxS * sinAZ + dyS * cosAZ;
-    const zSZ = dzS;
-
-    let xMid = shoulderX + xSZ;
-    let yMid = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
-    let zMid = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+    // 3. Translation-only insertion displacement:
+    // Vertices attaching to the humerus translate along with the humeral insertion landmark
+    // without applying rotational twisting, shearing, or local coordinate twisting.
+    let xMid = x0 + w * delta.dx;
+    let yMid = y0 + w * delta.dy;
+    let zMid = z0 + w * delta.dz;
 
     // 4. Active muscular flex & belly bulge:
     // When the shoulder abducts (moves outward), the deltoid actively contracts,
@@ -2601,7 +2623,7 @@ export function deformBridgingDeltoidMesh(
         if (lateralSlideWeight < 0) lateralSlideWeight = 0;
         if (lateralSlideWeight > 1) lateralSlideWeight = 1;
 
-        const inwardSlide = 0.082 * slideFactor * upwardFlexProfile * lateralSlideWeight * signX;
+        const inwardSlide = (0.055 + w * delta.dx) * slideFactor * upwardFlexProfile * lateralSlideWeight * signX;
         xMid -= inwardSlide;
       }
 

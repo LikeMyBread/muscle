@@ -1533,6 +1533,65 @@ describe('skeletalKinematics', () => {
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
+  it('translates deltoid arm attachment point in space without applying rotational twisting', () => {
+    // Two distinct vertices on the humeral insertion footprint at the deltoid tuberosity:
+    // v0: anterior insertion vertex (X = 0.20, Y = 1.28, Z = -0.02)
+    // v1: posterior insertion vertex (X = 0.21, Y = 1.27, Z = -0.04)
+    const rawCoords = [
+      0.20, 1.28, -0.02,
+      0.21, 1.27, -0.04,
+    ];
+    const initialDx = rawCoords[3] - rawCoords[0]; // +0.01
+    const initialDy = rawCoords[4] - rawCoords[1]; // -0.01
+    const initialDz = rawCoords[5] - rawCoords[2]; // -0.02
+    const initialDist = Math.hypot(initialDx, initialDy, initialDz);
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    // A. Under arm abduction (thetaArmZ = 0.8 rad ~45°)
+    deformBridgingDeltoidMesh(mesh, 0.8, 0, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Both vertices must translate outward in +X and upward in +Y
+    expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.04);
+    expect(pos[1]).toBeGreaterThan(rawCoords[1] + 0.04);
+    expect(pos[3]).toBeGreaterThan(rawCoords[3] + 0.04);
+    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.04);
+
+    // Crucially: relative vector between vertices remains untwisted (zero rotational twist)
+    expect(pos[3] - pos[0]).toBeCloseTo(initialDx, 5);
+    expect(pos[4] - pos[1]).toBeCloseTo(initialDy, 5);
+    expect(pos[5] - pos[2]).toBeCloseTo(initialDz, 5);
+    expect(Math.hypot(pos[3] - pos[0], pos[4] - pos[1], pos[5] - pos[2])).toBeCloseTo(initialDist, 5);
+
+    // B. Under shoulder flexion (thetaArmX = -0.8 rad forward swing)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingDeltoidMesh(mesh, 0, -0.8, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Both vertices must translate forward in +Z
+    expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.04);
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.04);
+
+    // Relative vector remains untwisted under flexion
+    expect(pos[3] - pos[0]).toBeCloseTo(initialDx, 5);
+    expect(pos[4] - pos[1]).toBeCloseTo(initialDy, 5);
+    expect(pos[5] - pos[2]).toBeCloseTo(initialDz, 5);
+
+    // C. Under compound 2-axis movement (abduction 0.6 rad + flexion -0.6 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingDeltoidMesh(mesh, 0.6, -0.6, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Relative vector remains untwisted under compound 2-axis movement
+    expect(pos[3] - pos[0]).toBeCloseTo(initialDx, 5);
+    expect(pos[4] - pos[1]).toBeCloseTo(initialDy, 5);
+    expect(pos[5] - pos[2]).toBeCloseTo(initialDz, 5);
+  });
+
   it('smoothly lifts and slides deltoid across intermediate abduction angles without apex collapse', () => {
     // Representative lateral deltoid profile vertices:
     // 0: Apex crest over greater tubercle (X = 0.18, Y = 1.416, Z = -0.03)
