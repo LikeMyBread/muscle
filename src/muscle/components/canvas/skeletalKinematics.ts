@@ -2285,9 +2285,10 @@ export function isDeltoidMesh(mesh: THREE.Mesh): boolean {
  * 3. Arc-preserving joint wrapping: Instead of a straight Cartesian chord between origin and insertion
  *    that cuts into the humeral head and acromion, rotation angles (effArmZ, effArmX) blend smoothly
  *    along the joint arc, preserving the radial contour of the shoulder.
- * 4. Active upward flex: When the shoulder moves outward (abduction thetaArmZ > 0), the deltoid actively
- *    contracts and flexes upward in +Y, swelling into a rounded muscular crest over the subacromial space
- *    and greater tubercle instead of sinking down into the bone.
+ * 4. Active upward flex & inward centering: When the shoulder moves outward (abduction thetaArmZ > 0),
+ *    the deltoid actively contracts and flexes upward in +Y. Rather than drifting outward with the swinging
+ *    arm shaft, the muscular bulge gathers and slides inward medially so its peak remains centered directly
+ *    above the joint pivot (X ~ shoulderX).
  * 5. Distal insertion: Insertion at the deltoid tuberosity of the humerus (Y <= 1.280, |X| >= 0.165)
  *    strictly follows the humerus rotation around the shoulder pivot.
  */
@@ -2401,9 +2402,10 @@ export function deformBridgingDeltoidMesh(
         const upwardLift = 0.048 * abductFactor * upwardFlexProfile * wX;
         yMid += upwardLift;
 
-        // Lateral outward bulge
-        const lateralBulge = 0.026 * abductFactor * b * signX * wX;
-        xMid += lateralBulge;
+        // Inward slide: as the shoulders pivot outward, the muscle belly contracts
+        // and gathers inward towards the joint pivot, keeping the peak centered above the joint.
+        const inwardSlide = 0.075 * abductFactor * upwardFlexProfile * wX * signX;
+        xMid -= inwardSlide;
       }
 
       // Flexion (forward swing): anterior deltoid contracts and bulges anteriorly (+Z) & upward (+Y)

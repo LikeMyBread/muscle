@@ -1310,9 +1310,10 @@ describe('skeletalKinematics', () => {
     expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
 
-    // Mid-belly experiences outward lateral bulge (+X) and flexes upward (+Y)
-    expect(pos[3]).toBeGreaterThan(rawCoords[3] + 0.01);
-    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.02);
+    // Mid-belly flexes upward (+Y) and slides inward so its peak remains centered above the joint (X ~ 0.163)
+    expect(pos[3]).toBeLessThan(rawCoords[3]);
+    expect(Math.abs(pos[3] - 0.163)).toBeLessThan(0.015);
+    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.03);
 
     // B. Shoulder Flexion (thetaArmX = -0.8 rad forward swing)
     restoreOriginalMeshPositions(mesh);
