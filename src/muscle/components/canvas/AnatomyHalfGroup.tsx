@@ -28,7 +28,13 @@ export default function AnatomyHalfGroup({
       : [layout.scale, layout.scale, layout.scale];
 
   return (
-    <group position={layout.position} scale={scale} renderOrder={renderOrder}>
+    <group
+      name={`anatomy-half-${half}`}
+      userData={{ half, side: half === 'reference' ? 'right' : 'left' }}
+      position={layout.position}
+      scale={scale}
+      renderOrder={renderOrder}
+    >
       {children}
     </group>
   );

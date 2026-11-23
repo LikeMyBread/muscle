@@ -11,24 +11,20 @@ import {
 /** Computes a camera preset when the user focuses a structure in warmup mode or study mode. */
 export default function AnatomyFocusCamera() {
   const { scene, camera, invalidate } = useThree();
-  const mode = useMuscleStore((s) => s.mode);
-  const studyActive = useMuscleStore((s) => s.studyActive);
-  const studyTargetNodeId = useMuscleStore((s) => s.studyTargetNodeId);
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
+  const focusedSide = useMuscleStore((s) => s.focusedSide);
   const focusCameraNonce = useMuscleStore((s) => s.focusCameraNonce);
-  const layerPeelDepth = useMuscleStore((s) => s.layerPeelDepth);
   const setCameraFocusPreset = useMuscleStore((s) => s.setCameraFocusPreset);
 
   useEffect(() => {
-    const targetId = studyActive ? (studyTargetNodeId ?? focusedNodeId) : null;
-    if (!targetId) {
+    if (!focusedNodeId) {
       setCameraFocusPreset(null);
       return;
     }
 
-    let object = findSceneObjectForNodeId(scene, targetId);
-    if (!object && targetId === 'joint_knee') {
-      object = findSceneObjectForNodeId(scene, 'bone_patella');
+    let object = findSceneObjectForNodeId(scene, focusedNodeId, focusedSide);
+    if (!object && focusedNodeId === 'joint_knee') {
+      object = findSceneObjectForNodeId(scene, 'bone_patella', focusedSide);
     }
     if (object) {
       object.updateWorldMatrix(true, false);
@@ -37,10 +33,15 @@ export default function AnatomyFocusCamera() {
       return;
     }
 
-    const node = getNodeById(targetId);
+    const node = getNodeById(focusedNodeId);
     if (node?.layout) {
+      const layoutPos: [number, number, number] = [
+        focusedSide === 'right' ? -Math.abs(node.layout.position[0]) : Math.abs(node.layout.position[0]),
+        node.layout.position[1],
+        node.layout.position[2],
+      ];
       setCameraFocusPreset(
-        computeFramingPresetFromLayout(node.layout.position, node.layout.scale, camera.position),
+        computeFramingPresetFromLayout(layoutPos, node.layout.scale, camera.position),
       );
       invalidate();
       return;
@@ -50,13 +51,11 @@ export default function AnatomyFocusCamera() {
   // Snap from current orbit bearing when focus changes — not on every camera tick.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- camera.position intentionally omitted
   }, [
+    camera,
     focusCameraNonce,
     focusedNodeId,
-    studyActive,
-    studyTargetNodeId,
+    focusedSide,
     invalidate,
-    layerPeelDepth,
-    mode,
     scene,
     setCameraFocusPreset,
   ]);

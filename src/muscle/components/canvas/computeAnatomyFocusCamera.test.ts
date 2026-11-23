@@ -1,11 +1,51 @@
-import { Mesh, Object3D, PerspectiveCamera, SphereGeometry, Vector3 } from 'three';
+import { Group, Mesh, Object3D, PerspectiveCamera, SphereGeometry, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import {
   computeFramingPresetFromLayout,
   computeFramingPresetFromObject,
+  findSceneObjectForNodeId,
 } from './computeAnatomyFocusCamera';
 
 describe('computeAnatomyFocusCamera', () => {
+  it('correctly focuses on left vs right version of symmetrical body parts', () => {
+    const scene = new Group();
+
+    // Symmetrical deltoid meshes: right (-X) and left (+X)
+    const rightDeltoid = new Mesh(new SphereGeometry(0.15, 8, 8));
+    rightDeltoid.name = 'muscle_deltoid';
+    rightDeltoid.userData = { side: 'right' };
+    rightDeltoid.position.set(-0.35, 1.45, 0.05);
+
+    const leftDeltoid = new Mesh(new SphereGeometry(0.15, 8, 8));
+    leftDeltoid.name = 'muscle_deltoid';
+    leftDeltoid.userData = { side: 'left' };
+    leftDeltoid.position.set(0.35, 1.45, 0.05);
+
+    const refGroup = new Group();
+    refGroup.name = 'anatomy-half-reference';
+    refGroup.add(rightDeltoid);
+
+    const studyGroup = new Group();
+    studyGroup.name = 'anatomy-half-study';
+    studyGroup.add(leftDeltoid);
+
+    scene.add(refGroup);
+    scene.add(studyGroup);
+    scene.updateMatrixWorld(true);
+
+    const foundLeft = findSceneObjectForNodeId(scene, 'muscle_deltoid', 'left');
+    const foundRight = findSceneObjectForNodeId(scene, 'muscle_deltoid', 'right');
+
+    expect(foundLeft).toBe(leftDeltoid);
+    expect(foundRight).toBe(rightDeltoid);
+
+    // Compute presets for left and right
+    const leftPreset = computeFramingPresetFromObject(foundLeft!);
+    const rightPreset = computeFramingPresetFromObject(foundRight!);
+
+    expect(leftPreset.target[0]).toBeCloseTo(0.35, 2);
+    expect(rightPreset.target[0]).toBeCloseTo(-0.35, 2);
+  });
   it('frames a mesh bounding box with the camera looking at its center', () => {
     const root = new Object3D();
     const mesh = new Mesh(new SphereGeometry(0.2, 8, 8));

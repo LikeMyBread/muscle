@@ -77,6 +77,7 @@ export interface MuscleStoreState {
   activeModuleId: MuscleRegion;
   selectedNodeId: string | null;
   focusedNodeId: string | null;
+  focusedSide: 'left' | 'right' | null;
   focusedGroupNodeIds: string[] | null;
   showDetailStructures: boolean;
   showLandmarks: boolean;
@@ -118,7 +119,7 @@ export interface MuscleStoreState {
   setBodyView: (view: BodyView) => void;
   setActiveModule: (moduleId: MuscleRegion) => void;
   selectNode: (nodeId: string | null) => void;
-  focusStructure: (nodeId: string | null) => void;
+  focusStructure: (nodeId: string | null, side?: 'left' | 'right' | null) => void;
   focusStudyGroup: (nodeIds: string[]) => void;
   clearFocus: () => void;
   setShowDetailStructures: (show: boolean) => void;
@@ -314,6 +315,7 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
   activeModuleId: 'anatomy_terms',
   selectedNodeId: null,
   focusedNodeId: null,
+  focusedSide: null,
   focusedGroupNodeIds: null,
   showDetailStructures: true,
   showLandmarks: false,
@@ -508,12 +510,14 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
 
   selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
 
-  focusStructure: (nodeId) => {
+  focusStructure: (nodeId, side) => {
     if (!nodeId) {
       set({
         focusedNodeId: null,
+        focusedSide: null,
         focusedGroupNodeIds: null,
         selectedNodeId: null,
+        cameraFocusPreset: null,
       });
       return;
     }
@@ -524,25 +528,30 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
     if (!groupIds && focusedGroupNodeIds?.includes(nodeId)) {
       groupIds = focusedGroupNodeIds;
     }
-    set({
+    set((s) => ({
       focusedNodeId: nodeId,
+      focusedSide: side ?? null,
       focusedGroupNodeIds: groupIds,
       selectedNodeId: nodeId,
       cameraFocusPreset: null,
-    });
+      focusCameraNonce: s.focusCameraNonce + 1,
+    }));
   },
 
   focusStudyGroup: (nodeIds) =>
-    set({
+    set((s) => ({
       focusedGroupNodeIds: nodeIds,
       focusedNodeId: null,
+      focusedSide: null,
       selectedNodeId: nodeIds[0] ?? null,
       cameraFocusPreset: null,
-    }),
+      focusCameraNonce: s.focusCameraNonce + 1,
+    })),
 
   clearFocus: () =>
     set({
       focusedNodeId: null,
+      focusedSide: null,
       focusedGroupNodeIds: null,
       selectedNodeId: null,
       cameraFocusPreset: null,

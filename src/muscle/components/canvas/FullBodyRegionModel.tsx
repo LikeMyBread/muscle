@@ -93,7 +93,7 @@ export default function FullBodyRegionModel({ onStageReady }: FullBodyRegionMode
     publishMuscleAnatomyDebugWindow();
   }, [meshes]);
 
-  if (appMode === 'pose') {
+  if (appMode === 'pose' || !appMode || appMode === 'reference' || appMode === 'study') {
     return (
       <>
         {/* Pose view: Symmetrical figure on both halves (-X and +X), portrayed opaquely like

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import MuscleAnatomyDebugPanel from './components/debug/MuscleAnatomyDebugPanel';
 import StructureInfoBox from './components/StructureInfoBox';
 import { useMuscleStore } from './store/useMuscleStore';
+import { useStudyStore } from './study/useStudyStore';
 
 const TrainingCanvas = lazy(() => import('./components/canvas/TrainingCanvas'));
 
@@ -17,6 +18,7 @@ export default function App() {
   useEffect(() => {
     if (!hydrated) return;
     setBodyView('full_body');
+    useStudyStore.getState().setAppMode('pose');
   }, [hydrated, setBodyView]);
 
   if (!hydrated) {

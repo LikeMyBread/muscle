@@ -82,6 +82,7 @@ function GlbPoseMeshComponent({
     <mesh
       ref={meshRef}
       name={mesh.name}
+      userData={{ side: isMirrored ? 'right' : 'left', nodeId: node.id }}
       geometry={mesh.geometry}
       material={material}
       castShadow

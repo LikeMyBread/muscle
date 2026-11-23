@@ -10,16 +10,60 @@ const fallbackViewDir = new Vector3(0.35, 0.12, 1).normalize();
 const offset = new Vector3();
 const position = new Vector3();
 
-export function findSceneObjectForNodeId(scene: Object3D, nodeId: string): Object3D | null {
-  let found: Object3D | null = null;
+export function findSceneObjectForNodeId(
+  scene: Object3D,
+  nodeId: string,
+  preferredSide?: 'left' | 'right' | null,
+): Object3D | null {
+  const candidates: Object3D[] = [];
   scene.traverse((child) => {
-    if (found) return;
     const resolved = resolveCurriculumNodeId(child.name);
     if (resolved === nodeId || child.name === nodeId) {
-      found = child;
+      candidates.push(child);
     }
   });
-  return found;
+
+  if (candidates.length === 0) return null;
+  if (!preferredSide || candidates.length === 1) return candidates[0]!;
+
+  // 1. Check direct userData.side
+  for (const obj of candidates) {
+    if (obj.userData?.side === preferredSide) {
+      return obj;
+    }
+  }
+
+  // 2. Check ancestor hierarchy for 'anatomy-half-study' / 'skeletal-kinematics-left' (left)
+  // vs 'anatomy-half-reference' / 'skeletal-kinematics-right' (right)
+  for (const obj of candidates) {
+    let cur: Object3D | null = obj;
+    while (cur) {
+      if (cur.userData?.side === preferredSide) return obj;
+      if (
+        preferredSide === 'left' &&
+        (cur.name === 'anatomy-half-study' || cur.name === 'skeletal-kinematics-left')
+      ) {
+        return obj;
+      }
+      if (
+        preferredSide === 'right' &&
+        (cur.name === 'anatomy-half-reference' || cur.name === 'skeletal-kinematics-right')
+      ) {
+        return obj;
+      }
+      cur = cur.parent;
+    }
+  }
+
+  // 3. Check world position: study side is +X (anatomical left), reference side is -X (anatomical right)
+  const pos = new Vector3();
+  for (const obj of candidates) {
+    obj.getWorldPosition(pos);
+    if (preferredSide === 'left' && pos.x >= -0.01) return obj;
+    if (preferredSide === 'right' && pos.x < 0.01) return obj;
+  }
+
+  return candidates[0]!;
 }
 
 export function computeFramingPresetFromObject(

@@ -46,7 +46,7 @@ function AnatomySceneInner({ showPerf }: { showPerf: boolean }) {
   const quizPreset = useQuizCameraPreset();
 
   const cameraPreset =
-    mode === 'active' ? quizPreset : studyActive && focusedNodeId ? cameraFocusPreset : null;
+    mode === 'active' ? quizPreset : focusedNodeId ? cameraFocusPreset : null;
   const lockControls = mode === 'active' && Boolean(quizPreset);
   const animatePreset = Boolean(cameraPreset);
 

@@ -285,7 +285,7 @@ function SkeletalKinematicsGroupComponent({
   const { spine, shoulder, elbow, wrist, hip, knee, ankle } = KINEMATIC_PIVOTS;
 
   return (
-    <group name="skeletal-kinematics-root">
+    <group name={`skeletal-kinematics-${side}`} userData={{ side }}>
       {/* Pelvis (Root body part) */}
       <group name="segment-pelvis">
         {categorizedMeshes.pelvis.map(renderMesh)}
