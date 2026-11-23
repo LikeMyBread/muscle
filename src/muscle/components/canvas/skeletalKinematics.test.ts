@@ -174,6 +174,16 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1')).toBe('pelvis');
     expect(getKinematicSegmentForNodeId('muscle_levator_ani')).toBe('pelvis');
 
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_pyramidalis_muscle_r_9e122134',
+        undefined,
+        'Pyramidalis muscle.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_pyramidalis_muscle_r_9e122134')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_pyramidalis')).toBe('pelvis');
+
     // Bridging dual-anchored muscles (Psoas, Plantaris, Transversus abdominis, Fascia lata, Brachioradialis, Biceps, Quads, Sartorius, Hamstrings, Gracilis, Deltoid, Pecs, Torso bend muscles)
     expect(
       getKinematicSegmentForNodeId(
