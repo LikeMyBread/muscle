@@ -32,13 +32,25 @@ describe('StructureInfoBox Component', () => {
     );
   });
 
-  it('clears focus when close button is clicked', () => {
-    useMuscleStore.setState({ focusedNodeId: 'muscle_biceps_brachii' });
-    render(<StructureInfoBox />);
+  it('clears both focusedNodeId and selectedNodeId, closes the box, and preserves camera when close button is clicked', () => {
+    const initialResetNonce = useMuscleStore.getState().cameraResetNonce;
+    useMuscleStore.getState().focusStructure('muscle_biceps_brachii');
+    expect(useMuscleStore.getState().focusedNodeId).toBe('muscle_biceps_brachii');
+    expect(useMuscleStore.getState().selectedNodeId).toBe('muscle_biceps_brachii');
+
+    const { rerender } = render(<StructureInfoBox />);
+    expect(screen.getByTestId('muscle-structure-infobox')).toBeInTheDocument();
 
     const closeBtn = screen.getByTestId('infobox-close-btn');
     fireEvent.click(closeBtn);
 
     expect(useMuscleStore.getState().focusedNodeId).toBeNull();
+    expect(useMuscleStore.getState().selectedNodeId).toBeNull();
+    // Camera should NOT be reset on dismissing the infobox
+    expect(useMuscleStore.getState().cameraResetNonce).toBe(initialResetNonce);
+
+    rerender(<StructureInfoBox />);
+    expect(screen.queryByTestId('muscle-structure-infobox')).toBeNull();
+    expect(document.documentElement.style.getPropertyValue('--muscle-infobox-height')).toBe('0px');
   });
 });

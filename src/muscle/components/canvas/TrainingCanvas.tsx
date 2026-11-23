@@ -37,6 +37,7 @@ function AnatomySceneInner({ showPerf }: { showPerf: boolean }) {
   const layerPeelDepth = useMuscleStore((s) => s.layerPeelDepth);
   const anatomyStageCenter = useMuscleStore((s) => s.anatomyStageCenter);
   const mode = useMuscleStore((s) => s.mode);
+  const studyActive = useMuscleStore((s) => s.studyActive);
   const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
   const cameraFocusPreset = useMuscleStore((s) => s.cameraFocusPreset);
   const focusCameraNonce = useMuscleStore((s) => s.focusCameraNonce);
@@ -45,7 +46,7 @@ function AnatomySceneInner({ showPerf }: { showPerf: boolean }) {
   const quizPreset = useQuizCameraPreset();
 
   const cameraPreset =
-    mode === 'active' ? quizPreset : focusedNodeId ? cameraFocusPreset : null;
+    mode === 'active' ? quizPreset : studyActive && focusedNodeId ? cameraFocusPreset : null;
   const lockControls = mode === 'active' && Boolean(quizPreset);
   const animatePreset = Boolean(cameraPreset);
 

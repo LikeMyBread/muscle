@@ -524,32 +524,30 @@ export const useMuscleStore = create<MuscleStoreState>((set, get) => ({
     if (!groupIds && focusedGroupNodeIds?.includes(nodeId)) {
       groupIds = focusedGroupNodeIds;
     }
-    set((s) => ({
+    set({
       focusedNodeId: nodeId,
       focusedGroupNodeIds: groupIds,
       selectedNodeId: nodeId,
       cameraFocusPreset: null,
-      focusCameraNonce: s.focusCameraNonce + 1,
-    }));
+    });
   },
 
   focusStudyGroup: (nodeIds) =>
-    set((s) => ({
+    set({
       focusedGroupNodeIds: nodeIds,
       focusedNodeId: null,
       selectedNodeId: nodeIds[0] ?? null,
       cameraFocusPreset: null,
-      focusCameraNonce: s.focusCameraNonce + 1,
-    })),
+    }),
 
   clearFocus: () =>
-    set((s) => ({
+    set({
       focusedNodeId: null,
       focusedGroupNodeIds: null,
+      selectedNodeId: null,
       cameraFocusPreset: null,
-      cameraResetNonce: s.cameraResetNonce + 1,
       referenceHalfHint: 'idle',
-    })),
+    }),
 
   setShowDetailStructures: (show) => set({ showDetailStructures: show }),
 

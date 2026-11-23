@@ -17,6 +17,7 @@
   --muscle-panel-split: 40%;
   --muscle-canvas-split: 60%;
   --muscle-panel-min: 320px;
+  --muscle-infobox-height: 0px;
 }
 
 html,
@@ -64,6 +65,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
   background: var(--muscle-navy);
 }
 
@@ -577,12 +579,13 @@ body {
 .muscle-canvas-view-controls {
   position: absolute;
   left: 0.85rem;
-  bottom: 0.85rem;
+  bottom: calc(0.85rem + var(--muscle-infobox-height, 0px));
+  transition: bottom 220ms cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
   pointer-events: auto;
-  z-index: 2;
+  z-index: 15;
 }
 
 .muscle-canvas-view-controls__btn {
@@ -1647,7 +1650,8 @@ body {
 .muscle-canvas-overlay {
   position: absolute;
   right: 0.85rem;
-  bottom: 0.85rem;
+  bottom: calc(0.85rem + var(--muscle-infobox-height, 0px));
+  transition: bottom 220ms cubic-bezier(0.16, 1, 0.3, 1);
   left: auto;
   display: flex;
   flex-direction: column;
@@ -1655,8 +1659,8 @@ body {
   gap: 0.5rem;
   pointer-events: none;
   max-width: min(calc(100% - 1.7rem), 22rem);
-  max-height: calc(100% - 1.7rem);
-  z-index: 3;
+  max-height: calc(100% - 1.7rem - var(--muscle-infobox-height, 0px));
+  z-index: 15;
 }
 
 .muscle-view-mode {
