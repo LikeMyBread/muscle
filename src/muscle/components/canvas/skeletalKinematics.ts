@@ -181,6 +181,52 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Extensor carpi radialis longus (spans lateral distal humerus across elbow to forearm / metacarpals)
+  if (
+    nodeId === 'muscle_extensor_carpi_radialis' ||
+    text === 'extensor carpi radialis longus' ||
+    text.includes('extensor_carpi_radialis_longus') ||
+    text.includes('extensor carpi radialis longus') ||
+    (text.includes('extensor_carpi_radialis') && !text.includes('brevis'))
+  ) {
+    return 'bridging';
+  }
+
+  // Brachialis (spans anterior lower humerus across elbow to coronoid process of ulna)
+  const isBrachialisInsertOrOrigin =
+    nodeId === 'atlas_brachialis_anterior_muscle_humeral_i_5bacb069' ||
+    nodeId === 'atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98' ||
+    text.includes('coracobrachialis') ||
+    text.includes('humeral_i') ||
+    text.includes('ulnar_insert');
+
+  if (
+    !isBrachialisInsertOrOrigin &&
+    (nodeId === 'muscle_brachialis' ||
+      text === 'brachialis' ||
+      (text.includes('brachialis') && !text.includes('coracobrachialis')))
+  ) {
+    return 'bridging';
+  }
+
+  // Gastrocnemius (lateral and medial heads span posterior femoral condyles across knee to calcaneus)
+  const isGastrocnemiusOrigin =
+    nodeId.startsWith('atlas_lateral_head_of_gastrocnemius') ||
+    nodeId.startsWith('atlas_medial_head_of_gastrocnemius') ||
+    text.includes('head of gastrocnemius on') ||
+    text.includes('gastrocnemius_on_lat') ||
+    text.includes('gastrocnemius_on_med');
+
+  if (
+    !isGastrocnemiusOrigin &&
+    !text.includes('plantaris') &&
+    (nodeId === 'muscle_gastrocnemius' ||
+      text === 'gastrocnemius' ||
+      text.includes('gastrocnemius'))
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -270,7 +316,7 @@ export function getKinematicSegmentForNodeId(
     text.includes('interosseus_membrane_of_leg') ||
     text.includes('interosseus membrane of leg') ||
     text.includes('tibialis') ||
-    (text.includes('gastrocnemius') && !text.includes('plantaris')) ||
+    (!isGastrocnemiusOrigin && text.includes('gastrocnemius') && !text.includes('plantaris')) ||
     text.includes('soleus') ||
     text.includes('solear') ||
     text.includes('popliteus') ||
@@ -351,6 +397,9 @@ export function getKinematicSegmentForNodeId(
     nodeId === 'bone_ulna' ||
     nodeId === 'joint_elbow' ||
     nodeId === 'joint_proximal_radioulnar' ||
+    nodeId === 'atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98' ||
+    text.includes('ulnar_insertion') ||
+    text.includes('ulnar insertion') ||
     text.includes('radius') ||
     text.includes('radial') ||
     text.includes('ulna') ||
@@ -390,6 +439,7 @@ export function getKinematicSegmentForNodeId(
   if (
     nodeId === 'bone_femur' ||
     nodeId === 'joint_hip' ||
+    isGastrocnemiusOrigin ||
     nodeId === 'atlas_origin_of_articularis_genus_r_85ebc333' ||
     text === 'origin of articularis genus.r' ||
     text.includes('articularis_genus') ||
@@ -426,6 +476,7 @@ export function getKinematicSegmentForNodeId(
   if (
     nodeId === 'bone_humerus' ||
     nodeId === 'joint_shoulder' ||
+    nodeId === 'atlas_brachialis_anterior_muscle_humeral_i_5bacb069' ||
     nodeRegion === 'arm' ||
     text.includes('humerus') ||
     text.includes('humeral') ||
@@ -1167,6 +1218,14 @@ export function deformBridgingBicepsBrachiiMesh(
   const thetaFlex = Math.max(0, -thetaForearmX);
   const sinFlex = Math.sin(thetaFlex);
 
+  // Reference displacement of the radial insertion (y0 ≈ 1.060, z0 ≈ -0.020) around elbow pivot
+  const dyIns = 1.060 - elbow.y;
+  const dzIns = -0.020 - elbow.z;
+  const yInsFE = elbow.y + (dyIns * cosFE - dzIns * sinFE);
+  const zInsFE = elbow.z + (dyIns * sinFE + dzIns * cosFE);
+  const deltaYIns = yInsFE - 1.060;
+  const deltaZIns = zInsFE - (-0.020);
+
   const arr = posAttr.array as Float32Array;
 
   for (let i = 0; i < count; i++) {
@@ -1175,29 +1234,34 @@ export function deformBridgingBicepsBrachiiMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    // 1. Forearm rotation around elbow pivot
-    const dyE = y0 - elbow.y;
-    const dzE = z0 - elbow.z;
-    const yFE = elbow.y + (dyE * cosFE - dzE * sinFE);
-    const zFE = elbow.z + (dyE * sinFE + dzE * cosFE);
-
-    // 2. Blend across elbow joint between arm (y0 >= 1.160) and radial tuberosity (forearm, y0 <= 1.074)
-    let t = (1.160 - y0) / (1.160 - 1.074);
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-    const w = t * t * (3 - 2 * t);
+    // Normalized parameter from shoulder (y0 >= 1.380, u = 0) to radial insertion (y0 <= 1.060, u = 1)
+    let u = (1.380 - y0) / (1.380 - 1.060);
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    const w = u * u * (3 - 2 * u);
 
     let xMid = x0;
-    let yMid = (1 - w) * y0 + w * yFE;
-    let zMid = (1 - w) * z0 + w * zFE;
+    let yMid = y0;
+    let zMid = z0;
 
-    // 3. Squash & stretch (anterior and radial belly bulge during elbow flexion)
-    let tBelly = (y0 - 1.074) / (1.360 - 1.074);
-    if (thetaFlex > 0 && tBelly > 0 && tBelly < 1) {
-      const b = Math.sin(Math.PI * tBelly);
-      zMid += 0.038 * sinFlex * b;
-      const xOffset = Math.abs(x0) - 0.185;
-      xMid += 0.015 * sinFlex * b * (xOffset / 0.04) * (x0 >= 0 ? 1 : -1);
+    if (y0 <= 1.074) {
+      // Distal radial insertion strictly follows forearm rotation around elbow pivot
+      const dyE = y0 - elbow.y;
+      const dzE = z0 - elbow.z;
+      yMid = elbow.y + (dyE * cosFE - dzE * sinFE);
+      zMid = elbow.z + (dyE * sinFE + dzE * cosFE);
+    } else {
+      // Belly shortens along arm as the radial insertion pulls upward
+      yMid = y0 + w * deltaYIns;
+      zMid = z0 + w * deltaZIns;
+
+      // Natural muscular squash & bulge (modest anterior bulge and radial thickening that stays hugged to bone)
+      if (thetaFlex > 0 && u > 0 && u < 1) {
+        const b = Math.sin(Math.PI * u);
+        zMid += 0.014 * sinFlex * b;
+        const xOffset = Math.abs(x0) - 0.185;
+        xMid += 0.008 * sinFlex * b * (xOffset / 0.04) * (x0 >= 0 ? 1 : -1);
+      }
     }
 
     // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
@@ -1741,7 +1805,383 @@ export function deformBridgingMesh(
       rotations.shinRotationX,
       rotations.thighRotationZ ?? 0,
     );
+  } else if (isBrachialisMesh(mesh)) {
+    deformBridgingBrachialisMesh(
+      mesh,
+      rotations.forearmRotationX,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isExtensorCarpiRadialisMesh(mesh)) {
+    deformBridgingExtensorCarpiRadialisMesh(
+      mesh,
+      rotations.forearmRotationX,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isGastrocnemiusMesh(mesh)) {
+    deformBridgingGastrocnemiusMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
   }
+}
+
+export function isBrachialisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isInsertOrOrigin =
+    mesh.name === 'atlas_brachialis_anterior_muscle_humeral_i_5bacb069' ||
+    mesh.name === 'atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98' ||
+    text.includes('coracobrachialis') ||
+    text.includes('humeral_i') ||
+    text.includes('ulnar_insert');
+  return (
+    (mesh.name === 'muscle_brachialis' ||
+      text === 'brachialis' ||
+      (text.includes('brachialis') && !text.includes('coracobrachialis'))) &&
+    !isInsertOrOrigin
+  );
+}
+
+/**
+ * Deforms the dual-anchored Brachialis muscle mesh across the anterior elbow joint between
+ * the mid-distal humerus (arm) and the coronoid process / tuberosity of the ulna (forearm).
+ * Hugs the anterior elbow joint capsule and deep surface of biceps brachii, shortening and
+ * squashing without detaching from bone.
+ */
+export function deformBridgingBrachialisMesh(
+  mesh: THREE.Mesh,
+  thetaForearmX: number,
+  thetaArmZ: number = 0,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosFE = Math.cos(thetaForearmX);
+  const sinFE = Math.sin(thetaForearmX);
+
+  const cosAZ = Math.cos(thetaArmZ);
+  const sinAZ = Math.sin(thetaArmZ);
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const elbow = KINEMATIC_PIVOTS.elbow;
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const thetaFlex = Math.max(0, -thetaForearmX);
+  const sinFlex = Math.sin(thetaFlex);
+
+  // Reference displacement of ulnar insertion (y0 ≈ 1.060, z0 ≈ -0.030) around elbow pivot
+  const dyIns = 1.060 - elbow.y;
+  const dzIns = -0.030 - elbow.z;
+  const yInsFE = elbow.y + (dyIns * cosFE - dzIns * sinFE);
+  const zInsFE = elbow.z + (dyIns * sinFE + dzIns * cosFE);
+  const deltaYIns = yInsFE - 1.060;
+  const deltaZIns = zInsFE - (-0.030);
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    let u = (1.200 - y0) / (1.200 - 1.060);
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    const w = u * u * (3 - 2 * u);
+
+    let xMid = x0;
+    let yMid = y0;
+    let zMid = z0;
+
+    if (y0 <= 1.074) {
+      // Distal ulnar insertion strictly follows forearm rotation around elbow pivot
+      const dyE = y0 - elbow.y;
+      const dzE = z0 - elbow.z;
+      yMid = elbow.y + (dyE * cosFE - dzE * sinFE);
+      zMid = elbow.z + (dyE * sinFE + dzE * cosFE);
+    } else {
+      yMid = y0 + w * deltaYIns;
+      zMid = z0 + w * deltaZIns;
+
+      // Natural squash & thickening (stays close to humerus and joint capsule)
+      if (thetaFlex > 0 && u > 0 && u < 1) {
+        const b = Math.sin(Math.PI * u);
+        zMid += 0.009 * sinFlex * b;
+        xMid += 0.006 * sinFlex * b * (x0 >= 0 ? 1 : -1);
+      }
+    }
+
+    // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
+    const dxS = xMid - shoulder.x;
+    const dyS = yMid - shoulder.y;
+    const dzS = zMid - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulder.x + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 5. Spine transform (Spine flexion around spine pivot)
+    const dySp = yArm - spine.y;
+    const dzSp = zArm - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xArm;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isExtensorCarpiRadialisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_extensor_carpi_radialis' ||
+    text === 'extensor carpi radialis longus' ||
+    text.includes('extensor_carpi_radialis_longus') ||
+    text.includes('extensor carpi radialis longus') ||
+    (text.includes('extensor_carpi_radialis') && !text.includes('brevis'))
+  );
+}
+
+/**
+ * Deforms the dual-anchored Extensor carpi radialis longus muscle mesh across the elbow joint
+ * between the lateral supracondylar ridge of the humerus (arm, Y >= 1.130) and the forearm (Y <= 0.950).
+ */
+export function deformBridgingExtensorCarpiRadialisMesh(
+  mesh: THREE.Mesh,
+  thetaForearmX: number,
+  thetaArmZ: number = 0,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosFE = Math.cos(thetaForearmX);
+  const sinFE = Math.sin(thetaForearmX);
+
+  const cosAZ = Math.cos(thetaArmZ);
+  const sinAZ = Math.sin(thetaArmZ);
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const elbow = KINEMATIC_PIVOTS.elbow;
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const thetaFlex = Math.max(0, -thetaForearmX);
+  const sinFlex = Math.sin(thetaFlex);
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Forearm rotation around elbow pivot
+    const dyE = y0 - elbow.y;
+    const dzE = z0 - elbow.z;
+    const yFE = elbow.y + (dyE * cosFE - dzE * sinFE);
+    const zFE = elbow.z + (dyE * sinFE + dzE * cosFE);
+
+    // 2. Blend across elbow joint between humerus (arm, y0 >= 1.130) and forearm (y0 <= 0.950)
+    let t = (1.130 - y0) / (1.130 - 0.950);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let xMid = x0;
+    let yMid = (1 - w) * y0 + w * yFE;
+    let zMid = (1 - w) * z0 + w * zFE;
+
+    // 3. Stretch & squash (anterolateral belly bulge during elbow flexion)
+    if (thetaFlex > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      zMid += 0.012 * sinFlex * b;
+      xMid += 0.010 * sinFlex * b * (x0 >= 0 ? 1 : -1);
+    }
+
+    // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
+    const dxS = xMid - shoulder.x;
+    const dyS = yMid - shoulder.y;
+    const dzS = zMid - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulder.x + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 5. Spine transform (Spine flexion around spine pivot)
+    const dySp = yArm - spine.y;
+    const dzSp = zArm - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xArm;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isGastrocnemiusMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isOrigin =
+    mesh.name.startsWith('atlas_lateral_head_of_gastrocnemius') ||
+    mesh.name.startsWith('atlas_medial_head_of_gastrocnemius') ||
+    text.includes('head of gastrocnemius on') ||
+    text.includes('gastrocnemius_on_lat') ||
+    text.includes('gastrocnemius_on_med');
+  return (
+    (mesh.name === 'muscle_gastrocnemius' ||
+      text === 'gastrocnemius' ||
+      text.includes('gastrocnemius')) &&
+    !isOrigin
+  );
+}
+
+/**
+ * Deforms the dual-anchored Gastrocnemius muscle mesh across the knee joint between
+ * the posterior lateral and medial femoral condyles (thigh, Y >= 0.470) and the calcaneal tendon (shin, Y <= 0.410).
+ * As the knee flexes, the distance between the femoral condyles and posterior shin shortens,
+ * causing the calf bellies to squash along length and bulge posteriorly into negative Z.
+ */
+export function deformBridgingGastrocnemiusMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaShinX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosK = Math.cos(thetaShinX);
+  const sinK = Math.sin(thetaShinX);
+  const cosH = Math.cos(thetaThighX);
+  const sinH = Math.sin(thetaThighX);
+  const cosHZ = Math.cos(thetaThighZ);
+  const sinHZ = Math.sin(thetaThighZ);
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const sinKnee = Math.sin(Math.max(0, thetaShinX));
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    let x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    let z0 = orig[idx + 2];
+
+    // Squash & stretch (posterior calf belly bulge during knee flexion)
+    let tBelly = (y0 - 0.260) / (0.450 - 0.260);
+    if (sinKnee > 0 && tBelly > 0 && tBelly < 1) {
+      const b = Math.sin(Math.PI * tBelly);
+      z0 -= 0.016 * sinKnee * b;
+      x0 += 0.008 * sinKnee * b * ((x0 - hip.x) / 0.04);
+    }
+
+    // --- 1. Thigh transform around hip pivot (Three.js Euler 'XYZ': Z first, then X) ---
+    const dxH = x0 - hip.x;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xThigh_Z = dxH * cosHZ - dyH * sinHZ;
+    const yThigh_Z = dxH * sinHZ + dyH * cosHZ;
+    const zThigh_Z = dzH;
+
+    const xThigh = hip.x + xThigh_Z;
+    const yThigh = hip.y + (yThigh_Z * cosH - zThigh_Z * sinH);
+    const zThigh = hip.z + (yThigh_Z * sinH + zThigh_Z * cosH);
+
+    // --- 2. Shin transform: knee pivot followed by hip pivot (Z first, then X) ---
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK = knee.y + (dyK * cosK - dzK * sinK);
+    const zK = knee.z + (dyK * sinK + dzK * cosK);
+
+    const dxShin_H = x0 - hip.x;
+    const dyShin_H = yK - hip.y;
+    const dzShin_H = zK - hip.z;
+
+    const xShin_Z = dxShin_H * cosHZ - dyShin_H * sinHZ;
+    const yShin_Z = dxShin_H * sinHZ + dyShin_H * cosHZ;
+    const zShin_Z = dzShin_H;
+
+    const xShin = hip.x + xShin_Z;
+    const yShin = hip.y + (yShin_Z * cosH - zShin_Z * sinH);
+    const zShin = hip.z + (yShin_Z * sinH + zShin_Z * cosH);
+
+    // --- 3. Smooth blend across knee joint ---
+    // Smooth weight between shin (w = 1 at y0 <= 0.410) and femur condyles (w = 0 at y0 >= 0.475)
+    let t = (0.475 - y0) / (0.475 - 0.410);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const wShin = t * t * (3 - 2 * t);
+    const wThigh = 1 - wShin;
+
+    arr[idx] = wThigh * xThigh + wShin * xShin;
+    arr[idx + 1] = wThigh * yThigh + wShin * yShin;
+    arr[idx + 2] = wThigh * zThigh + wShin * zShin;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
 }
 
 export function restoreOriginalMeshPositions(mesh: THREE.Mesh): void {

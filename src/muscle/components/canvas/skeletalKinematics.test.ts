@@ -5,8 +5,11 @@ import {
   computeKinematicRotations,
   computeProceduralJointAngles,
   deformBridgingBicepsBrachiiMesh,
+  deformBridgingBrachialisMesh,
   deformBridgingBrachioradialisMesh,
+  deformBridgingExtensorCarpiRadialisMesh,
   deformBridgingFasciaLataMesh,
+  deformBridgingGastrocnemiusMesh,
   deformBridgingGracilisMesh,
   deformBridgingHamstringsMesh,
   deformBridgingMesh,
@@ -17,8 +20,11 @@ import {
   deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
   isBicepsBrachiiMesh,
+  isBrachialisMesh,
   isBrachioradialisMesh,
+  isExtensorCarpiRadialisMesh,
   isFasciaLataMesh,
+  isGastrocnemiusMesh,
   isGracilisMesh,
   isHamstringsMesh,
   isQuadricepsMesh,
@@ -99,6 +105,9 @@ describe('skeletalKinematics', () => {
     ).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_biceps_brachii')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_brachioradialis')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_brachialis')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_extensor_carpi_radialis')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_gastrocnemius')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_quadriceps_rectus_femoris')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_vastus_lateralis')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_sartorius')).toBe('bridging');
@@ -144,11 +153,25 @@ describe('skeletalKinematics', () => {
         'Deltoid muscle-Humeral insertion.r',
       ),
     ).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_brachialis_anterior_muscle_humeral_i_5bacb069',
+        undefined,
+        'Brachialis anterior muscle-Humeral insertions.r',
+      ),
+    ).toBe('arm');
 
     // Forearm
     expect(getKinematicSegmentForNodeId('bone_radius')).toBe('forearm');
     expect(getKinematicSegmentForNodeId('bone_ulna')).toBe('forearm');
     expect(getKinematicSegmentForNodeId('joint_elbow')).toBe('forearm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_brachialis_muscle_ulnar_insertion_r_ee7c1b98',
+        undefined,
+        'Brachialis muscle-Ulnar insertion.r',
+      ),
+    ).toBe('forearm');
     expect(
       getKinematicSegmentForNodeId(
         'atlas_biceps_brachii_muscle_radial_inserti_5a9942a5',
@@ -241,13 +264,26 @@ describe('skeletalKinematics', () => {
         'Origin of articularis genus.r',
       ),
     ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_lateral_head_of_gastrocnemius_on_lat_d7a53202',
+        undefined,
+        'Lateral head of gastrocnemius on lateral condyle of femur.r',
+      ),
+    ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_medial_head_of_gastrocnemius_on_med__9d2eb188',
+        undefined,
+        'Medial head of gastrocnemius on medial condyle of femur.r',
+      ),
+    ).toBe('thigh');
 
     // Shin
     expect(getKinematicSegmentForNodeId('bone_tibia')).toBe('shin');
     expect(getKinematicSegmentForNodeId('bone_fibula')).toBe('shin');
     expect(getKinematicSegmentForNodeId('bone_patella')).toBe('shin');
     expect(getKinematicSegmentForNodeId('joint_knee')).toBe('shin');
-    expect(getKinematicSegmentForNodeId('muscle_gastrocnemius')).toBe('shin');
     expect(
       getKinematicSegmentForNodeId(
         'atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6',
@@ -901,8 +937,12 @@ describe('skeletalKinematics', () => {
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
 
-    // Mid-belly squashes and bulges anteriorly (+Z)
+    // Mid-belly shortens axially (Y increases toward shoulder)
+    expect(pos[4]).toBeGreaterThan(rawCoords[4]);
+
+    // Mid-belly squashes and bulges anteriorly (+Z) without excessive bowing away from bone
     expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.02);
+    expect(pos[5]).toBeLessThan(rawCoords[5] + 0.05);
 
     restoreOriginalMeshPositions(mesh);
   });
@@ -1054,6 +1094,128 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeGreaterThan(rawCoords[0]);
   });
 
+  it('deforms bridging brachialis mesh across elbow flexion with anterior squashing and fixed humeral/ulnar attachments', () => {
+    // 3 representative vertices:
+    // 0: distal ulnar insertion on coronoid process (Y = 1.06, below elbow 1.107)
+    // 1: mid-belly (Y = 1.15, anterior elbow joint line)
+    // 2: proximal humeral origin (Y = 1.25, above elbow 1.107)
+    const rawCoords = [
+      0.18, 1.06, -0.01,
+      0.18, 1.15, 0.01,
+      0.17, 1.25, -0.01,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_brachialis';
+
+    expect(isBrachialisMesh(mesh)).toBe(true);
+
+    // Elbow flexion (forearmRotationX = -1.2 rad)
+    deformBridgingBrachialisMesh(mesh, -1.2);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Distal vertex on ulna swings forward (+Z) and upward (+Y) with forearm
+    expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.02);
+    expect(pos[1]).toBeGreaterThan(rawCoords[1]);
+
+    // Proximal humeral origin stays fixed to humerus (arm at rest)
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Mid-belly shortens axially upward and squashes close to anterior humerus/capsule
+    expect(pos[4]).toBeGreaterThan(rawCoords[4]);
+    expect(pos[5]).toBeGreaterThan(rawCoords[5]);
+
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
+  it('deforms bridging extensor carpi radialis longus mesh across elbow flexion with anterolateral bulge and fixed supracondylar origin', () => {
+    // 3 representative vertices:
+    // 0: distal forearm tendon (Y = 0.90, below elbow 1.107)
+    // 1: mid-belly spanning lateral elbow (Y = 1.05)
+    // 2: proximal lateral supracondylar origin on humerus (Y = 1.15, above elbow 1.107)
+    const rawCoords = [
+      0.24, 0.90, -0.01,
+      0.24, 1.05, 0.00,
+      0.22, 1.15, -0.02,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_extensor_carpi_radialis';
+
+    expect(isExtensorCarpiRadialisMesh(mesh)).toBe(true);
+
+    // Elbow flexion (forearmRotationX = -1.2 rad)
+    deformBridgingExtensorCarpiRadialisMesh(mesh, -1.2);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Distal tendon swings with forearm (+Z and +Y)
+    expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.05);
+    expect(pos[1]).toBeGreaterThan(rawCoords[1]);
+
+    // Proximal humeral origin stays fixed to humerus
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Mid-belly experiences anterolateral bulge (+Z and +X)
+    expect(pos[5]).toBeGreaterThan(rawCoords[5]);
+    expect(pos[3]).toBeGreaterThan(rawCoords[3]);
+
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
+  it('deforms bridging gastrocnemius mesh across knee flexion with posterior calf belly bulge and fixed femoral/calcaneal attachments', () => {
+    // 3 representative vertices:
+    // 0: distal calcaneal tendon (Y = 0.30, below knee 0.435)
+    // 1: mid calf belly (Y = 0.38)
+    // 2: proximal femoral condyle origin (Y = 0.49, above knee 0.435)
+    const rawCoords = [
+      0.04, 0.30, -0.05,
+      0.05, 0.38, -0.06,
+      0.04, 0.49, -0.04,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_gastrocnemius';
+
+    expect(isGastrocnemiusMesh(mesh)).toBe(true);
+
+    // Knee flexion (shinRotationX = 1.2 rad)
+    deformBridgingGastrocnemiusMesh(mesh, 0, 1.2, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Distal calcaneal tendon swings backward (-Z) and upward (+Y) with shin
+    expect(pos[2]).toBeLessThan(rawCoords[2] - 0.05);
+    expect(pos[1]).toBeGreaterThan(rawCoords[1]);
+
+    // Proximal femoral condyle origin stays fixed on thigh/femur (thigh at rest)
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Mid calf belly squashes and bulges posteriorly (-Z)
+    expect(pos[5]).toBeLessThan(rawCoords[5] - 0.012);
+
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {
     const muscles = [
       { name: 'atlas_psoas_muscle_r_08af9941', coords: [0.06, 0.90, -0.02] },
@@ -1062,6 +1224,9 @@ describe('skeletalKinematics', () => {
       { name: 'atlas_fascia_lata_r_d92bb3d0', coords: [0.14, 0.65, -0.01] },
       { name: 'muscle_brachioradialis', coords: [0.24, 1.05, 0.01] },
       { name: 'muscle_biceps_brachii', coords: [0.19, 1.22, 0.01] },
+      { name: 'muscle_brachialis', coords: [0.18, 1.15, 0.01] },
+      { name: 'muscle_extensor_carpi_radialis', coords: [0.24, 1.05, 0.01] },
+      { name: 'muscle_gastrocnemius', coords: [0.04, 0.38, -0.06] },
       { name: 'muscle_quadriceps_rectus_femoris', coords: [0.11, 0.65, 0.03] },
       { name: 'muscle_sartorius', coords: [0.08, 0.65, 0.02] },
       { name: 'muscle_hamstrings_biceps_femoris', coords: [0.09, 0.62, -0.06] },
