@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import MuscleAnatomyDebugPanel from './components/debug/MuscleAnatomyDebugPanel';
 import StructureInfoBox from './components/StructureInfoBox';
 import { useMuscleStore } from './store/useMuscleStore';
@@ -10,6 +10,7 @@ export default function App() {
   const init = useMuscleStore((s) => s.init);
   const hydrated = useMuscleStore((s) => s.hydrated);
   const setBodyView = useMuscleStore((s) => s.setBodyView);
+  const citationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     void init();
@@ -20,6 +21,30 @@ export default function App() {
     setBodyView('full_body');
     useStudyStore.getState().setAppMode('pose');
   }, [hydrated, setBodyView]);
+
+  useEffect(() => {
+    const el = citationRef.current;
+    if (!el) return;
+
+    const updateHeight = () => {
+      const h = Math.round(el.getBoundingClientRect().height || 0);
+      if (h > 0) {
+        document.documentElement.style.setProperty('--muscle-citation-height', `${h}px`);
+      }
+    };
+
+    updateHeight();
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(updateHeight);
+      ro.observe(el);
+    }
+
+    return () => {
+      ro?.disconnect();
+    };
+  }, [hydrated]);
 
   if (!hydrated) {
     return (
@@ -42,7 +67,7 @@ export default function App() {
           >
             <TrainingCanvas />
           </Suspense>
-          <div className="muscle-canvas-citation" aria-label="Anatomy models citation">
+          <div ref={citationRef} className="muscle-canvas-citation" aria-label="Anatomy models citation">
             Anatomy models adapted from{' '}
             <a
               href="https://github.com/Z-Anatomy/Models-of-human-anatomy"
