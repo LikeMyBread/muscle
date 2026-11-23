@@ -2449,25 +2449,19 @@ export function isDeltoidMesh(mesh: THREE.Mesh): boolean {
 }
 
 /**
- * Deforms the dual-anchored Deltoid muscle group (Anterior, Lateral, and Posterior heads)
- * across compound 2-axis shoulder rotations (abduction/adduction thetaArmZ, flexion/extension thetaArmX).
+ * Deforms the Deltoid muscle group (Anterior, Lateral, and Posterior heads)
+ * across 2-axis shoulder rotations (abduction thetaArmZ, flexion/extension thetaArmX)
+ * and torso pitch (thetaSpineX).
  *
- * Anatomical & Kinematic Constraints:
- * 1. Inner edge / Torso bone constraint: Vertices along the medial attachment borders (|X| <= 0.115)
- *    attach to the clavicle (anteriorly) and the spine of the scapula (posteriorly). They are strictly
- *    pinned to the torso bones (wX = 0) and do not pull away or lift during arm movements.
- * 2. Sloping origin boundary: The spine of the scapula slopes from Y ~ 1.410 at X = 0.170 down to
- *    Y ~ 1.365 at X = 0.090, while the clavicular origin sits at Y in [1.385, 1.415]. Origin vertices
- *    along this boundary remain 100% anchored to the shoulder girdle.
- * 3. Arc-preserving joint wrapping: Instead of a straight Cartesian chord between origin and insertion
- *    that cuts into the humeral head and acromion, rotation angles (effArmZ, effArmX) blend smoothly
- *    along the joint arc, preserving the radial contour of the shoulder.
- * 4. Active upward flex & inward centering: When the shoulder moves outward (abduction thetaArmZ > 0),
- *    the deltoid actively contracts and flexes upward in +Y. Rather than drifting outward with the swinging
- *    arm shaft, the muscular bulge gathers and slides inward medially so its peak remains centered directly
- *    above the joint pivot (X ~ shoulderX).
- * 5. Distal insertion: Insertion at the deltoid tuberosity of the humerus (Y <= 1.280, |X| >= 0.165)
- *    strictly follows the humerus rotation around the shoulder pivot.
+ * Kinematic Architecture:
+ * 1. Mostly Rigid Arc Motion: The muscle body slides up and inward around a smooth
+ *    circular arc over the shoulder dome as the arm abducts, lifting the apex and
+ *    centering smoothly over the joint without soft-tissue inward collapse or creasing.
+ * 2. Pure Spatial Translation at Humeral Insertion: Vertices anchoring to the humerus
+ *    (deltoid tuberosity, Y <= 1.280) follow the spatial translation of the humerus without
+ *    local rotational twisting or shear.
+ * 3. Smooth Minimalist Blending: A clean, constraint-free vertical transition connects the
+ *    pure humeral translation at the tendon to the rigid arc sliding of the belly and apex.
  */
 export function deformBridgingDeltoidMesh(
   mesh: THREE.Mesh,
@@ -2496,13 +2490,21 @@ export function deformBridgingDeltoidMesh(
   const sinS = Math.sin(thetaSpineX);
 
   const abductAngle = Math.max(0, thetaArmZ);
-  const liftFactor = Math.sin(Math.min(Math.PI / 2, abductAngle * 1.3));
-  const normAbduct = Math.min(1, abductAngle / (Math.PI / 2));
-  // Smooth sine-based curve for inward slide so it centers smoothly above the joint pivot
-  const slideFactor = Math.sin(Math.min(Math.PI / 2, normAbduct * 2.0));
 
+  // Circular arc sliding parameters:
+  // As the arm abducts, the deltoid body slides up (+Y) and inward (-X on right, +X on left)
+  // along a smooth circular arc of radius R, keeping the muscle cap mostly rigid and elevated.
+  const R = 0.16;
+  const k = 0.42;
+  const phi = k * abductAngle;
+  const arcDy = R * Math.sin(phi);
+  const arcDx = R * (1 - Math.cos(phi));
+
+  // Flexion/extension displacements for forward/backward arm swing
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
   const sinExt = Math.sin(Math.max(0, thetaArmX));
+  const arcDz = 0.040 * sinFlex - 0.030 * sinExt;
+  const arcFlexDy = 0.015 * sinFlex;
 
   // Precompute the pure translation displacement of the humeral insertion landmark
   // for both right (sign = +1) and left (sign = -1) sides.
@@ -2547,100 +2549,32 @@ export function deformBridgingDeltoidMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
     const delta = x0 < 0 ? deltaNeg : deltaPos;
 
-    // 1. Inner edge constraint (medial origin on torso bones):
-    // The medial origin along the clavicle and scapular spine (|X| <= 0.100) anchors to the torso bones.
-    // Transition blends smoothly out to 0.155, allowing the inner deltoid body to rise and expand
-    // naturally as the shoulder abducts rather than collapsing and folding over a rigid boundary.
-    let tX = (absX - 0.100) / (0.155 - 0.100);
-    if (tX < 0) tX = 0;
-    if (tX > 1) tX = 1;
-    const wX = tX * tX * (3 - 2 * tX);
+    // Transition blend weight u:
+    // u = 0 at humeral insertion (y0 <= 1.285): purely follows humerus translation without twist.
+    // u = 1 in deltoid body / apex (y0 >= 1.350): purely slides up and inward around the arc.
+    let u = (y0 - 1.285) / (1.350 - 1.285);
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    const s = u * u * (3 - 2 * u);
 
-    // 2. Anatomical origin boundary along the shoulder girdle:
-    // The spine of the scapula slopes from Y ~ 1.410 at X = 0.170 down to Y ~ 1.365 at X = 0.090.
-    // The clavicle slopes from Y ~ 1.415 down to Y ~ 1.385 at X = 0.085.
-    // The acromion origin is anchored at X <= 0.165. For lateral fibers (X > 0.165) arching over
-    // the greater tubercle, the effective origin extends to Y ~ 1.422 so the apex (Y ~ 1.416)
-    // belongs to the mobile, contracting muscle belly rather than being frozen to bone.
-    let yOrigin = 1.415;
-    if (z0 < -0.040) {
-      // Posterior head (spine of scapula)
-      let tScap = (absX - 0.090) / (0.170 - 0.090);
-      if (tScap < 0) tScap = 0;
-      if (tScap > 1) tScap = 1;
-      yOrigin = 1.365 + tScap * 0.045;
-    } else if (z0 > -0.010) {
-      // Anterior head (clavicle)
-      let tClav = (absX - 0.085) / (0.160 - 0.085);
-      if (tClav < 0) tClav = 0;
-      if (tClav > 1) tClav = 1;
-      yOrigin = 1.390 + tClav * 0.025;
-    } else if (absX > 0.165) {
-      // Lateral head: mobile belly fibers lateral to the acromial tip
-      let tLat = (absX - 0.165) / (0.185 - 0.165);
-      if (tLat > 1) tLat = 1;
-      yOrigin = 1.415 + tLat * 0.007;
-    }
+    // Blended displacement:
+    // Horizontal X: smoothly bridges humerus outward translation with inward arc sliding.
+    const dispX = (1 - s) * delta.dx - s * (signX * arcDx);
 
-    // Vertical blend from torso origin (y0 >= yOrigin) to humeral insertion (y0 <= 1.280)
-    let tY = (yOrigin - y0) / (yOrigin - 1.280);
-    if (y0 >= yOrigin - 0.001 || tY < 0) tY = 0;
-    if (tY > 1) tY = 1;
-    const wY = tY * tY;
+    // Vertical Y: lifts up with humerus translation and slides upward along the arc.
+    const dispY = (1 - s) * delta.dy + s * (arcDy + arcFlexDy);
 
-    // Combined blend weight: inner edge is strictly 0 (no movement)
-    const w = wX * wY;
+    // Sagittal Z: tracks humeral swing and anterior/posterior deltoid forward/backward flex.
+    const dispZ = (1 - s) * delta.dz + s * arcDz;
 
-    // 3. Translation-only insertion displacement:
-    // Vertices attaching to the humerus translate along with the humeral insertion landmark
-    // without applying rotational twisting, shearing, or local coordinate twisting.
-    let xMid = x0 + w * delta.dx;
-    let yMid = y0 + w * delta.dy;
-    let zMid = z0 + w * delta.dz;
+    const xMid = x0 + dispX;
+    const yMid = y0 + dispY;
+    const zMid = z0 + dispZ;
 
-    // 4. Active muscular flex & belly bulge:
-    // When the shoulder abducts (moves outward), the deltoid actively contracts,
-    // gathers, and flexes upward in +Y while smoothly centering inward toward the joint pivot.
-    // The inner deltoid body is allowed to rise in harmony with the contraction instead of
-    // being pinned flat against the torso bones, preventing mesh folding/creasing at intermediate angles (~33°).
-    if (tY > 0 && tY < 1 && wX > 0) {
-      const b = Math.sin(Math.PI * tY);
-
-      if (abductAngle > 0) {
-        // C1-smooth upward flex profile with bounded derivative to prevent triangle fold-overs
-        const upwardFlexProfile = Math.sin(Math.PI * tY);
-        const upwardLift = 0.044 * liftFactor * upwardFlexProfile * wX;
-        yMid += upwardLift;
-
-        // Inward slide: ONLY slide the lateral fibers that swing outward with the humerus
-        // (|X| > 0.150) towards the joint pivot (0.163). Inner medial fibers are never compressed inward,
-        // preventing the muscle from crumpling or folding over the torso bones.
-        let lateralSlideWeight = (absX - 0.150) / (0.200 - 0.150);
-        if (lateralSlideWeight < 0) lateralSlideWeight = 0;
-        if (lateralSlideWeight > 1) lateralSlideWeight = 1;
-
-        const inwardSlide = (0.055 + w * delta.dx) * slideFactor * upwardFlexProfile * lateralSlideWeight * signX;
-        xMid -= inwardSlide;
-      }
-
-      // Flexion (forward swing): anterior deltoid contracts and bulges anteriorly (+Z) & upward (+Y)
-      if (sinFlex > 0 && z0 > shoulder.z) {
-        zMid += 0.018 * sinFlex * b * wX;
-        yMid += 0.010 * sinFlex * b * wX;
-      }
-
-      // Extension (backward swing): posterior deltoid contracts and bulges posteriorly (-Z) & upward (+Y)
-      if (sinExt > 0 && z0 < shoulder.z) {
-        zMid -= 0.018 * sinExt * b * wX;
-        yMid += 0.010 * sinExt * b * wX;
-      }
-    }
-
-    // 5. Spine transform around spine pivot (pitch around X)
+    // Spine transform around spine pivot (pitch around X)
     const dySp = yMid - spine.y;
     const dzSp = zMid - spine.z;
     const yFinal = spine.y + (dySp * cosS - dzSp * sinS);

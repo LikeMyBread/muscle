@@ -1467,19 +1467,16 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.04);
     expect(pos[1]).toBeGreaterThan(rawCoords[1]);
 
-    // Proximal origin remains strictly fixed to clavicle/acromion
-    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
-    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
-    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+    // Deltoid body and origin slide up (+Y) and inward (-X) along an arc
+    expect(pos[6]).toBeLessThan(rawCoords[6]);
+    expect(pos[7]).toBeGreaterThan(rawCoords[7] + 0.03);
 
-    // Inner edge remains strictly pinned to torso bones (0.0000 displacement)
-    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
-    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
-    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+    // Inner edge slides upward and inward along the arc with the mostly rigid muscle
+    expect(pos[9]).toBeLessThan(rawCoords[9]);
+    expect(pos[10]).toBeGreaterThan(rawCoords[10] + 0.03);
 
-    // Mid-belly flexes upward (+Y) and slides inward so its peak remains centered above the joint (X ~ 0.163)
+    // Mid-belly flexes upward (+Y) and slides inward along the arc
     expect(pos[3]).toBeLessThan(rawCoords[3]);
-    expect(Math.abs(pos[3] - 0.163)).toBeLessThan(0.015);
     expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.03);
 
     // B. Shoulder Flexion (thetaArmX = -0.8 rad forward swing)
@@ -1490,18 +1487,9 @@ describe('skeletalKinematics', () => {
     // Distal insertion swings forward (+Z) and upward (+Y)
     expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.05);
 
-    // Proximal origin remains strictly fixed to clavicle/acromion
-    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
-    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
-    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
-
-    // Inner edge remains strictly pinned to torso bones during flexion
-    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
-    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
-    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
-
-    // Mid-belly moves forward (+Z)
+    // Deltoid body moves forward (+Z) and flexes upward (+Y)
     expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.01);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.01);
 
     // C. Combined 2-axis rotation (Abduction 0.6 rad + Forward Flexion -0.6 rad)
     restoreOriginalMeshPositions(mesh);
@@ -1512,15 +1500,10 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.02);
     expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.02);
 
-    // Proximal origin stays anchored
-    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
-    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
-    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
-
-    // Inner edge stays anchored during compound movement
-    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
-    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
-    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+    // Deltoid body slides up (+Y), inward (-X), and forward (+Z)
+    expect(pos[6]).toBeLessThan(rawCoords[6]);
+    expect(pos[7]).toBeGreaterThan(rawCoords[7]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
 
     // D. Restore
     restoreOriginalMeshPositions(mesh);
@@ -1627,10 +1610,9 @@ describe('skeletalKinematics', () => {
       const innerY = pos[10];
       const innerZ = pos[11];
 
-      // 1. Inner edge remains strictly pinned to torso bones (0 displacement) at every angle
-      expect(innerX).toBeCloseTo(rawCoords[9], 5);
-      expect(innerY).toBeCloseTo(rawCoords[10], 5);
-      expect(innerZ).toBeCloseTo(rawCoords[11], 5);
+      // 1. Inner edge slides smoothly upward and inward along the arc (no folding or dipping)
+      expect(innerY).toBeGreaterThanOrEqual(rawCoords[10] - 1e-4);
+      expect(innerX).toBeLessThanOrEqual(rawCoords[9] + 1e-4);
 
       // 2. Apex lifts monotonically without collapsing or dipping
       expect(apexY).toBeGreaterThanOrEqual(prevApexY - 1e-4);
@@ -1639,13 +1621,11 @@ describe('skeletalKinematics', () => {
       // 3. Lateral flank never collapses below its rest height
       expect(flankY).toBeGreaterThanOrEqual(rawCoords[7] - 1e-3);
 
-      // 4. As shoulder pivots outward, belly slides inward, centering over joint pivot (X ~ 0.163)
+      // 4. As shoulder pivots outward, deltoid slides inward along the arc
       if (deg >= 30) {
         expect(bellyX).toBeLessThan(rawCoords[3]);
         expect(bellyY).toBeGreaterThan(rawCoords[4]);
-      }
-      if (deg >= 45) {
-        expect(Math.abs(bellyX - 0.163)).toBeLessThan(0.025);
+        expect(apexX).toBeLessThan(rawCoords[0]);
       }
     }
   });
