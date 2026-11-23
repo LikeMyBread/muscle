@@ -16,6 +16,7 @@ import {
   deformBridgingGracilisMesh,
   deformBridgingHamstringsMesh,
   deformBridgingInternalObliqueMesh,
+  deformBridgingLatissimusDorsiMesh,
   deformBridgingLineaAlbaMesh,
   deformBridgingLumbarSpineMesh,
   deformBridgingMesh,
@@ -26,6 +27,7 @@ import {
   deformBridgingQuadricepsMesh,
   deformBridgingRectusAbdominisMesh,
   deformBridgingSartoriusMesh,
+  deformBridgingTeresMajorMesh,
   deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
   isBicepsBrachiiMesh,
@@ -40,6 +42,7 @@ import {
   isGracilisMesh,
   isHamstringsMesh,
   isInternalObliqueMesh,
+  isLatissimusDorsiMesh,
   isLineaAlbaMesh,
   isLumbarSpineMesh,
   isPectoralisMajorMesh,
@@ -47,6 +50,7 @@ import {
   isQuadricepsMesh,
   isRectusAbdominisMesh,
   isSartoriusMesh,
+  isTeresMajorMesh,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
   restoreOriginalPsoasPositions,
@@ -110,6 +114,13 @@ describe('skeletalKinematics', () => {
         'atlas_internal_abdominal_oblique_muscle_il_45b42876',
         undefined,
         'Internal abdominal oblique muscle-Iliac insertion.r',
+      ),
+    ).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_latissimus_dorsi_iliac_insertion_r_fbd5c83d',
+        undefined,
+        'Latissimus dorsi-Iliac insertion.r',
       ),
     ).toBe('pelvis');
 
@@ -222,6 +233,22 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('muscle_deltoid_lateral')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_deltoid_posterior')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_pectoralis_major')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_latissimus_dorsi')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_latissimus_dorsi_r_16c87cf9',
+        undefined,
+        'Latissimus dorsi.r',
+      ),
+    ).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_teres_major')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_teres_major_muscle_r_dbbc6e70',
+        undefined,
+        'Teres major muscle.r',
+      ),
+    ).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_quadriceps_rectus_femoris')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_vastus_lateralis')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_sartorius')).toBe('bridging');
@@ -338,10 +365,31 @@ describe('skeletalKinematics', () => {
         'Pectoralis minor muscle.r',
       ),
     ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_teres_major_muscle_scapular_insertio_798d71da',
+        undefined,
+        'Teres major muscle-Scapular insertion.r',
+      ),
+    ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_latissimus_dorsi_on_apex_of_the_scap_83328ed8',
+        undefined,
+        'Latissimus dorsi on apex of the scapula.r',
+      ),
+    ).toBe('spine');
 
     // Upper arm
     expect(getKinematicSegmentForNodeId('bone_humerus')).toBe('arm');
     expect(getKinematicSegmentForNodeId('joint_shoulder')).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_teres_major_muscle_humeral_insertion_c559f237',
+        undefined,
+        'Teres major muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
     expect(
       getKinematicSegmentForNodeId(
         'atlas_deltoid_muscle_humeral_insertion_r_ed353102',
@@ -1937,6 +1985,166 @@ describe('skeletalKinematics', () => {
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
+  it('deforms bridging latissimus dorsi mesh across 2-axis shoulder movements with back anchor and humeral tendon stretch', () => {
+    // 1: Medial back origin (0.05, 1.15, -0.08) -> wY = 0, wX = 0 -> strictly anchored to spine/torso
+    // 2: Iliac crest origin (0.12, 1.05, -0.07) -> wY = 0 -> strictly anchored to pelvis/torso
+    // 3: Mid-belly axillary fan (0.15, 1.28, -0.05) -> smooth intermediate stretch
+    // 4: Upper humeral tendon (0.176, 1.332, -0.024) -> wY = 1, wX = 1 -> follows humerus
+    const rawCoords = [
+      0.05, 1.15, -0.08,
+      0.12, 1.05, -0.07,
+      0.15, 1.28, -0.05,
+      0.176, 1.332, -0.024,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_latissimus_dorsi';
+
+    expect(isLatissimusDorsiMesh(mesh)).toBe(true);
+
+    const meshAtlas = new THREE.Mesh(geom);
+    meshAtlas.name = 'atlas_latissimus_dorsi_r_16c87cf9';
+    expect(isLatissimusDorsiMesh(meshAtlas)).toBe(true);
+
+    const meshLandmark = new THREE.Mesh(geom);
+    meshLandmark.name = 'atlas_latissimus_dorsi_iliac_insertion_r_fbd5c83d';
+    expect(isLatissimusDorsiMesh(meshLandmark)).toBe(false);
+
+    // A. Shoulder Abduction (thetaArmZ = 0.8 rad)
+    deformBridgingLatissimusDorsiMesh(mesh, 0.8, 0, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Medial spine/back origin stays strictly anchored to torso (0 displacement)
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Iliac/lower back origin stays strictly anchored to torso (0 displacement)
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+
+    // Upper humeral tendon translates outward laterally (+X) and upward (+Y)
+    expect(pos[9]).toBeGreaterThan(rawCoords[9] + 0.02);
+    expect(pos[10]).toBeGreaterThan(rawCoords[10]);
+
+    // Mid-belly stretches smoothly between torso and humerus
+    expect(pos[6]).toBeGreaterThan(rawCoords[6]);
+
+    // B. Forward Flexion (thetaArmX = -0.8 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingLatissimusDorsiMesh(mesh, 0, -0.8, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Torso origins strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+
+    // Humeral tendon swings forward into +Z
+    expect(pos[11]).toBeGreaterThan(rawCoords[11] + 0.02);
+
+    // C. Torso Spine Flexion (thetaSpineX = 0.2 rad) with neutral arm
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingLatissimusDorsiMesh(mesh, 0, 0, 0.2);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Entire muscle rotates forward around spine pivot
+    expect(pos[2]).toBeGreaterThan(rawCoords[2]);
+    expect(pos[11]).toBeGreaterThan(rawCoords[11]);
+
+    // D. Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+  });
+
+  it('deforms bridging teres major mesh across 2-axis shoulder movements with scapular anchor and humeral tendon stretch', () => {
+    // 1: Scapular origin at inferior angle (0.105, 1.265, -0.092) -> u = 0 -> w = 0 -> anchored to scapula
+    // 2: Mid-belly (0.140, 1.298, -0.058) -> u ~ 0.5 -> smooth stretch
+    // 3: Humeral insertion (0.174, 1.332, -0.024) -> u = 1 -> w = 1 -> follows humerus
+    const rawCoords = [
+      0.105, 1.265, -0.092,
+      0.140, 1.298, -0.058,
+      0.174, 1.332, -0.024,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_teres_major';
+
+    expect(isTeresMajorMesh(mesh)).toBe(true);
+
+    const meshAtlas = new THREE.Mesh(geom);
+    meshAtlas.name = 'atlas_teres_major_muscle_r_dbbc6e70';
+    expect(isTeresMajorMesh(meshAtlas)).toBe(true);
+
+    const meshHumeralLandmark = new THREE.Mesh(geom);
+    meshHumeralLandmark.name = 'atlas_teres_major_muscle_humeral_insertion_c559f237';
+    expect(isTeresMajorMesh(meshHumeralLandmark)).toBe(false);
+
+    const meshScapularLandmark = new THREE.Mesh(geom);
+    meshScapularLandmark.name = 'atlas_teres_major_muscle_scapular_insertio_798d71da';
+    expect(isTeresMajorMesh(meshScapularLandmark)).toBe(false);
+
+    const meshMinor = new THREE.Mesh(geom);
+    meshMinor.name = 'muscle_teres_minor';
+    expect(isTeresMajorMesh(meshMinor)).toBe(false);
+
+    const meshPronator = new THREE.Mesh(geom);
+    meshPronator.name = 'muscle_pronator_teres';
+    expect(isTeresMajorMesh(meshPronator)).toBe(false);
+
+    // A. Shoulder Abduction (thetaArmZ = 0.8 rad)
+    deformBridgingTeresMajorMesh(mesh, 0.8, 0, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Scapular origin stays strictly anchored (0 displacement)
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Humeral insertion translates outward laterally (+X) and upward (+Y)
+    expect(pos[6]).toBeGreaterThan(rawCoords[6] + 0.02);
+    expect(pos[7]).toBeGreaterThan(rawCoords[7]);
+
+    // Mid-belly stretches smoothly
+    expect(pos[3]).toBeGreaterThan(rawCoords[3]);
+
+    // B. Forward Flexion (thetaArmX = -0.8 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingTeresMajorMesh(mesh, 0, -0.8, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Scapular origin stays strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Humeral insertion swings forward into +Z
+    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.02);
+
+    // C. Torso Spine Flexion (thetaSpineX = 0.2 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingTeresMajorMesh(mesh, 0, 0, 0.2);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Whole muscle rotates forward around spine pivot
+    expect(pos[2]).toBeGreaterThan(rawCoords[2]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+
+    // D. Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+  });
+
   it('deforms bridging erector spinae mesh across spine flexion and extension, securing lower edge to sacrum/pelvis with posterior bulge in extension', () => {
     // 3 vertices:
     // v0: Sacral / posterior iliac spine anchor (X = -0.05, Y = 0.92, Z = -0.06) -> fixed to pelvis (w = 0)
@@ -2266,6 +2474,8 @@ describe('skeletalKinematics', () => {
       { name: 'muscle_gastrocnemius', coords: [0.04, 0.38, -0.06] },
       { name: 'muscle_deltoid_lateral', coords: [0.21, 1.35, -0.01] },
       { name: 'muscle_pectoralis_major', coords: [0.12, 1.32, 0.04] },
+      { name: 'muscle_latissimus_dorsi', coords: [0.16, 1.30, -0.03] },
+      { name: 'muscle_teres_major', coords: [0.15, 1.31, -0.04] },
       { name: 'muscle_quadriceps_rectus_femoris', coords: [0.11, 0.65, 0.03] },
       { name: 'muscle_sartorius', coords: [0.08, 0.65, 0.02] },
       { name: 'muscle_hamstrings_biceps_femoris', coords: [0.09, 0.62, -0.06] },

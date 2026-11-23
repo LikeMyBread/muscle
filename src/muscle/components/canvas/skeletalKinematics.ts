@@ -278,6 +278,56 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Latissimus dorsi (Spans thoracic/lumbar spine, ribs, and pelvis to humerus bicipital groove)
+  const isLatissimusHumeralInsertion =
+    text.includes('latissimus_dorsi_humeral') ||
+    text.includes('latissimus dorsi humeral') ||
+    text.includes('latissimus dorsi muscle-humeral');
+
+  const isLatissimusTorsoOrigin =
+    nodeId === 'atlas_latissimus_dorsi_iliac_insertion_r_fbd5c83d' ||
+    nodeId === 'atlas_latissimus_dorsi_on_apex_of_the_scap_83328ed8' ||
+    text.includes('latissimus_dorsi_iliac') ||
+    text.includes('latissimus_dorsi_on_apex') ||
+    text.includes('latissimus dorsi-iliac') ||
+    text.includes('latissimus dorsi on apex');
+
+  if (
+    !isLatissimusHumeralInsertion &&
+    !isLatissimusTorsoOrigin &&
+    (nodeId === 'muscle_latissimus_dorsi' ||
+      text === 'latissimus dorsi' ||
+      text.includes('latissimus_dorsi') ||
+      text.includes('latissimus dorsi') ||
+      text.includes('latissimus'))
+  ) {
+    return 'bridging';
+  }
+
+  // Teres major (Spans inferior angle of scapula to humerus medial lip of intertubercular groove)
+  const isTeresMajorHumeralInsertion =
+    nodeId === 'atlas_teres_major_muscle_humeral_insertion_c559f237' ||
+    text.includes('teres_major_muscle_humeral') ||
+    text.includes('teres major muscle-humeral insertion');
+
+  const isTeresMajorScapularOrigin =
+    nodeId === 'atlas_teres_major_muscle_scapular_insertio_798d71da' ||
+    text.includes('teres_major_muscle_scapular') ||
+    text.includes('teres major muscle-scapular insertion');
+
+  if (
+    !isTeresMajorHumeralInsertion &&
+    !isTeresMajorScapularOrigin &&
+    !text.includes('minor') &&
+    !text.includes('pronator') &&
+    (nodeId === 'muscle_teres_major' ||
+      text === 'teres major' ||
+      text.includes('teres_major') ||
+      text.includes('teres major'))
+  ) {
+    return 'bridging';
+  }
+
   // Erector spinae group (spans posterior pelvis/sacrum to thoracic spine and ribs)
   const isErectorSpinaeIliacInsertion =
     nodeId === 'atlas_erector_spinae_muscles_iliac_inserti_bfc50f21' ||
@@ -693,6 +743,8 @@ export function getKinematicSegmentForNodeId(
     nodeId === 'atlas_brachialis_anterior_muscle_humeral_i_5bacb069' ||
     isDeltoidHumeralInsertion ||
     isPectoralisHumeralInsertion ||
+    isLatissimusHumeralInsertion ||
+    isTeresMajorHumeralInsertion ||
     nodeRegion === 'arm' ||
     text.includes('humerus') ||
     text.includes('humeral') ||
@@ -2057,6 +2109,20 @@ export function deformBridgingMesh(
       rotations.armRotationX ?? 0,
       rotations.spineRotationX,
     );
+  } else if (isLatissimusDorsiMesh(mesh)) {
+    deformBridgingLatissimusDorsiMesh(
+      mesh,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isTeresMajorMesh(mesh)) {
+    deformBridgingTeresMajorMesh(
+      mesh,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
   } else if (isErectorSpinaeMesh(mesh)) {
     deformBridgingErectorSpinaeMesh(mesh, rotations.spineRotationX);
   } else if (isExternalObliqueMesh(mesh)) {
@@ -2746,6 +2812,275 @@ export function deformBridgingPectoralisMajorMesh(
       const b = Math.sin(Math.PI * w);
       zMid += 0.008 * sinFlex * b;
     }
+
+    // Spine transform around spine pivot
+    const dySp = yMid - spine.y;
+    const dzSp = zMid - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xMid;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isLatissimusDorsiMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isLandmark =
+    mesh.name.startsWith('atlas_latissimus_dorsi_iliac_insertion') ||
+    mesh.name.startsWith('atlas_latissimus_dorsi_on_apex_of_the_scap') ||
+    text.includes('latissimus_dorsi_iliac') ||
+    text.includes('latissimus_dorsi_on_apex') ||
+    text.includes('latissimus dorsi-iliac') ||
+    text.includes('latissimus dorsi on apex');
+  if (isLandmark) return false;
+
+  return (
+    mesh.name === 'muscle_latissimus_dorsi' ||
+    text === 'latissimus dorsi' ||
+    text.includes('latissimus_dorsi') ||
+    text.includes('latissimus dorsi') ||
+    text.includes('latissimus')
+  );
+}
+
+/**
+ * Deforms the fan-shaped Latissimus dorsi muscle across 2-axis shoulder rotations
+ * (abduction thetaArmZ, flexion/extension thetaArmX) and torso pitch (thetaSpineX).
+ *
+ * Anatomical & Kinematic Architecture:
+ * 1. Broad torso anchor: Origin across thoracic/lumbar spine, iliac crest, and ribs
+ *    (Y <= 1.200 or |X| <= 0.115) remains 100% attached to the torso skeleton.
+ * 2. Humeral tendon: The upper lateral fibers converge into the tendon inserting into
+ *    the intertubercular groove of the humerus (Y >= 1.330, |X| >= 0.170), tracking the humerus.
+ * 3. Smooth transitional fan: As the arm abducts or flexes, the axillary fibers stretch
+ *    smoothly to accommodate the arm's movements without tearing or collapsing.
+ */
+export function deformBridgingLatissimusDorsiMesh(
+  mesh: THREE.Mesh,
+  thetaArmZ: number,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const calcTendonDelta = (sign: number) => {
+    const sX = sign * shoulder.x;
+    const effZ = sign * thetaArmZ;
+    const cZ = Math.cos(effZ);
+    const sZ = Math.sin(effZ);
+
+    const xIns0 = sign * 0.175;
+    const yIns0 = 1.331;
+    const zIns0 = -0.024;
+
+    const dx = xIns0 - sX;
+    const dy = yIns0 - shoulder.y;
+    const dz = zIns0 - shoulder.z;
+
+    const xSZ = dx * cZ - dy * sZ;
+    const ySZ = dx * sZ + dy * cZ;
+    const zSZ = dz;
+
+    const xPrime = sX + xSZ;
+    const yPrime = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zPrime = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    return {
+      dx: xPrime - xIns0,
+      dy: yPrime - yIns0,
+      dz: zPrime - zIns0,
+    };
+  };
+
+  const deltaPos = calcTendonDelta(1);
+  const deltaNeg = calcTendonDelta(-1);
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const absX = Math.abs(x0);
+    const delta = x0 < 0 ? deltaNeg : deltaPos;
+
+    // 1. Lower back constraint: Below Y = 1.200, 100% attached to torso (wY = 0)
+    let tY = (y0 - 1.200) / (1.330 - 1.200);
+    if (tY < 0) tY = 0;
+    if (tY > 1) tY = 1;
+    const wY = tY * tY * (3 - 2 * tY);
+
+    // 2. Medial back constraint: Medial back (|X| <= 0.115) 100% on torso (wX = 0)
+    let tX = (absX - 0.115) / (0.170 - 0.115);
+    if (tX < 0) tX = 0;
+    if (tX > 1) tX = 1;
+    const wX = tX * tX * (3 - 2 * tX);
+
+    const w = wX * wY;
+
+    const xMid = x0 + w * delta.dx;
+    const yMid = y0 + w * delta.dy;
+    const zMid = z0 + w * delta.dz;
+
+    // Spine transform around spine pivot
+    const dySp = yMid - spine.y;
+    const dzSp = zMid - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xMid;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isTeresMajorMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  if (text.includes('minor')) return false;
+  if (text.includes('pronator')) return false;
+
+  const isLandmark =
+    mesh.name.startsWith('atlas_teres_major_muscle_humeral_insertion') ||
+    mesh.name.startsWith('atlas_teres_major_muscle_scapular_insertio') ||
+    text.includes('teres_major_muscle_humeral') ||
+    text.includes('teres_major_muscle_scapular') ||
+    text.includes('teres major muscle-humeral insertion') ||
+    text.includes('teres major muscle-scapular insertion');
+  if (isLandmark) return false;
+
+  return (
+    mesh.name === 'muscle_teres_major' ||
+    text === 'teres major' ||
+    text.includes('teres_major') ||
+    text.includes('teres major')
+  );
+}
+
+/**
+ * Deforms Teres major from its scapular origin (inferior angle) to its humeral insertion
+ * (medial lip of intertubercular groove) across 2-axis shoulder rotations and torso pitch.
+ *
+ * Anatomical & Kinematic Architecture:
+ * 1. Scapular origin: Remains anchored to the inferior angle of the scapula on the torso.
+ * 2. Humeral insertion: Upper end follows the humerus rotation in space.
+ * 3. Directional stretch: The muscle belly smoothly stretches along its line of action.
+ */
+export function deformBridgingTeresMajorMesh(
+  mesh: THREE.Mesh,
+  thetaArmZ: number,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const calcTendonDelta = (sign: number) => {
+    const sX = sign * shoulder.x;
+    const effZ = sign * thetaArmZ;
+    const cZ = Math.cos(effZ);
+    const sZ = Math.sin(effZ);
+
+    const xIns0 = sign * 0.174;
+    const yIns0 = 1.332;
+    const zIns0 = -0.024;
+
+    const dx = xIns0 - sX;
+    const dy = yIns0 - shoulder.y;
+    const dz = zIns0 - shoulder.z;
+
+    const xSZ = dx * cZ - dy * sZ;
+    const ySZ = dx * sZ + dy * cZ;
+    const zSZ = dz;
+
+    const xPrime = sX + xSZ;
+    const yPrime = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zPrime = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    return {
+      dx: xPrime - xIns0,
+      dy: yPrime - yIns0,
+      dz: zPrime - zIns0,
+    };
+  };
+
+  const deltaPos = calcTendonDelta(1);
+  const deltaNeg = calcTendonDelta(-1);
+
+  // Muscle axis vector from scapular origin (0.105, 1.265, -0.092) to humerus (0.174, 1.332, -0.024)
+  const vx = 0.069;
+  const vy = 0.067;
+  const vz = 0.068;
+  const vSq = vx * vx + vy * vy + vz * vz;
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const absX = Math.abs(x0);
+    const delta = x0 < 0 ? deltaNeg : deltaPos;
+
+    // Projection along muscle axis from origin (scapula) to insertion (humerus)
+    const dx = absX - 0.105;
+    const dy = y0 - 1.265;
+    const dz = z0 - (-0.092);
+
+    let u = (dx * vx + dy * vy + dz * vz) / vSq;
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    const w = u * u * (3 - 2 * u);
+
+    const xMid = x0 + w * delta.dx;
+    const yMid = y0 + w * delta.dy;
+    const zMid = z0 + w * delta.dz;
 
     // Spine transform around spine pivot
     const dySp = yMid - spine.y;
