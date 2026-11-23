@@ -1383,7 +1383,7 @@ describe('skeletalKinematics', () => {
     const mesh = new THREE.Mesh(geom);
     mesh.name = 'muscle_deltoid_lateral';
 
-    const testAnglesDeg = [0, 10, 20, 30, 45, 60, 80];
+    const testAnglesDeg = [0, 10, 20, 30, 33, 45, 60, 80];
     let prevApexY = 1.416;
 
     for (const deg of testAnglesDeg) {
@@ -1422,6 +1422,34 @@ describe('skeletalKinematics', () => {
         expect(Math.abs(bellyX - 0.163)).toBeLessThan(0.025);
       }
     }
+  });
+
+  it('prevents inner edge folding and maintains smooth spatial ordering across intermediate angles (~33°)', () => {
+    // 3 vertices forming a transition across the inner edge / clavicular origin zone
+    // v0: inner anchor (X = 0.10, Y = 1.39, Z = -0.01)
+    // v1: mid-inner fiber (X = 0.13, Y = 1.40, Z = -0.01)
+    // v2: outer-inner fiber (X = 0.16, Y = 1.41, Z = -0.02)
+    const rawCoords = [
+      0.10, 1.39, -0.01,
+      0.13, 1.40, -0.01,
+      0.16, 1.41, -0.02,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_anterior';
+
+    // At 33 degrees (0.576 rad), the inner edge must rise without folding over or crossing
+    deformBridgingDeltoidMesh(mesh, (33 * Math.PI) / 180, 0, 0);
+    const pos = geom.attributes.position.array as Float32Array;
+
+    // Relative X positions must remain monotonically increasing (no crossover / fold-over)
+    expect(pos[0]).toBeLessThan(pos[3]);
+    expect(pos[3]).toBeLessThan(pos[6]);
+
+    // Heights must remain smooth and non-inverted (no steep drop or collapse)
+    expect(pos[1]).toBeLessThanOrEqual(pos[4]);
+    expect(pos[4]).toBeLessThanOrEqual(pos[7]);
   });
 
   it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {

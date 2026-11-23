@@ -2337,9 +2337,10 @@ export function deformBridgingDeltoidMesh(
     const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
 
     // 1. Inner edge constraint (medial origin on torso bones):
-    // Vertices at |X| <= 0.115 attach to the clavicle (anterior) or spine of the scapula (posterior)
-    // and must remain strictly pinned to the torso bones (wX = 0).
-    let tX = (absX - 0.115) / (0.165 - 0.115);
+    // The medial origin along the clavicle and scapular spine (|X| <= 0.100) anchors to the torso bones.
+    // Transition blends smoothly out to 0.155, allowing the inner deltoid body to rise and expand
+    // naturally as the shoulder abducts rather than collapsing and folding over a rigid boundary.
+    let tX = (absX - 0.100) / (0.155 - 0.100);
     if (tX < 0) tX = 0;
     if (tX > 1) tX = 1;
     const wX = tX * tX * (3 - 2 * tX);
@@ -2372,7 +2373,7 @@ export function deformBridgingDeltoidMesh(
 
     // Vertical blend from torso origin (y0 >= yOrigin) to humeral insertion (y0 <= 1.280)
     let tY = (yOrigin - y0) / (yOrigin - 1.280);
-    if (y0 >= yOrigin - 0.0005 || tY < 0) tY = 0;
+    if (y0 >= yOrigin - 0.001 || tY < 0) tY = 0;
     if (tY > 1) tY = 1;
     const wY = tY * tY * (3 - 2 * tY);
 
@@ -2404,20 +2405,26 @@ export function deformBridgingDeltoidMesh(
 
     // 4. Active muscular flex & belly bulge:
     // When the shoulder abducts (moves outward), the deltoid actively contracts,
-    // gathers, and flexes upward in +Y while smoothly sliding inward toward the joint pivot.
-    // Scaled by wX so inner edge never lifts or bulges off the torso bones.
+    // gathers, and flexes upward in +Y while smoothly centering inward toward the joint pivot.
+    // The inner deltoid body is allowed to rise in harmony with the contraction instead of
+    // being pinned flat against the torso bones, preventing mesh folding/creasing at intermediate angles (~33°).
     if (tY > 0 && tY < 1 && wX > 0) {
       const b = Math.sin(Math.PI * tY);
 
       if (abductAngle > 0) {
-        // Upward flex profile peaking over subacromial space & greater tubercle (tY ~ 0.35-0.55)
-        const upwardFlexProfile = Math.sin(Math.PI * Math.pow(tY, 0.65));
-        const upwardLift = 0.046 * liftFactor * upwardFlexProfile * wX;
+        // C1-smooth upward flex profile with bounded derivative to prevent triangle fold-overs
+        const upwardFlexProfile = Math.sin(Math.PI * tY);
+        const upwardLift = 0.044 * liftFactor * upwardFlexProfile * wX;
         yMid += upwardLift;
 
-        // Inward slide: as the shoulders pivot outward, the muscle belly contracts
-        // and gathers inward towards the joint pivot, keeping the peak centered above the joint.
-        const inwardSlide = 0.085 * slideFactor * upwardFlexProfile * wX * signX;
+        // Inward slide: ONLY slide the lateral fibers that swing outward with the humerus
+        // (|X| > 0.150) towards the joint pivot (0.163). Inner medial fibers are never compressed inward,
+        // preventing the muscle from crumpling or folding over the torso bones.
+        let lateralSlideWeight = (absX - 0.150) / (0.200 - 0.150);
+        if (lateralSlideWeight < 0) lateralSlideWeight = 0;
+        if (lateralSlideWeight > 1) lateralSlideWeight = 1;
+
+        const inwardSlide = 0.082 * slideFactor * upwardFlexProfile * lateralSlideWeight * signX;
         xMid -= inwardSlide;
       }
 
