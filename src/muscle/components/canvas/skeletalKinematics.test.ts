@@ -4,17 +4,21 @@ import {
   ANIMATION_CYCLE_DURATION,
   computeKinematicRotations,
   computeProceduralJointAngles,
+  deformBridgingAdductorMesh,
   deformBridgingBicepsBrachiiMesh,
   deformBridgingBrachialisMesh,
   deformBridgingBrachioradialisMesh,
+  deformBridgingDeepHipRotatorMesh,
   deformBridgingDeltoidMesh,
   deformBridgingErectorSpinaeMesh,
   deformBridgingExtensorCarpiRadialisMesh,
   deformBridgingExternalObliqueMesh,
   deformBridgingFasciaLataMesh,
   deformBridgingGastrocnemiusMesh,
+  deformBridgingGluteusMesh,
   deformBridgingGracilisMesh,
   deformBridgingHamstringsMesh,
+  deformBridgingIliacusPectineusMesh,
   deformBridgingInternalObliqueMesh,
   deformBridgingLatissimusDorsiMesh,
   deformBridgingLineaAlbaMesh,
@@ -27,20 +31,25 @@ import {
   deformBridgingQuadricepsMesh,
   deformBridgingRectusAbdominisMesh,
   deformBridgingSartoriusMesh,
+  deformBridgingTensorFasciaeLataeMesh,
   deformBridgingTeresMajorMesh,
   deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
+  isAdductorMesh,
   isBicepsBrachiiMesh,
   isBrachialisMesh,
   isBrachioradialisMesh,
+  isDeepHipRotatorMesh,
   isDeltoidMesh,
   isErectorSpinaeMesh,
   isExtensorCarpiRadialisMesh,
   isExternalObliqueMesh,
   isFasciaLataMesh,
   isGastrocnemiusMesh,
+  isGluteusMesh,
   isGracilisMesh,
   isHamstringsMesh,
+  isIliacusOrPectineusMesh,
   isInternalObliqueMesh,
   isLatissimusDorsiMesh,
   isLineaAlbaMesh,
@@ -50,6 +59,7 @@ import {
   isQuadricepsMesh,
   isRectusAbdominisMesh,
   isSartoriusMesh,
+  isTensorFasciaeLataeMesh,
   isTeresMajorMesh,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
@@ -256,6 +266,23 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('muscle_semitendinosus')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_semimembranosus')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_gracilis')).toBe('bridging');
+
+    // Hip-crossing muscles (Glutes, TFL, Iliacus & Pectineus, Adductors, Deep rotators)
+    expect(getKinematicSegmentForNodeId('muscle_gluteus_maximus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_gluteus_medius')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_gluteus_minimus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_tensor_fasciae_latae')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_iliacus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_pectineus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_adductor_longus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_adductor_brevis')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_adductor_magnus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_piriformis')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_obturator_internus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_obturator_externus')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_gemellus_superior')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_gemellus_inferior')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_quadratus_femoris')).toBe('bridging');
 
     // Torso bend muscles bridging between hip bones (pelvis) and spine/ribcage
     expect(getKinematicSegmentForNodeId('muscle_erector_spinae')).toBe('bridging');
@@ -2489,6 +2516,198 @@ describe('skeletalKinematics', () => {
     expect(posRestored[2]).toBeCloseTo(rawCoordsL5[2], 5);
   });
 
+  it('deformBridgingGluteusMesh anchors origins to pelvis and stretches/squashes belly during hip movements', () => {
+    // 1. Gluteus Maximus: test origin stability, mid-belly stretch, and insertion rotation
+    const rawMaximus = [
+      0.08, 0.940, -0.06, // Sacral/pelvic origin (y0 >= 0.900)
+      0.12, 0.840, -0.08, // Muscle belly
+      0.10, 0.750, -0.03, // Femur insertion (y0 <= 0.780)
+    ];
+    const geomMaximus = new THREE.BufferGeometry();
+    geomMaximus.setAttribute('position', new THREE.Float32BufferAttribute(rawMaximus, 3));
+    const meshMaximus = new THREE.Mesh(geomMaximus);
+    meshMaximus.name = 'muscle_gluteus_maximus';
+
+    expect(isGluteusMesh(meshMaximus)).toBe(true);
+
+    // Hip flexion (-0.5 rad)
+    deformBridgingGluteusMesh(meshMaximus, -0.5, 0.0);
+    const posMax = geomMaximus.attributes.position.array as Float32Array;
+
+    // Origin remains anchored to the pelvis (< 0.0001 movement)
+    expect(posMax[0]).toBeCloseTo(rawMaximus[0], 4);
+    expect(posMax[1]).toBeCloseTo(rawMaximus[1], 4);
+    expect(posMax[2]).toBeCloseTo(rawMaximus[2], 4);
+
+    // Insertion rotates forward/upward with thigh flexion
+    expect(Math.hypot(posMax[6] - rawMaximus[6], posMax[7] - rawMaximus[7], posMax[8] - rawMaximus[8])).toBeGreaterThan(0.04);
+
+    // Reset restores original positions
+    restoreOriginalMeshPositions(meshMaximus);
+    const restoredMax = geomMaximus.attributes.position.array as Float32Array;
+    expect(restoredMax[0]).toBeCloseTo(rawMaximus[0], 5);
+
+    // 2. Gluteus Medius / Minimus: test abduction squash
+    const rawMedius = [
+      0.12, 0.950, -0.02, // Iliac crest origin (y0 >= 0.920)
+      0.14, 0.885, -0.02, // Mid belly
+      0.13, 0.840, -0.02, // Greater trochanter insertion (y0 <= 0.850)
+    ];
+    const geomMedius = new THREE.BufferGeometry();
+    geomMedius.setAttribute('position', new THREE.Float32BufferAttribute(rawMedius, 3));
+    const meshMedius = new THREE.Mesh(geomMedius);
+    meshMedius.name = 'muscle_gluteus_medius';
+
+    expect(isGluteusMesh(meshMedius)).toBe(true);
+
+    // Hip abduction (0.4 rad)
+    deformBridgingGluteusMesh(meshMedius, 0.0, 0.4);
+    const posMed = geomMedius.attributes.position.array as Float32Array;
+
+    // Origin anchored to iliac crest
+    expect(posMed[0]).toBeCloseTo(rawMedius[0], 4);
+    expect(posMed[1]).toBeCloseTo(rawMedius[1], 4);
+    expect(posMed[2]).toBeCloseTo(rawMedius[2], 4);
+
+    // Belly squashes laterally (x increases outwards)
+    expect(posMed[3]).toBeGreaterThan(rawMedius[3]);
+
+    restoreOriginalMeshPositions(meshMedius);
+  });
+
+  it('deformBridgingTensorFasciaeLataeMesh anchors origin to ASIS and flexes with hip movement', () => {
+    const rawTfl = [
+      0.12, 0.950, 0.05, // ASIS / iliac crest origin (y0 >= 0.930)
+      0.13, 0.885, 0.04, // Belly
+      0.14, 0.820, 0.02, // Distal insertion into IT tract (y0 <= 0.840)
+    ];
+    const geomTfl = new THREE.BufferGeometry();
+    geomTfl.setAttribute('position', new THREE.Float32BufferAttribute(rawTfl, 3));
+    const meshTfl = new THREE.Mesh(geomTfl);
+    meshTfl.name = 'muscle_tensor_fasciae_latae';
+
+    expect(isTensorFasciaeLataeMesh(meshTfl)).toBe(true);
+
+    // Hip flexion (-0.5 rad)
+    deformBridgingTensorFasciaeLataeMesh(meshTfl, -0.5, 0.0);
+    const pos = geomTfl.attributes.position.array as Float32Array;
+
+    // Origin at ASIS remains fixed
+    expect(pos[0]).toBeCloseTo(rawTfl[0], 4);
+    expect(pos[1]).toBeCloseTo(rawTfl[1], 4);
+    expect(pos[2]).toBeCloseTo(rawTfl[2], 4);
+
+    // Insertion rotates forward with femur
+    expect(pos[8]).toBeGreaterThan(rawTfl[8]);
+
+    restoreOriginalMeshPositions(meshTfl);
+  });
+
+  it('deformBridgingIliacusPectineusMesh anchors origins to pelvic basin and tracks lesser trochanter', () => {
+    // Iliacus
+    const rawIliacus = [
+      0.08, 0.920, 0.02,  // Iliac fossa origin (y0 >= 0.890)
+      0.07, 0.750, -0.01, // Lesser trochanter insertion (y0 <= 0.770)
+    ];
+    const geomIliacus = new THREE.BufferGeometry();
+    geomIliacus.setAttribute('position', new THREE.Float32BufferAttribute(rawIliacus, 3));
+    const meshIliacus = new THREE.Mesh(geomIliacus);
+    meshIliacus.name = 'muscle_iliacus';
+
+    expect(isIliacusOrPectineusMesh(meshIliacus)).toBe(true);
+
+    deformBridgingIliacusPectineusMesh(meshIliacus, -0.5, 0.0);
+    const posIliacus = geomIliacus.attributes.position.array as Float32Array;
+
+    // Origin remains anchored to iliac fossa
+    expect(posIliacus[0]).toBeCloseTo(rawIliacus[0], 4);
+    expect(posIliacus[1]).toBeCloseTo(rawIliacus[1], 4);
+    expect(posIliacus[2]).toBeCloseTo(rawIliacus[2], 4);
+
+    // Insertion swings anteriorly
+    expect(posIliacus[5]).toBeGreaterThan(rawIliacus[5]);
+
+    // Pectineus
+    const rawPectineus = [
+      0.04, 0.850, 0.03, // Pectineal line of pubis (y0 >= 0.840)
+      0.05, 0.770, 0.00, // Pectineal line of femur (y0 <= 0.790)
+    ];
+    const geomPectineus = new THREE.BufferGeometry();
+    geomPectineus.setAttribute('position', new THREE.Float32BufferAttribute(rawPectineus, 3));
+    const meshPectineus = new THREE.Mesh(geomPectineus);
+    meshPectineus.name = 'muscle_pectineus';
+
+    expect(isIliacusOrPectineusMesh(meshPectineus)).toBe(true);
+
+    deformBridgingIliacusPectineusMesh(meshPectineus, -0.5, 0.0);
+    const posPectineus = geomPectineus.attributes.position.array as Float32Array;
+
+    // Origin on pubis remains stationary
+    expect(posPectineus[0]).toBeCloseTo(rawPectineus[0], 4);
+    expect(posPectineus[1]).toBeCloseTo(rawPectineus[1], 4);
+    expect(posPectineus[2]).toBeCloseTo(rawPectineus[2], 4);
+
+    // Insertion swings with femur
+    expect(posPectineus[5]).toBeGreaterThan(rawPectineus[5]);
+  });
+
+  it('deformBridgingAdductorMesh anchors origins to pubic ramus and stretches medially on abduction', () => {
+    const rawAdductor = [
+      0.03, 0.830, 0.02,  // Pubic origin (y0 >= 0.820)
+      0.05, 0.780, 0.00,  // Mid-belly
+      0.06, 0.720, -0.01, // Linea aspera insertion (y0 <= 0.740)
+    ];
+    const geomAdductor = new THREE.BufferGeometry();
+    geomAdductor.setAttribute('position', new THREE.Float32BufferAttribute(rawAdductor, 3));
+    const meshAdductor = new THREE.Mesh(geomAdductor);
+    meshAdductor.name = 'muscle_adductor_longus';
+
+    expect(isAdductorMesh(meshAdductor)).toBe(true);
+
+    // Hip abduction (0.35 rad)
+    deformBridgingAdductorMesh(meshAdductor, 0.0, 0.35);
+    const pos = geomAdductor.attributes.position.array as Float32Array;
+
+    // Pubic origin stays fixed
+    expect(pos[0]).toBeCloseTo(rawAdductor[0], 4);
+    expect(pos[1]).toBeCloseTo(rawAdductor[1], 4);
+    expect(pos[2]).toBeCloseTo(rawAdductor[2], 4);
+
+    // Distal femoral insertion swings outward/laterally with abduction
+    expect(pos[6]).toBeGreaterThan(rawAdductor[6]);
+
+    restoreOriginalMeshPositions(meshAdductor);
+  });
+
+  it('deformBridgingDeepHipRotatorMesh anchors medial origins to sacrum/ischium and rotates with greater trochanter', () => {
+    const rawRotator = [
+      0.03, 0.870, -0.05,  // Medial origin on sacrum/ischium (|x0| <= 0.045)
+      0.08, 0.870, -0.04,  // Mid-belly
+      0.13, 0.870, -0.02,  // Lateral insertion on greater trochanter (|x0| >= 0.115)
+    ];
+    const geomRotator = new THREE.BufferGeometry();
+    geomRotator.setAttribute('position', new THREE.Float32BufferAttribute(rawRotator, 3));
+    const meshRotator = new THREE.Mesh(geomRotator);
+    meshRotator.name = 'muscle_piriformis';
+
+    expect(isDeepHipRotatorMesh(meshRotator)).toBe(true);
+
+    // Hip flexion (-0.4 rad) and abduction (0.2 rad)
+    deformBridgingDeepHipRotatorMesh(meshRotator, -0.4, 0.2);
+    const pos = geomRotator.attributes.position.array as Float32Array;
+
+    // Medial origin stays firmly attached to sacrum (|x0| <= 0.045)
+    expect(pos[0]).toBeCloseTo(rawRotator[0], 4);
+    expect(pos[1]).toBeCloseTo(rawRotator[1], 4);
+    expect(pos[2]).toBeCloseTo(rawRotator[2], 4);
+
+    // Lateral insertion moves with femur rotation (~5.6mm at 4cm radius from hip joint center)
+    const dTrochanter = Math.hypot(pos[6] - rawRotator[6], pos[7] - rawRotator[7], pos[8] - rawRotator[8]);
+    expect(dTrochanter).toBeGreaterThan(0.005);
+
+    restoreOriginalMeshPositions(meshRotator);
+  });
+
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {
     const muscles = [
       { name: 'atlas_psoas_muscle_r_08af9941', coords: [0.06, 0.90, -0.02] },
@@ -2508,6 +2727,17 @@ describe('skeletalKinematics', () => {
       { name: 'muscle_sartorius', coords: [0.08, 0.65, 0.02] },
       { name: 'muscle_hamstrings_biceps_femoris', coords: [0.09, 0.62, -0.06] },
       { name: 'muscle_gracilis', coords: [0.03, 0.60, 0.00] },
+      { name: 'muscle_gluteus_maximus', coords: [0.10, 0.85, -0.05] },
+      { name: 'muscle_gluteus_medius', coords: [0.12, 0.90, -0.02] },
+      { name: 'muscle_gluteus_minimus', coords: [0.11, 0.89, -0.01] },
+      { name: 'muscle_tensor_fasciae_latae', coords: [0.13, 0.88, 0.03] },
+      { name: 'muscle_iliacus', coords: [0.08, 0.85, 0.01] },
+      { name: 'muscle_pectineus', coords: [0.05, 0.81, 0.02] },
+      { name: 'muscle_adductor_longus', coords: [0.05, 0.78, 0.01] },
+      { name: 'muscle_adductor_magnus', coords: [0.06, 0.75, -0.02] },
+      { name: 'muscle_piriformis', coords: [0.08, 0.87, -0.04] },
+      { name: 'muscle_obturator_internus', coords: [0.07, 0.82, -0.03] },
+      { name: 'muscle_quadratus_femoris', coords: [0.08, 0.79, -0.04] },
       { name: 'muscle_erector_spinae', coords: [-0.05, 1.05, -0.07] },
       { name: 'muscle_external_oblique', coords: [-0.10, 1.05, 0.05] },
       { name: 'atlas_internal_abdominal_oblique_r_7656165c', coords: [-0.09, 1.05, 0.05] },

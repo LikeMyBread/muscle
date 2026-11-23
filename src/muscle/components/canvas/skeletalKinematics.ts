@@ -427,6 +427,70 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Gluteus muscles (maximus, medius, minimus) bridging between pelvis/sacrum and femur
+  if (
+    nodeId === 'muscle_gluteus_maximus' ||
+    nodeId === 'muscle_gluteus_medius' ||
+    nodeId === 'muscle_gluteus_minimus' ||
+    text.includes('gluteus') ||
+    text.includes('glute')
+  ) {
+    return 'bridging';
+  }
+
+  // Tensor fasciae latae bridging between ASIS / iliac crest and IT band / thigh
+  if (
+    nodeId === 'muscle_tensor_fasciae_latae' ||
+    text.includes('tensor_fasciae_latae') ||
+    text.includes('tensor fasciae latae') ||
+    text.includes('tensor_fascia')
+  ) {
+    return 'bridging';
+  }
+
+  // Iliacus and Pectineus bridging between iliac fossa / pubis and femur
+  if (
+    nodeId === 'muscle_iliacus' ||
+    nodeId === 'muscle_pectineus' ||
+    text.includes('iliacus') ||
+    (text.includes('pectineus') && !text.includes('pectoral'))
+  ) {
+    return 'bridging';
+  }
+
+  // Adductor group (adductor longus, brevis, magnus, minimus) bridging between pubic/ischial bones and femur
+  if (
+    (nodeId === 'muscle_adductor_longus' ||
+      text.includes('adductor_longus') ||
+      text.includes('adductor_brevis') ||
+      text.includes('adductor_magnus') ||
+      text.includes('adductor_minimus') ||
+      text.includes('adducteur') ||
+      text.includes('adductor')) &&
+    !text.includes('pollicis') &&
+    !text.includes('polic') &&
+    !text.includes('hallucis')
+  ) {
+    return 'bridging';
+  }
+
+  // Deep hip rotators (piriformis, obturator internus/externus, gemelli, quadratus femoris)
+  if (
+    nodeId === 'muscle_piriformis' ||
+    nodeId === 'muscle_obturator_internus' ||
+    nodeId === 'muscle_obturator_externus' ||
+    nodeId === 'muscle_gemellus_superior' ||
+    nodeId === 'muscle_gemellus_inferior' ||
+    nodeId === 'muscle_quadratus_femoris' ||
+    text.includes('piriformis') ||
+    text.includes('obturator') ||
+    text.includes('gemellus') ||
+    text.includes('quadratus_femoris') ||
+    text.includes('quadratus femoris')
+  ) {
+    return 'bridging';
+  }
+
   // Lumbar spine vertebrae (L1-L5) and intervertebral discs (L5-S1 through T12-L1)
   // These bridge between the sacrum / hip bone assembly and the thoracic cage,
   // articulating along a smooth continuous spinal curve as the torso moves.
@@ -2139,6 +2203,36 @@ export function deformBridgingMesh(
     deformBridgingQuadratusLumborumMesh(mesh, rotations.spineRotationX);
   } else if (isLumbarSpineMesh(mesh)) {
     deformBridgingLumbarSpineMesh(mesh, rotations.spineRotationX);
+  } else if (isGluteusMesh(mesh)) {
+    deformBridgingGluteusMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isTensorFasciaeLataeMesh(mesh)) {
+    deformBridgingTensorFasciaeLataeMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isIliacusOrPectineusMesh(mesh)) {
+    deformBridgingIliacusPectineusMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isAdductorMesh(mesh)) {
+    deformBridgingAdductorMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isDeepHipRotatorMesh(mesh)) {
+    deformBridgingDeepHipRotatorMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
   }
 }
 
@@ -3745,6 +3839,467 @@ export function deformBridgingLumbarSpineMesh(
       arr[idx + 1] = yCenter + (dy * cosP - dz * sinP);
       arr[idx + 2] = zCenter + (dy * sinP + dz * cosP);
     }
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isGluteusMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_gluteus_maximus' ||
+    mesh.name === 'muscle_gluteus_medius' ||
+    mesh.name === 'muscle_gluteus_minimus' ||
+    text.includes('gluteus') ||
+    text.includes('glute')
+  );
+}
+
+/**
+ * Deforms the dual-anchored Gluteus muscle meshes (Maximus, Medius, Minimus) across the hip joint.
+ * Upper origins connect securely to the pelvis (sacrum, coccyx, ilium, and iliac crest at Y >= 0.885-0.920).
+ * Lower insertions connect to the femur (greater trochanter and gluteal tuberosity at Y <= 0.780-0.850).
+ * Intermediate bellies smoothly blend and stretch/squash during hip flexion and hip abduction.
+ */
+export function deformBridgingGluteusMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isMaximus = text.includes('maximus');
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  const thetaHflex = Math.max(0, -thetaThighX);
+  const sinHflex = Math.sin(thetaHflex);
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const hipX = signX * hip.x;
+    const effThighZ = signX * thetaThighZ;
+
+    // Weight w: 0 = firmly anchored to pelvis, 1 = rotating with femur
+    let w = 0;
+    let t = 0;
+    if (isMaximus) {
+      // Gluteus maximus: upper origin on iliac crest & sacrum (y0 >= 0.900), insertion on gluteal tuberosity (y0 <= 0.780)
+      t = (0.900 - y0) / (0.900 - 0.780);
+      if (t < 0) t = 0;
+      if (t > 1) t = 1;
+      w = t * t * (3 - 2 * t);
+    } else {
+      // Gluteus medius & minimus: upper origin on iliac crest (y0 >= 0.920), insertion on greater trochanter (y0 <= 0.850)
+      t = (0.920 - y0) / (0.920 - 0.850);
+      if (t < 0) t = 0;
+      if (t > 1) t = 1;
+      w = t * t * (3 - 2 * t);
+    }
+
+    const cosHZ_eff = Math.cos(w * effThighZ);
+    const sinHZ_eff = Math.sin(w * effThighZ);
+    const cosHX_eff = Math.cos(w * thetaThighX);
+    const sinHX_eff = Math.sin(w * thetaThighX);
+
+    const dxH = x0 - hipX;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xSZ = dxH * cosHZ_eff - dyH * sinHZ_eff;
+    const ySZ = dxH * sinHZ_eff + dyH * cosHZ_eff;
+    const zSZ = dzH;
+
+    let xFinal = hipX + xSZ;
+    let yFinal = hip.y + (ySZ * cosHX_eff - zSZ * sinHX_eff);
+    let zFinal = hip.z + (ySZ * sinHX_eff + zSZ * cosHX_eff);
+
+    // Stretch & squash:
+    // 1. Gluteus maximus stretches taut across posterior hip during flexion, pulling slightly inward to hug the flexed joint
+    if (isMaximus && thetaHflex > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      zFinal += 0.010 * sinHflex * b;
+    }
+
+    // 2. Gluteus medius/minimus (hip abductors) contract and squash laterally during hip abduction
+    const thetaAbduct = Math.max(0, effThighZ);
+    if (!isMaximus && thetaAbduct > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      xFinal += 0.012 * Math.sin(thetaAbduct) * b * signX;
+    }
+
+    arr[idx] = xFinal;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isTensorFasciaeLataeMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_tensor_fasciae_latae' ||
+    text.includes('tensor_fasciae_latae') ||
+    text.includes('tensor fasciae latae') ||
+    text.includes('tensor_fascia')
+  );
+}
+
+/**
+ * Deforms the dual-anchored Tensor fasciae latae muscle between the ASIS on the pelvis (Y >= 0.930)
+ * and the iliotibial tract of the thigh (Y <= 0.840).
+ */
+export function deformBridgingTensorFasciaeLataeMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  const thetaHflex = Math.max(0, -thetaThighX);
+  const sinHflex = Math.sin(thetaHflex);
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const hipX = signX * hip.x;
+    const effThighZ = signX * thetaThighZ;
+
+    // ASIS origin at y0 >= 0.930, IT band insertion at y0 <= 0.840
+    let t = (0.930 - y0) / (0.930 - 0.840);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    const cosHZ_eff = Math.cos(w * effThighZ);
+    const sinHZ_eff = Math.sin(w * effThighZ);
+    const cosHX_eff = Math.cos(w * thetaThighX);
+    const sinHX_eff = Math.sin(w * thetaThighX);
+
+    const dxH = x0 - hipX;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xSZ = dxH * cosHZ_eff - dyH * sinHZ_eff;
+    const ySZ = dxH * sinHZ_eff + dyH * cosHZ_eff;
+    const zSZ = dzH;
+
+    let xFinal = hipX + xSZ;
+    let yFinal = hip.y + (ySZ * cosHX_eff - zSZ * sinHX_eff);
+    let zFinal = hip.z + (ySZ * sinHX_eff + zSZ * cosHX_eff);
+
+    // Active flexor squash/bulge during hip flexion
+    if (thetaHflex > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      zFinal += 0.008 * sinHflex * b;
+      xFinal += 0.005 * sinHflex * b * signX;
+    }
+
+    arr[idx] = xFinal;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isIliacusOrPectineusMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_iliacus' ||
+    mesh.name === 'muscle_pectineus' ||
+    text.includes('iliacus') ||
+    (text.includes('pectineus') && !text.includes('pectoral'))
+  );
+}
+
+/**
+ * Deforms the dual-anchored Iliacus and Pectineus muscles across the anterior/medial hip joint.
+ * Upper origins connect to the iliac fossa and pubic bone on the pelvis.
+ * Lower insertions connect to the lesser trochanter and pectineal line on the femur.
+ */
+export function deformBridgingIliacusPectineusMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isIliacus = text.includes('iliacus');
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  const thetaHflex = Math.max(0, -thetaThighX);
+  const sinHflex = Math.sin(thetaHflex);
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const hipX = signX * hip.x;
+    const effThighZ = signX * thetaThighZ;
+
+    let t = 0;
+    if (isIliacus) {
+      // Iliac fossa origin y0 >= 0.890, lesser trochanter insertion y0 <= 0.790
+      t = (0.890 - y0) / (0.890 - 0.790);
+    } else {
+      // Pectineus: pubic origin y0 >= 0.840, femur insertion y0 <= 0.770
+      t = (0.840 - y0) / (0.840 - 0.770);
+    }
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    const cosHZ_eff = Math.cos(w * effThighZ);
+    const sinHZ_eff = Math.sin(w * effThighZ);
+    const cosHX_eff = Math.cos(w * thetaThighX);
+    const sinHX_eff = Math.sin(w * thetaThighX);
+
+    const dxH = x0 - hipX;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xSZ = dxH * cosHZ_eff - dyH * sinHZ_eff;
+    const ySZ = dxH * sinHZ_eff + dyH * cosHZ_eff;
+    const zSZ = dzH;
+
+    let xFinal = hipX + xSZ;
+    let yFinal = hip.y + (ySZ * cosHX_eff - zSZ * sinHX_eff);
+    let zFinal = hip.z + (ySZ * sinHX_eff + zSZ * cosHX_eff);
+
+    // Flexor thickening during hip flexion
+    if (thetaHflex > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      zFinal += 0.007 * sinHflex * b;
+    }
+
+    arr[idx] = xFinal;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isAdductorMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    (mesh.name === 'muscle_adductor_longus' ||
+      text.includes('adductor_longus') ||
+      text.includes('adductor_brevis') ||
+      text.includes('adductor_magnus') ||
+      text.includes('adductor_minimus') ||
+      text.includes('adducteur') ||
+      text.includes('adductor')) &&
+    !text.includes('pollicis') &&
+    !text.includes('polic') &&
+    !text.includes('hallucis')
+  );
+}
+
+/**
+ * Deforms the dual-anchored Adductor group muscles (Longus, Brevis, Magnus, Minimus) across the medial hip joint.
+ * Upper origins connect to the pubic and ischial rami on the pelvis (Y >= 0.820).
+ * Lower insertions connect to the linea aspera and adductor tubercle on the femur (Y <= 0.740).
+ */
+export function deformBridgingAdductorMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const hipX = signX * hip.x;
+    const effThighZ = signX * thetaThighZ;
+
+    // Pubic/ischial origin y0 >= 0.820, femur shaft insertion y0 <= 0.740
+    let t = (0.820 - y0) / (0.820 - 0.740);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    const cosHZ_eff = Math.cos(w * effThighZ);
+    const sinHZ_eff = Math.sin(w * effThighZ);
+    const cosHX_eff = Math.cos(w * thetaThighX);
+    const sinHX_eff = Math.sin(w * thetaThighX);
+
+    const dxH = x0 - hipX;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xSZ = dxH * cosHZ_eff - dyH * sinHZ_eff;
+    const ySZ = dxH * sinHZ_eff + dyH * cosHZ_eff;
+    const zSZ = dzH;
+
+    let xFinal = hipX + xSZ;
+    let yFinal = hip.y + (ySZ * cosHX_eff - zSZ * sinHX_eff);
+    let zFinal = hip.z + (ySZ * sinHX_eff + zSZ * cosHX_eff);
+
+    // Natural stretch across medial thigh during hip abduction
+    const thetaAbduct = Math.max(0, effThighZ);
+    if (thetaAbduct > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      xFinal -= 0.005 * Math.sin(thetaAbduct) * b * signX;
+    }
+
+    arr[idx] = xFinal;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isDeepHipRotatorMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_piriformis' ||
+    mesh.name === 'muscle_obturator_internus' ||
+    mesh.name === 'muscle_obturator_externus' ||
+    mesh.name === 'muscle_gemellus_superior' ||
+    mesh.name === 'muscle_gemellus_inferior' ||
+    mesh.name === 'muscle_quadratus_femoris' ||
+    text.includes('piriformis') ||
+    text.includes('obturator') ||
+    text.includes('gemellus') ||
+    text.includes('quadratus_femoris') ||
+    text.includes('quadratus femoris')
+  );
+}
+
+/**
+ * Deforms the dual-anchored Deep Hip Rotator muscles (Piriformis, Obturators, Gemelli, Quadratus Femoris)
+ * across the posterior hip joint.
+ * Medial origins connect to the sacrum, ischium, and obturator membrane on the pelvis (|X| <= 0.045).
+ * Lateral insertions connect to the greater trochanter, trochanteric fossa, and quadrate tubercle of the femur (|X| >= 0.115).
+ */
+export function deformBridgingDeepHipRotatorMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const hipX = signX * hip.x;
+    const effThighZ = signX * thetaThighZ;
+
+    // Horizontal/transverse blend from medial sacrum/pelvis (|x0| <= 0.045) to lateral trochanter (|x0| >= 0.115)
+    let tX = (Math.abs(x0) - 0.045) / (0.115 - 0.045);
+    if (tX < 0) tX = 0;
+    if (tX > 1) tX = 1;
+    const w = tX * tX * (3 - 2 * tX);
+
+    const cosHZ_eff = Math.cos(w * effThighZ);
+    const sinHZ_eff = Math.sin(w * effThighZ);
+    const cosHX_eff = Math.cos(w * thetaThighX);
+    const sinHX_eff = Math.sin(w * thetaThighX);
+
+    const dxH = x0 - hipX;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+
+    const xSZ = dxH * cosHZ_eff - dyH * sinHZ_eff;
+    const ySZ = dxH * sinHZ_eff + dyH * cosHZ_eff;
+    const zSZ = dzH;
+
+    const xFinal = hipX + xSZ;
+    const yFinal = hip.y + (ySZ * cosHX_eff - zSZ * sinHX_eff);
+    const zFinal = hip.z + (ySZ * sinHX_eff + zSZ * cosHX_eff);
+
+    arr[idx] = xFinal;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
   }
 
   posAttr.needsUpdate = true;
