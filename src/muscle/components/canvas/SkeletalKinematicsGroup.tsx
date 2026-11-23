@@ -85,10 +85,29 @@ function SkeletalKinematicsGroupComponent({
     for (const mesh of meshes) {
       const node = getNodeById(mesh.name);
       const segment = getKinematicSegmentForNodeId(mesh.name, node?.region, node?.name);
-      buckets[segment].push(mesh);
+      if (segment === 'bridging') {
+        const cloned = mesh.clone();
+        cloned.geometry = mesh.geometry.clone();
+        if (mesh.geometry.userData.origPositions) {
+          cloned.geometry.userData.origPositions = Float32Array.from(mesh.geometry.userData.origPositions);
+        } else if (mesh.geometry.attributes.position) {
+          cloned.geometry.userData.origPositions = Float32Array.from(mesh.geometry.attributes.position.array);
+        }
+        buckets[segment].push(cloned);
+      } else {
+        buckets[segment].push(mesh);
+      }
     }
     return buckets;
   }, [meshes]);
+
+  useEffect(() => {
+    return () => {
+      for (const mesh of categorizedMeshes.bridging) {
+        mesh.geometry.dispose();
+      }
+    };
+  }, [categorizedMeshes]);
 
   const applyJointAngles = (angles: SkeletonJointAngles) => {
     const sideAngles = extractJointAnglesForSide(angles, side);

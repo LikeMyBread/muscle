@@ -95,11 +95,25 @@ describe('skeletalKinematics', () => {
         'Deep head of prontaor teres muscle.r',
       ),
     ).toBe('forearm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_extensor_digiti_minimi_r_a77e7b69',
+        undefined,
+        'Extensor digiti minimi.r',
+      ),
+    ).toBe('forearm');
 
     // Hand
     expect(getKinematicSegmentForNodeId('bone_carpals')).toBe('hand');
     expect(getKinematicSegmentForNodeId('bone_metacarpals')).toBe('hand');
     expect(getKinematicSegmentForNodeId('joint_wrist')).toBe('hand');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_abductor_digiti_minimi_r_84af0e15',
+        undefined,
+        'Abductor digiti minimi.r',
+      ),
+    ).toBe('hand');
     expect(
       getKinematicSegmentForNodeId(
         'atlas_transverse_head_of_adductor_pollicis_a8480383',
@@ -140,6 +154,13 @@ describe('skeletalKinematics', () => {
         'Plantaris muscle medially to the lateral gastrocnemius orig',
       ),
     ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_origin_of_articularis_genus_r_85ebc333',
+        undefined,
+        'Origin of articularis genus.r',
+      ),
+    ).toBe('thigh');
 
     // Shin
     expect(getKinematicSegmentForNodeId('bone_tibia')).toBe('shin');
@@ -167,6 +188,13 @@ describe('skeletalKinematics', () => {
         'atlas_sesamoid_bones_of_foot_r_9fe412a6',
         undefined,
         'Sesamoid bones of foot.r',
+      ),
+    ).toBe('foot');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_abductor_digiti_minimi_of_foot_r_b4068044',
+        undefined,
+        'Abductor digiti minimi of foot.r',
       ),
     ).toBe('foot');
   });
@@ -509,5 +537,78 @@ describe('skeletalKinematics', () => {
     expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+  });
+
+  it('supports separate left and right leg deformation for Fascia lata and Plantaris', () => {
+    // Left leg has knee flexed, Right leg has knee extended (neutral)
+    const rawCoordsFascia = [0.118, 0.40, -0.025, 0.14, 0.65, -0.01, 0.142, 0.98, -0.02];
+    const leftGeomFascia = new THREE.BufferGeometry();
+    leftGeomFascia.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsFascia, 3));
+    const leftMeshFascia = new THREE.Mesh(leftGeomFascia);
+    leftMeshFascia.name = 'atlas_fascia_lata_r_d92bb3d0';
+
+    const rightGeomFascia = new THREE.BufferGeometry();
+    rightGeomFascia.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsFascia, 3));
+    const rightMeshFascia = new THREE.Mesh(rightGeomFascia);
+    rightMeshFascia.name = 'atlas_fascia_lata_r_d92bb3d0';
+
+    // Left knee flexed (kneeFlexion = 1.2 rad), Right knee neutral (0 rad)
+    deformBridgingMesh(leftMeshFascia, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 1.2,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+    deformBridgingMesh(rightMeshFascia, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+
+    const leftPosFascia = leftGeomFascia.attributes.position.array as Float32Array;
+    const rightPosFascia = rightGeomFascia.attributes.position.array as Float32Array;
+
+    // Left distal vertex must have flexed with knee (Z < -0.025)
+    expect(leftPosFascia[2]).toBeLessThan(-0.025);
+    // Right distal vertex must remain at original neutral rest position
+    expect(rightPosFascia[2]).toBeCloseTo(-0.025, 5);
+
+    // Plantaris: Right leg has knee flexed, Left leg neutral
+    const rawCoordsPlantaris = [0.04, 0.50, -0.05, 0.04, 0.38, -0.06];
+    const leftGeomPlantaris = new THREE.BufferGeometry();
+    leftGeomPlantaris.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsPlantaris, 3));
+    const leftMeshPlantaris = new THREE.Mesh(leftGeomPlantaris);
+    leftMeshPlantaris.name = 'atlas_plantaris_muscle_r_5a2fd02c';
+
+    const rightGeomPlantaris = new THREE.BufferGeometry();
+    rightGeomPlantaris.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsPlantaris, 3));
+    const rightMeshPlantaris = new THREE.Mesh(rightGeomPlantaris);
+    rightMeshPlantaris.name = 'atlas_plantaris_muscle_r_5a2fd02c';
+
+    deformBridgingMesh(leftMeshPlantaris, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+    deformBridgingMesh(rightMeshPlantaris, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 1.2,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+
+    const leftPosPlantaris = leftGeomPlantaris.attributes.position.array as Float32Array;
+    const rightPosPlantaris = rightGeomPlantaris.attributes.position.array as Float32Array;
+
+    // Left distal plantaris remains at rest
+    expect(leftPosPlantaris[5]).toBeCloseTo(-0.06, 5);
+    // Right distal plantaris swung posteriorly with the flexed knee
+    expect(rightPosPlantaris[5]).toBeLessThan(-0.06);
   });
 });

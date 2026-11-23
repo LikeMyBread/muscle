@@ -198,6 +198,13 @@ export function getKinematicSegmentForNodeId(
     text.includes('interossei of hand') ||
     text.includes('lumbricals_of_hand') ||
     text.includes('lumbricals of hand') ||
+    nodeId === 'atlas_abductor_digiti_minimi_r_84af0e15' ||
+    text === 'abductor digiti minimi.r' ||
+    text.includes('abductor_digiti_minimi_r') ||
+    (text.includes('abductor') &&
+      text.includes('digiti') &&
+      text.includes('minimi') &&
+      !text.includes('foot')) ||
     text.includes('digiti_minimi_of_hand') ||
     text.includes('digiti minimi of hand') ||
     text.includes('finger')
@@ -237,7 +244,11 @@ export function getKinematicSegmentForNodeId(
     text.includes('abductor_pollicis_longus') ||
     text.includes('abductor pollicis longus') ||
     text.includes('flexor_pollicis_longus') ||
-    text.includes('flexor pollicis longus')
+    text.includes('flexor pollicis longus') ||
+    nodeId === 'atlas_extensor_digiti_minimi_r_a77e7b69' ||
+    text === 'extensor digiti minimi.r' ||
+    text.includes('extensor_digiti_minimi') ||
+    text.includes('extensor digiti minimi')
   ) {
     return 'forearm';
   }
@@ -246,6 +257,10 @@ export function getKinematicSegmentForNodeId(
   if (
     nodeId === 'bone_femur' ||
     nodeId === 'joint_hip' ||
+    nodeId === 'atlas_origin_of_articularis_genus_r_85ebc333' ||
+    text === 'origin of articularis genus.r' ||
+    text.includes('articularis_genus') ||
+    text.includes('articularis genus') ||
     text.includes('femur') ||
     text.includes('femoris') ||
     text.includes('thigh') ||
@@ -512,7 +527,10 @@ export function isPsoasMesh(mesh: THREE.Mesh): boolean {
 
 export function isPlantarisMesh(mesh: THREE.Mesh): boolean {
   const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
-  return text.includes('plantaris');
+  return (
+    mesh.name === 'atlas_plantaris_muscle_r_5a2fd02c' ||
+    (text.includes('plantaris') && !text.includes('origin') && !text.includes('orig'))
+  );
 }
 
 /**
