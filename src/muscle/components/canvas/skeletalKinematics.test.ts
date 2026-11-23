@@ -1345,14 +1345,16 @@ describe('skeletalKinematics', () => {
   });
 
   it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {
-    // 3 representative vertices:
+    // 4 representative vertices:
     // 0: medial sternal origin (X = 0.04, Y = 1.30, Z = 0.06)
-    // 1: mid-belly / axillary fold (X = 0.12, Y = 1.32, Z = 0.04)
+    // 1: mid-belly / axillary fold (X = 0.14, Y = 1.32, Z = 0.04)
     // 2: lateral humeral insertion at greater tubercle (X = 0.19, Y = 1.33, Z = -0.01)
+    // 3: lower costal edge (X = 0.08, Y = 1.20, Z = 0.08, below Y <= 1.240 threshold)
     const rawCoords = [
       0.04, 1.30, 0.06, // Sternum origin
-      0.12, 1.32, 0.04, // Chest belly / axillary fold
+      0.14, 1.32, 0.04, // Chest belly / axillary fold
       0.19, 1.33, -0.01, // Humeral tendon insertion
+      0.08, 1.20, 0.08, // Lower edge on ribs
     ];
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
@@ -1370,11 +1372,16 @@ describe('skeletalKinematics', () => {
     expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
 
-    // Lateral humeral insertion swings outward laterally (+X) and upward (+Y)
+    // Lower edge constraint: stays strictly fixed to chest wall / ribs
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
+    // Lateral humeral insertion translates outward laterally (+X) and upward (+Y)
     expect(pos[6]).toBeGreaterThan(rawCoords[6] + 0.02);
     expect(pos[7]).toBeGreaterThan(rawCoords[7]);
 
-    // Mid-belly stretches outward
+    // Mid-belly mildly stretches outward
     expect(pos[3]).toBeGreaterThan(rawCoords[3]);
 
     // B. Forward Flexion / Horizontal Adduction (thetaArmX = -0.8 rad)
@@ -1387,11 +1394,16 @@ describe('skeletalKinematics', () => {
     expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
 
-    // Lateral humeral insertion swings forward into +Z
+    // Lower edge remains strictly pinned to chest wall
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
+    // Lateral humeral insertion translates forward into +Z
     expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.02);
 
-    // Mid-belly contracts and bulges anteriorly (+Z)
-    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.02);
+    // Mid-belly contracts mildly and bulges anteriorly (+Z)
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.005);
 
     // C. Combined 2-axis rotation (Abduction 0.6 rad + Forward Flexion -0.6 rad)
     restoreOriginalMeshPositions(mesh);
@@ -1403,6 +1415,11 @@ describe('skeletalKinematics', () => {
     expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
 
+    // Lower edge strictly anchored
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
     // Lateral tendon compounds in both X and Z
     expect(pos[6]).toBeGreaterThan(rawCoords[6]);
     expect(pos[8]).toBeGreaterThan(rawCoords[8]);
@@ -1413,6 +1430,9 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
     expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {

@@ -2411,10 +2411,15 @@ export function isPectoralisMajorMesh(mesh: THREE.Mesh): boolean {
 /**
  * Deforms the dual-anchored Pectoralis major muscle across compound 2-axis shoulder rotations
  * (abduction/adduction thetaArmZ, flexion/extension thetaArmX).
- * Medial origins along the sternum, ribs, and clavicle remain strictly anchored to the torso (spine).
- * Lateral tendon insertion at the crest of greater tubercle of humerus (x_abs >= 0.170) strictly follows
- * the compound arm rotation.
- * Across the anterior axillary fold and chest, fibers smoothly stretch and squash with volume-preserving bulge.
+ *
+ * Anatomical & Kinematic Constraints:
+ * 1. Translation-only insertion: vertices attaching to the humerus translate with the humeral insertion
+ *    displacement (delta_T_ins) rather than rotating locally, preventing twisting, flipping, or tearing.
+ * 2. Lower edge constraint: all vertices along the inferior / abdominal border (Y <= 1.240, costal margin
+ *    and rectus sheath) remain 100% pinned to the chest wall.
+ * 3. Medial chest constraint: the majority of the muscle across the sternum and medial clavicle
+ *    (x_abs <= 0.115) remains 100% pinned to the torso (spine).
+ * 4. Upper-lateral fibers smoothly and mildly stretch toward the translated humeral tendon.
  */
 export function deformBridgingPectoralisMajorMesh(
   mesh: THREE.Mesh,
@@ -2444,6 +2449,40 @@ export function deformBridgingPectoralisMajorMesh(
 
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
 
+  // Precompute the pure translation displacement of the humeral insertion landmark
+  // for both right (sign = -1) and left (sign = +1) sides
+  const calcTendonDelta = (sign: number) => {
+    const sX = sign * shoulder.x;
+    const effZ = sign * thetaArmZ;
+    const cZ = Math.cos(effZ);
+    const sZ = Math.sin(effZ);
+
+    const xIns0 = sign * 0.188;
+    const yIns0 = 1.326;
+    const zIns0 = -0.016;
+
+    const dx = xIns0 - sX;
+    const dy = yIns0 - shoulder.y;
+    const dz = zIns0 - shoulder.z;
+
+    const xSZ = dx * cZ - dy * sZ;
+    const ySZ = dx * sZ + dy * cZ;
+    const zSZ = dz;
+
+    const xPrime = sX + xSZ;
+    const yPrime = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zPrime = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    return {
+      dx: xPrime - xIns0,
+      dy: yPrime - yIns0,
+      dz: zPrime - zIns0,
+    };
+  };
+
+  const deltaPos = calcTendonDelta(1);
+  const deltaNeg = calcTendonDelta(-1);
+
   const arr = posAttr.array as Float32Array;
 
   for (let i = 0; i < count; i++) {
@@ -2452,51 +2491,40 @@ export function deformBridgingPectoralisMajorMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    const signX = x0 < 0 ? -1 : 1;
-    const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
-    const effArmZ = signX * thetaArmZ;
+    const delta = x0 < 0 ? deltaNeg : deltaPos;
 
-    const cosAZ = Math.cos(effArmZ);
-    const sinAZ = Math.sin(effArmZ);
+    // 1. Lower edge constraint:
+    // Below Y = 1.240, muscle is 100% pinned to ribs/aponeurosis (wY = 0).
+    // Between 1.240 and 1.285, wY smoothly ramps up to 1 toward the axillary fold.
+    let fY = (y0 - 1.240) / (1.285 - 1.240);
+    if (fY < 0) fY = 0;
+    if (fY > 1) fY = 1;
+    const wY = fY * fY * (3 - 2 * fY);
 
-    // 1. Arm forward kinematics around shoulder pivot (Three.js Euler 'XYZ': Z abduction, then X flexion)
-    const dxS = x0 - shoulderX;
-    const dyS = y0 - shoulder.y;
-    const dzS = z0 - shoulder.z;
-
-    const xSZ = dxS * cosAZ - dyS * sinAZ;
-    const ySZ = dxS * sinAZ + dyS * cosAZ;
-    const zSZ = dzS;
-
-    const xArm = shoulderX + xSZ;
-    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
-    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
-
-    // 2. Blend across chest from medial origins (sternum / clavicle: w = 0) to lateral humeral tendon (w = 1)
-    // Sternal origins: x_abs <= 0.065 (lower) to 0.095 (clavicular head near y0 >= 1.390)
-    // Humeral insertion: x_abs >= 0.170
+    // 2. Medial chest constraint:
+    // Medial chest (xabs <= 0.115) and clavicle (xabs <= 0.105) are 100% pinned to chest wall (wX = 0).
+    // Only lateral fibers heading to the armpit and humerus (xabs >= 0.115 to 0.170) stretch.
     const xabs = Math.abs(x0);
-    const clavClamped = Math.max(0, Math.min(1, (y0 - 1.320) / 0.070));
-    const xOrig = 0.065 + 0.030 * clavClamped;
+    let tX = (xabs - 0.115) / (0.170 - 0.115);
+    if (tX < 0) tX = 0;
+    if (tX > 1) tX = 1;
+    const wX = tX * tX * (3 - 2 * tX);
 
-    let t = (xabs - xOrig) / (0.170 - xOrig);
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-    const w = t * t * (3 - 2 * t);
+    // Combined influence: only lateral AND upper fibers move with the humeral insertion
+    const w = wX * wY;
 
-    let xMid = (1 - w) * x0 + w * xArm;
-    let yMid = (1 - w) * y0 + w * yArm;
-    let zMid = (1 - w) * z0 + w * zArm;
+    // Translation only (no rotation of the vertices)
+    let xMid = x0 + w * delta.dx;
+    let yMid = y0 + w * delta.dy;
+    let zMid = z0 + w * delta.dz;
 
-    // 3. Stretch & squash / muscular bulge in the mid-belly:
-    // During forward flexion & horizontal adduction (thetaArmX < 0), chest bunches anteriorly (+Z)
-    if (t > 0 && t < 1 && sinFlex > 0) {
-      const b = Math.sin(Math.PI * t);
-      zMid += 0.016 * sinFlex * b;
-      yMid += 0.005 * sinFlex * b;
+    // Mild anterior bulge during forward flexion / horizontal adduction
+    if (w > 0 && w < 1 && sinFlex > 0) {
+      const b = Math.sin(Math.PI * w);
+      zMid += 0.008 * sinFlex * b;
     }
 
-    // 4. Spine transform around spine pivot (pitch around X)
+    // Spine transform around spine pivot
     const dySp = yMid - spine.y;
     const dzSp = zMid - spine.z;
     const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
