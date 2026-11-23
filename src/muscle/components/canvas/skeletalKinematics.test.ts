@@ -82,6 +82,27 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('bone_humerus')).toBe('arm');
     expect(getKinematicSegmentForNodeId('joint_shoulder')).toBe('arm');
     expect(getKinematicSegmentForNodeId('muscle_biceps_brachii')).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_bracioradialis_muscle_humeral_insert_03bc4dad',
+        undefined,
+        'Bracioradialis muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_anconeus_muscle_humeral_insertion_r_241c9c19',
+        undefined,
+        'Anconeus muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_deltoid_muscle_humeral_insertion_r_ed353102',
+        undefined,
+        'Deltoid muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
 
     // Forearm
     expect(getKinematicSegmentForNodeId('bone_radius')).toBe('forearm');

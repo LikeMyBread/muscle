@@ -212,6 +212,16 @@ export function getKinematicSegmentForNodeId(
     return 'hand';
   }
 
+  // Humeral bone insertions/origins always attach to the humerus (arm), not the forearm
+  if (
+    nodeId === 'atlas_bracioradialis_muscle_humeral_insert_03bc4dad' ||
+    text.includes('humeral_insert') ||
+    text.includes('humeral insertion') ||
+    text.includes('humeral_insertion')
+  ) {
+    return 'arm';
+  }
+
   // 5. Forearm (Parented to elbow pivot)
   if (
     nodeId === 'bone_radius' ||
@@ -295,6 +305,7 @@ export function getKinematicSegmentForNodeId(
     nodeId === 'joint_shoulder' ||
     nodeRegion === 'arm' ||
     text.includes('humerus') ||
+    text.includes('humeral') ||
     text.includes('deltoid') ||
     text.includes('biceps_brachii') ||
     text.includes('biceps brachii') ||
