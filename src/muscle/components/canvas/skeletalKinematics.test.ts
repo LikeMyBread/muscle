@@ -1489,9 +1489,14 @@ describe('skeletalKinematics', () => {
     // Distal insertion swings forward (+Z) and upward (+Y)
     expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.05);
 
-    // Deltoid body moves forward (+Z) and flexes upward (+Y)
-    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.01);
-    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.01);
+    // Deltoid body stretches and twists forward (+Z) and flexes upward (+Y)
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.005);
+    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.005);
+
+    // Acromial origin on shoulder girdle remains functionally attached to torso (zero forward/back displacement)
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 4);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 4);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 4);
 
     // Inner edge remains strictly pinned to skeleton during flexion
     expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
@@ -1507,10 +1512,15 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.02);
     expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.02);
 
-    // Deltoid body slides up (+Y), inward (-X), and forward (+Z)
+    // Deltoid body lifts upward (+Y), maintains outward humerus clearance (+X), and stays stable in Z
+    expect(pos[3]).toBeGreaterThan(rawCoords[3]);
+    expect(pos[4]).toBeGreaterThan(rawCoords[4]);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 2);
+
+    // Acromial origin on shoulder girdle performs subtle flex lift from abduction but remains attached to torso in Z
     expect(pos[6]).toBeLessThan(rawCoords[6]);
     expect(pos[7]).toBeGreaterThan(rawCoords[7]);
-    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 4);
 
     // Inner edge remains strictly pinned during compound movement
     expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
@@ -1764,6 +1774,75 @@ describe('skeletalKinematics', () => {
       // 3. Monotonic spatial ordering is strictly preserved across the shoulder dome
       expect(apexX).toBeLessThan(outerFlankX);
       expect(outerFlankX).toBeLessThan(outerMarginX);
+    }
+  });
+
+  it('keeps deltoid torso attachment points stationary during forward/back arm rotation while stretching and twisting belly to moving humerus', () => {
+    // Deltoid landmarks spanning origin crest, belly, and insertion:
+    // 0: Clavicular origin on collarbone (Anterior head)
+    // 1: Acromial origin on shoulder girdle (Lateral head)
+    // 2: Scapular spine origin on shoulder blade (Posterior head)
+    // 3: Mid-belly fiber (Anterior)
+    // 4: Mid-belly fiber (Lateral)
+    // 5: Distal insertion on humerus (Deltoid tuberosity)
+    const rawCoords = [
+      0.120, 1.415, -0.015, // v0: Clavicular origin
+      0.165, 1.412, -0.038, // v1: Acromial origin
+      0.136, 1.390, -0.080, // v2: Scapular spine origin
+      0.160, 1.350, 0.000,  // v3: Anterior belly
+      0.210, 1.340, -0.025, // v4: Lateral belly
+      0.207, 1.280, -0.025, // v5: Distal insertion
+    ];
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    const testAngles = [
+      { name: 'Forward flexion 20°', rad: -0.35, isFlex: true },
+      { name: 'Forward flexion 45°', rad: -0.78, isFlex: true },
+      { name: 'Forward flexion 65°', rad: -1.13, isFlex: true },
+      { name: 'Backward extension 20°', rad: 0.35, isFlex: false },
+      { name: 'Backward extension 40°', rad: 0.70, isFlex: false },
+    ];
+
+    for (const test of testAngles) {
+      restoreOriginalMeshPositions(mesh);
+      deformBridgingDeltoidMesh(mesh, 0, test.rad, 0);
+      const pos = geom.attributes.position.array as Float32Array;
+
+      // 1. All proximal origin landmarks (clavicle, acromion, scapular spine) MUST remain attached to the torso
+      // Displacement from arm forward/back rotation should be functionally zero (within 1mm)
+      for (let v = 0; v < 3; v++) {
+        const idx = v * 3;
+        expect(pos[idx]).toBeCloseTo(rawCoords[idx], 3);     // X unchanged
+        expect(pos[idx + 1]).toBeCloseTo(rawCoords[idx + 1], 3); // Y unchanged
+        expect(pos[idx + 2]).toBeCloseTo(rawCoords[idx + 2], 3); // Z unchanged (does NOT move forward/back)
+      }
+
+      // 2. Distal insertion tracks humerus motion rigidly
+      const insIdx = 5 * 3;
+      const insDispZ = pos[insIdx + 2] - rawCoords[insIdx + 2];
+      if (test.isFlex) {
+        expect(insDispZ).toBeGreaterThan(0.02); // Swings forward (+Z)
+      } else {
+        expect(insDispZ).toBeLessThan(-0.02); // Swings backward (-Z)
+      }
+
+      // 3. Deltoid belly fibers stretch and twist progressively between fixed torso and moving humerus
+      for (const b of [3, 4]) {
+        const bIdx = b * 3;
+        const bellyDispZ = pos[bIdx + 2] - rawCoords[bIdx + 2];
+        // Belly displacement has same direction as insertion, but intermediate magnitude
+        if (test.isFlex) {
+          expect(bellyDispZ).toBeGreaterThan(0);
+          expect(bellyDispZ).toBeLessThan(insDispZ);
+        } else {
+          expect(bellyDispZ).toBeLessThan(0);
+          expect(bellyDispZ).toBeGreaterThan(insDispZ);
+        }
+      }
     }
   });
 

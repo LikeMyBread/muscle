@@ -2498,13 +2498,10 @@ export function deformBridgingDeltoidMesh(
   // Provides a subtle, natural crest lift (up to ~3.5 cm) without bulging upward too high into the air.
   const arcDy = 0.035 * Math.sin(normAbduct * (Math.PI / 2));
 
-  // Flexion/extension displacements for forward/backward arm swing
-  const sinFlex = Math.sin(Math.max(0, -thetaArmX));
-  const sinExt = Math.sin(Math.max(0, thetaArmX));
-  const arcDz = 0.040 * sinFlex - 0.030 * sinExt;
-  const arcFlexDy = 0.015 * sinFlex;
-
-  // Precompute shoulder rotation trigonometric factors for both right (+1) and left (-1) sides
+  // Flexion/extension trigonometric components for forward/backward arm swing
+  // (Pure rotation around shoulder pivot without artificial girdle translation)
+  // Origins on clavicle, acromion, and scapular spine functionally anchor to the torso;
+  // muscle fibers stretch and twist toward the moving humeral insertion.
   const cZPos = Math.cos(thetaArmZ);
   const sZPos = Math.sin(thetaArmZ);
   const cZNeg = Math.cos(-thetaArmZ);
@@ -2521,7 +2518,7 @@ export function deformBridgingDeltoidMesh(
     const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
 
-    // Exact rigid arm displacement at this vertex (keeps outer attachment exactly tracking the humerus):
+    // Exact rigid arm displacement components at this vertex:
     const sX = signX * shoulder.x;
     const cZ = signX < 0 ? cZNeg : cZPos;
     const sZ = signX < 0 ? sZNeg : sZPos;
@@ -2534,9 +2531,13 @@ export function deformBridgingDeltoidMesh(
     const ySZ = dx * sZ + dy * cZ;
     const zSZ = dz;
 
+    // Abduction displacement (rotation around Z):
     const armDispX = (sX + xSZ) - x0;
-    const armDispY = (shoulder.y + (ySZ * cosAX - zSZ * sinAX)) - y0;
-    const armDispZ = (shoulder.z + (ySZ * sinAX + zSZ * cosAX)) - z0;
+    const armDispY_abduct = (shoulder.y + ySZ) - y0;
+
+    // Forward/back rotation displacement (rotation around X):
+    const deltaY_flex = ySZ * (cosAX - 1) - zSZ * sinAX;
+    const deltaZ_flex = ySZ * sinAX + zSZ * (cosAX - 1);
 
     // 1. Innermost corner pinning:
     // Vertices at the medial attachment origins (|X| <= 0.105) along the clavicle and
@@ -2547,9 +2548,8 @@ export function deformBridgingDeltoidMesh(
     if (tPin > 1) tPin = 1;
     const wMobile = tPin * tPin * (3 - 2 * tPin);
 
-    // 2. Vertical transition between lower humerus shaft and upper shoulder girdle:
-    // Vertices on the humerus shaft (y0 <= 1.350) ride on the outside of the humerus shaft,
-    // following the exact rigid arm raising and outward translation without sinking into bone.
+    // 2. Vertical transition for abduction contraction:
+    // Vertices on the humerus shaft (y0 <= 1.350) maintain outward tracking to prevent bone clipping.
     // The upper shoulder girdle (y0 >= 1.405) contracts horizontally and vertically.
     let tGirdle = (y0 - 1.350) / (1.405 - 1.350);
     if (tGirdle < 0) tGirdle = 0;
@@ -2557,7 +2557,17 @@ export function deformBridgingDeltoidMesh(
     const sGirdle = tGirdle * tGirdle * (3 - 2 * tGirdle);
     const sArm = 1 - sGirdle;
 
-    // 3. Horizontal contraction across shoulder girdle:
+    // 3. Forward/back rotation along muscle fibers:
+    // The entire inner part / origin along the clavicle, acromion, and scapular spine
+    // is functionally attached to the torso (wFlex = 0), only stretching and twisting
+    // toward the humeral insertion (y0 <= 1.288) which follows the arm (wFlex = 1).
+    const yOrig = 1.415 + Math.min(0, (z0 + 0.040) * 0.70);
+    let tFlex = (yOrig - y0) / (yOrig - 1.288);
+    if (tFlex < 0) tFlex = 0;
+    if (tFlex > 1) tFlex = 1;
+    const wFlex = tFlex * tFlex * (3 - 2 * tFlex);
+
+    // 4. Horizontal contraction across shoulder girdle:
     // Shrinking is applied predominantly toward the outer side of the deltoid (|X| > 0.170)
     // to pull the wide lateral flank inward while keeping the apex centered above the bone
     // (acromion / greater tubercle). Medial fibers (|X| <= 0.170) maintain gentle tension.
@@ -2565,18 +2575,20 @@ export function deformBridgingDeltoidMesh(
     const outerSpan = Math.max(0, absX - 0.170);
     const shrinkX = (innerSpan * 0.06 + outerSpan * 0.50) * contract;
 
-    // 4. Vertical contraction towards joint center:
+    // 5. Vertical contraction towards joint center:
     // Shortens the muscle belly vertically towards the joint center (Y = 1.378)
     // to model realistic muscular shortening and prevent upward bulging.
     const vertSpan = y0 - shoulder.y;
     const shrinkY = vertSpan * 0.35 * contract;
 
     // Blended displacement:
-    // Lower half follows outward humerus translation to prevent bone and muscle clipping;
-    // Upper girdle contracts inward and shortens vertically over the joint.
+    // - Lower half tracks outward humerus translation to prevent bone clipping during abduction.
+    // - Forward/back rotation is anchored to the torso at the origin (wFlex = 0) and tracks humerus at insertion (wFlex = 1),
+    //   producing natural fiber stretching and twisting without displacing the torso attachment.
+    // - Upper girdle contracts inward and shortens vertically over the joint during abduction.
     const dispX = wMobile * (sArm * armDispX - sGirdle * (signX * shrinkX));
-    const dispY = wMobile * (sArm * armDispY + sGirdle * (arcDy - shrinkY + arcFlexDy));
-    const dispZ = wMobile * (sArm * armDispZ + sGirdle * arcDz);
+    const dispY = wMobile * (sArm * armDispY_abduct + wFlex * deltaY_flex + sGirdle * (arcDy - shrinkY));
+    const dispZ = wMobile * (wFlex * deltaZ_flex);
 
     const xMid = x0 + dispX;
     const yMid = y0 + dispY;
