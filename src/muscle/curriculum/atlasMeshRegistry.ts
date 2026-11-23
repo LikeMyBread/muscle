@@ -781,7 +781,7 @@ export const ATLAS_MESH_NODES: MuscleMemoryNode[] = [
     id: "atlas_fascia_lata_r_d92bb3d0",
     name: "Fascia lata.r",
     type: "muscle",
-    region: 'shoulder_neck',
+    region: 'leg',
     layerDepth: 1,
     isSurfaceForm: false,
     primitiveShape: "egg",

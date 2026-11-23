@@ -63,6 +63,15 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  if (
+    nodeId === 'atlas_fascia_lata_r_d92bb3d0' ||
+    text === 'fascia lata.r' ||
+    text.includes('fascia_lata') ||
+    text.includes('fascia lata')
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -663,6 +672,97 @@ export function deformBridgingTransversusAbdominisMesh(
   geom.computeVertexNormals();
 }
 
+export function isFasciaLataMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'atlas_fascia_lata_r_d92bb3d0' ||
+    text.includes('fascia_lata') ||
+    text.includes('fascia lata')
+  );
+}
+
+/**
+ * Deforms the multi-joint bridging Fascia lata mesh across leg animations.
+ *
+ * Lower vertices (along Gerdy's tubercle on the lateral tibial condyle, head of the fibula,
+ * and patellar retinaculum at Y <= 0.410) follow the shin as the knee flexes and stretches.
+ * Across the knee joint line (Y in [0.410, 0.470]), vertices smoothly blend along the arc of the
+ * lateral femoral condyle, preventing volume collapse or bone interpenetration.
+ *
+ * Thigh body vertices (Y in [0.470, 0.850]) swing with the femur around the hip pivot.
+ *
+ * Upper vertices (along the iliac crest of the pelvis at Y >= 0.960) remain anchored to the
+ * pelvis, smoothly stretching and adapting as the hip flexes and extends.
+ */
+export function deformBridgingFasciaLataMesh(
+  mesh: THREE.Mesh,
+  thetaHip: number,
+  thetaKnee: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Distal / Knee transition:
+    // Below 0.410: fully follows shin (wK = 1)
+    // Above 0.470: fully follows thigh (wK = 0)
+    let tK = (0.470 - y0) / (0.470 - 0.410);
+    if (tK < 0) tK = 0;
+    if (tK > 1) tK = 1;
+    const wK = tK * tK * (3 - 2 * tK);
+    const thetaK_eff = wK * thetaKnee;
+
+    const cosK_eff = Math.cos(thetaK_eff);
+    const sinK_eff = Math.sin(thetaK_eff);
+
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK_prime = knee.y + (dyK * cosK_eff - dzK * sinK_eff);
+    const zK_prime = knee.z + (dyK * sinK_eff + dzK * cosK_eff);
+
+    // 2. Proximal / Hip transition:
+    // Above 0.960: anchored to pelvis / iliac crest (wH = 1 -> thetaH_eff = 0)
+    // Below 0.850: moves with thigh (wH = 0 -> thetaH_eff = thetaHip)
+    let tH = (y0 - 0.850) / (0.960 - 0.850);
+    if (tH < 0) tH = 0;
+    if (tH > 1) tH = 1;
+    const wH = tH * tH * (3 - 2 * tH);
+    const thetaH_eff = (1 - wH) * thetaHip;
+
+    const cosH_eff = Math.cos(thetaH_eff);
+    const sinH_eff = Math.sin(thetaH_eff);
+
+    const dyH = yK_prime - hip.y;
+    const dzH = zK_prime - hip.z;
+    const yFinal = hip.y + (dyH * cosH_eff - dzH * sinH_eff);
+    const zFinal = hip.z + (dyH * sinH_eff + dzH * cosH_eff);
+
+    arr[idx] = x0;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
 /**
  * Universal dispatcher to deform any bridging mesh across its anchored kinematic joints.
  */
@@ -676,6 +776,8 @@ export function deformBridgingMesh(
     deformBridgingPlantarisMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
   } else if (isTransversusAbdominisMesh(mesh)) {
     deformBridgingTransversusAbdominisMesh(mesh, rotations.spineRotationX);
+  } else if (isFasciaLataMesh(mesh)) {
+    deformBridgingFasciaLataMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
   }
 }
 

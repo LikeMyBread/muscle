@@ -4,11 +4,13 @@ import {
   ANIMATION_CYCLE_DURATION,
   computeKinematicRotations,
   computeProceduralJointAngles,
+  deformBridgingFasciaLataMesh,
   deformBridgingMesh,
   deformBridgingPlantarisMesh,
   deformBridgingPsoasMesh,
   deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
+  isFasciaLataMesh,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
   restoreOriginalPsoasPositions,
@@ -53,6 +55,13 @@ describe('skeletalKinematics', () => {
         'atlas_transversus_abdominis_muscle_r_c20d1664',
         undefined,
         'Transversus abdominis muscle.r',
+      ),
+    ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_fascia_lata_r_d92bb3d0',
+        undefined,
+        'Fascia lata.r',
       ),
     ).toBe('bridging');
 
@@ -410,5 +419,95 @@ describe('skeletalKinematics', () => {
     expect(posTrans[1]).toBeCloseTo(0.88, 5); // bottom Y fixed to pelvis
     expect(posTrans[2]).toBeCloseTo(0.06, 5); // bottom Z fixed to pelvis
     expect(posTrans[4]).toBeLessThan(1.18); // top Y lowered
+
+    // 4. Knee flexion: fascia lata distal vertex swings posteriorly into negative Z
+    const geomFascia = new THREE.BufferGeometry();
+    geomFascia.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([0.118, 0.40, -0.025, 0.14, 0.65, -0.01, 0.142, 0.98, -0.02], 3),
+    );
+    const meshFascia = new THREE.Mesh(geomFascia);
+    meshFascia.name = 'atlas_fascia_lata_r_d92bb3d0';
+
+    deformBridgingMesh(meshFascia, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 1.2,
+      thighRotationX: 0,
+      spineRotationX: 0,
+    });
+    const posFascia = geomFascia.attributes.position.array as Float32Array;
+    expect(posFascia[2]).toBeLessThan(-0.025); // distal vertex moved with knee flexion
+    expect(posFascia[5]).toBeCloseTo(-0.01, 5); // thigh vertex unaffected by pure knee flexion
+    expect(posFascia[8]).toBeCloseTo(-0.02, 5); // iliac vertex unaffected by pure knee flexion
+  });
+
+  it('deforms bridging fascia lata mesh across hip and knee motions, with lower vertices following the shin', () => {
+    // 3 representative vertices:
+    // 0: distal insertion at Gerdy's tubercle / tibia (Y = 0.40, below knee pivot 0.435)
+    // 1: mid-thigh body (Y = 0.65, between knee 0.435 and hip 0.885)
+    // 2: proximal origin along iliac crest on pelvis (Y = 0.98, above hip pivot 0.885)
+    const rawCoords = [
+      0.118, 0.40, -0.025,
+      0.14, 0.65, -0.01,
+      0.142, 0.98, -0.02,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'atlas_fascia_lata_r_d92bb3d0';
+
+    // A. Knee flexion only:
+    // Shin rotates backward (+X Euler rotation in Three.js coordinates)
+    const kneeAngle = (90 * Math.PI) / 180;
+    deformBridgingFasciaLataMesh(mesh, 0, kneeAngle);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Distal vertex (idx 0..2) must swing posteriorly into negative Z
+    expect(pos[2]).toBeLessThan(-0.025);
+    // Mid-thigh vertex (idx 3..5) must stay fixed (not affected by knee flexion)
+    expect(pos[4]).toBeCloseTo(0.65, 5);
+    expect(pos[5]).toBeCloseTo(-0.01, 5);
+    // Proximal iliac vertex (idx 6..8) must stay fixed to pelvis
+    expect(pos[7]).toBeCloseTo(0.98, 5);
+    expect(pos[8]).toBeCloseTo(-0.02, 5);
+
+    // B. Hip flexion only:
+    // Thigh rotates forward (-X Euler rotation in Three.js coordinates)
+    const hipAngle = (-45 * Math.PI) / 180;
+    deformBridgingFasciaLataMesh(mesh, hipAngle, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Proximal iliac vertex (idx 6..8) remains anchored to pelvis
+    expect(pos[7]).toBeCloseTo(0.98, 5);
+    expect(pos[8]).toBeCloseTo(-0.02, 5);
+    // Mid-thigh vertex (idx 3..5) swings forward (+Z)
+    expect(pos[5]).toBeGreaterThan(-0.01);
+    // Distal vertex (idx 0..2) also swings forward with the thigh
+    expect(pos[2]).toBeGreaterThan(-0.025);
+
+    // C. Combined Hip and Knee flexion:
+    // Distal vertex compound transform: knee bends backward relative to forward-flexed thigh
+    deformBridgingFasciaLataMesh(mesh, hipAngle, kneeAngle);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(Number.isFinite(pos[0])).toBe(true);
+    expect(Number.isFinite(pos[1])).toBe(true);
+    expect(Number.isFinite(pos[2])).toBe(true);
+    // Iliac vertex remains anchored to pelvis
+    expect(pos[7]).toBeCloseTo(0.98, 5);
+    expect(pos[8]).toBeCloseTo(-0.02, 5);
+
+    // D. Restore original positions:
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
   });
 });
