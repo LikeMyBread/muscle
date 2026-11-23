@@ -1421,7 +1421,7 @@ describe('skeletalKinematics', () => {
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
   });
 
-  it('deforms bridging extensor carpi radialis longus mesh across elbow flexion with anterolateral bulge and fixed supracondylar origin', () => {
+  it('deforms bridging extensor carpi radialis longus mesh across elbow flexion pulling tighter inward into elbow joint with fixed supracondylar origin', () => {
     // 3 representative vertices:
     // 0: distal forearm tendon (Y = 0.90, below elbow 1.107)
     // 1: mid-belly spanning lateral elbow (Y = 1.05)
@@ -1451,9 +1451,23 @@ describe('skeletalKinematics', () => {
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
 
-    // Mid-belly experiences anterolateral bulge (+Z and +X)
-    expect(pos[5]).toBeGreaterThan(rawCoords[5]);
-    expect(pos[3]).toBeGreaterThan(rawCoords[3]);
+    // Mid-belly pulls tighter inward medially to stay inside the elbow joint rather than bowing outward
+    expect(pos[3]).toBeLessThan(rawCoords[3]);
+
+    // Mirrored left-arm mesh (X < 0) also pulls medially towards inside of left elbow joint
+    const rawCoordsLeft = [
+      -0.24, 0.90, -0.01,
+      -0.24, 1.05, 0.00,
+      -0.22, 1.15, -0.02,
+    ];
+    const geomLeft = new THREE.BufferGeometry();
+    geomLeft.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsLeft, 3));
+    const meshLeft = new THREE.Mesh(geomLeft);
+    meshLeft.name = 'muscle_extensor_carpi_radialis';
+    deformBridgingExtensorCarpiRadialisMesh(meshLeft, -1.2);
+    const posLeft = geomLeft.attributes.position.array as Float32Array;
+    expect(posLeft[3]).toBeGreaterThan(rawCoordsLeft[3]); // more positive, i.e. pulled medially toward 0
+    expect(Math.abs(posLeft[3])).toBeLessThan(Math.abs(rawCoordsLeft[3]));
 
     restoreOriginalMeshPositions(mesh);
     pos = geom.attributes.position.array as Float32Array;

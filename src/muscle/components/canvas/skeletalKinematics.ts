@@ -2285,6 +2285,8 @@ export function isExtensorCarpiRadialisMesh(mesh: THREE.Mesh): boolean {
 /**
  * Deforms the dual-anchored Extensor carpi radialis longus muscle mesh across the elbow joint
  * between the lateral supracondylar ridge of the humerus (arm, Y >= 1.130) and the forearm (Y <= 0.950).
+ * Intermediate vertices smoothly blend across the joint and pull tighter inward during elbow flexion,
+ * keeping the muscle bend nestled inside the lateral crook of the elbow joint rather than bowing outward.
  */
 export function deformBridgingExtensorCarpiRadialisMesh(
   mesh: THREE.Mesh,
@@ -2320,7 +2322,7 @@ export function deformBridgingExtensorCarpiRadialisMesh(
   const spine = KINEMATIC_PIVOTS.spine;
 
   const thetaFlex = Math.max(0, -thetaForearmX);
-  const sinFlex = Math.sin(thetaFlex);
+  const flexTightness = Math.sin(Math.min(Math.PI / 2, thetaFlex));
 
   const arr = posAttr.array as Float32Array;
 
@@ -2346,11 +2348,12 @@ export function deformBridgingExtensorCarpiRadialisMesh(
     let yMid = (1 - w) * y0 + w * yFE;
     let zMid = (1 - w) * z0 + w * zFE;
 
-    // 3. Stretch & squash (anterolateral belly bulge during elbow flexion)
+    // 3. Pull tighter across the elbow joint during flexion to keep the bend inside the joint
     if (thetaFlex > 0 && t > 0 && t < 1) {
       const b = Math.sin(Math.PI * t);
-      zMid += 0.012 * sinFlex * b;
-      xMid += 0.010 * sinFlex * b * (x0 >= 0 ? 1 : -1);
+      // Pull inward (medially) and deeper into the crook of the elbow joint
+      xMid -= 0.015 * flexTightness * b * (x0 >= 0 ? 1 : -1);
+      zMid -= 0.011 * flexTightness * b;
     }
 
     // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
