@@ -7,12 +7,14 @@ import {
   deformBridgingBicepsBrachiiMesh,
   deformBridgingBrachialisMesh,
   deformBridgingBrachioradialisMesh,
+  deformBridgingDeltoidMesh,
   deformBridgingExtensorCarpiRadialisMesh,
   deformBridgingFasciaLataMesh,
   deformBridgingGastrocnemiusMesh,
   deformBridgingGracilisMesh,
   deformBridgingHamstringsMesh,
   deformBridgingMesh,
+  deformBridgingPectoralisMajorMesh,
   deformBridgingPlantarisMesh,
   deformBridgingPsoasMesh,
   deformBridgingQuadricepsMesh,
@@ -22,11 +24,13 @@ import {
   isBicepsBrachiiMesh,
   isBrachialisMesh,
   isBrachioradialisMesh,
+  isDeltoidMesh,
   isExtensorCarpiRadialisMesh,
   isFasciaLataMesh,
   isGastrocnemiusMesh,
   isGracilisMesh,
   isHamstringsMesh,
+  isPectoralisMajorMesh,
   isQuadricepsMesh,
   isSartoriusMesh,
   KINEMATIC_PIVOTS,
@@ -108,6 +112,10 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('muscle_brachialis')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_extensor_carpi_radialis')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_gastrocnemius')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_deltoid_anterior')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_deltoid_lateral')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_deltoid_posterior')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_pectoralis_major')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_quadriceps_rectus_femoris')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_vastus_lateralis')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_sartorius')).toBe('bridging');
@@ -128,10 +136,59 @@ describe('skeletalKinematics', () => {
         'Transversus thoracis muscle.r',
       ),
     ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_acromial_head_of_deltoid_muscle_scap_18d4e450',
+        undefined,
+        'Acromial head of deltoid muscle-Scapular insertion.r',
+      ),
+    ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_clavicular_part_of_deltoid_muscle_cl_5b15cb2b',
+        undefined,
+        'Clavicular part of deltoid muscle-Clavicular insertion.r',
+      ),
+    ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_scapular_head_of_deltoid_muscle_scap_708240d7',
+        undefined,
+        'Scapular head of deltoid muscle-Scapular insertion.r',
+      ),
+    ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_pectoralis_major_muscle_clavicular_i_25190cac',
+        undefined,
+        'Pectoralis major muscle-Clavicular insertion.r',
+      ),
+    ).toBe('spine');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_pectoralis_minor_muscle_r_f973f846',
+        undefined,
+        'Pectoralis minor muscle.r',
+      ),
+    ).toBe('spine');
 
     // Upper arm
     expect(getKinematicSegmentForNodeId('bone_humerus')).toBe('arm');
     expect(getKinematicSegmentForNodeId('joint_shoulder')).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_deltoid_muscle_humeral_insertion_r_ed353102',
+        undefined,
+        'Deltoid muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_pectoralis_major_muscle_humeral_inse_782e067b',
+        undefined,
+        'Pectoralis major muscle-Humeral insertion.r',
+      ),
+    ).toBe('arm');
     expect(
       getKinematicSegmentForNodeId(
         'atlas_bracioradialis_muscle_humeral_insert_03bc4dad',
@@ -1216,6 +1273,148 @@ describe('skeletalKinematics', () => {
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
   });
 
+  it('deforms bridging deltoid mesh across 2-axis shoulder movements (abduction, flexion, and combined)', () => {
+    // 3 representative vertices:
+    // 0: distal humeral insertion at deltoid tuberosity (Y = 1.28, below 1.285 threshold)
+    // 1: mid-belly (Y = 1.35, between shoulder pivot 1.378 and insertion)
+    // 2: proximal clavicular/acromial origin (Y = 1.415, above 1.410 threshold)
+    const rawCoords = [
+      0.20, 1.28, -0.03, // Deltoid tuberosity on humerus
+      0.21, 1.35, -0.01, // Lateral deltoid belly
+      0.16, 1.415, -0.03, // Clavicular/acromial origin on torso
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    expect(isDeltoidMesh(mesh)).toBe(true);
+
+    // A. Shoulder Abduction (thetaArmZ = 0.8 rad ~45° outward)
+    deformBridgingDeltoidMesh(mesh, 0.8, 0, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Distal insertion on humerus swings outward laterally (+X) and upward (+Y)
+    expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.04);
+    expect(pos[1]).toBeGreaterThan(rawCoords[1]);
+
+    // Proximal origin remains strictly fixed to clavicle/acromion
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Mid-belly experiences outward lateral bulge (+X)
+    expect(pos[3]).toBeGreaterThan(rawCoords[3] + 0.01);
+
+    // B. Shoulder Flexion (thetaArmX = -0.8 rad forward swing)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingDeltoidMesh(mesh, 0, -0.8, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Distal insertion swings forward (+Z) and upward (+Y)
+    expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.05);
+
+    // Proximal origin remains strictly fixed to clavicle/acromion
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Mid-belly moves forward (+Z)
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.01);
+
+    // C. Combined 2-axis rotation (Abduction 0.6 rad + Forward Flexion -0.6 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingDeltoidMesh(mesh, 0.6, -0.6, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Distal insertion compounds in both lateral (+X) and forward (+Z)
+    expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.02);
+    expect(pos[2]).toBeGreaterThan(rawCoords[2] + 0.02);
+
+    // Proximal origin stays anchored
+    expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
+    expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
+    expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // D. Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
+  it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {
+    // 3 representative vertices:
+    // 0: medial sternal origin (X = 0.04, Y = 1.30, Z = 0.06)
+    // 1: mid-belly / axillary fold (X = 0.12, Y = 1.32, Z = 0.04)
+    // 2: lateral humeral insertion at greater tubercle (X = 0.19, Y = 1.33, Z = -0.01)
+    const rawCoords = [
+      0.04, 1.30, 0.06, // Sternum origin
+      0.12, 1.32, 0.04, // Chest belly / axillary fold
+      0.19, 1.33, -0.01, // Humeral tendon insertion
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_pectoralis_major';
+
+    expect(isPectoralisMajorMesh(mesh)).toBe(true);
+
+    // A. Shoulder Abduction (thetaArmZ = 0.8 rad)
+    deformBridgingPectoralisMajorMesh(mesh, 0.8, 0, 0);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Medial sternal origin stays strictly fixed to chest
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Lateral humeral insertion swings outward laterally (+X) and upward (+Y)
+    expect(pos[6]).toBeGreaterThan(rawCoords[6] + 0.02);
+    expect(pos[7]).toBeGreaterThan(rawCoords[7]);
+
+    // Mid-belly stretches outward
+    expect(pos[3]).toBeGreaterThan(rawCoords[3]);
+
+    // B. Forward Flexion / Horizontal Adduction (thetaArmX = -0.8 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingPectoralisMajorMesh(mesh, 0, -0.8, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Medial sternal origin stays strictly fixed to chest
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Lateral humeral insertion swings forward into +Z
+    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.02);
+
+    // Mid-belly contracts and bulges anteriorly (+Z)
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.02);
+
+    // C. Combined 2-axis rotation (Abduction 0.6 rad + Forward Flexion -0.6 rad)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingPectoralisMajorMesh(mesh, 0.6, -0.6, 0);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Sternal origin strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Lateral tendon compounds in both X and Z
+    expect(pos[6]).toBeGreaterThan(rawCoords[6]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+
+    // D. Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {
     const muscles = [
       { name: 'atlas_psoas_muscle_r_08af9941', coords: [0.06, 0.90, -0.02] },
@@ -1227,6 +1426,8 @@ describe('skeletalKinematics', () => {
       { name: 'muscle_brachialis', coords: [0.18, 1.15, 0.01] },
       { name: 'muscle_extensor_carpi_radialis', coords: [0.24, 1.05, 0.01] },
       { name: 'muscle_gastrocnemius', coords: [0.04, 0.38, -0.06] },
+      { name: 'muscle_deltoid_lateral', coords: [0.21, 1.35, -0.01] },
+      { name: 'muscle_pectoralis_major', coords: [0.12, 1.32, 0.04] },
       { name: 'muscle_quadriceps_rectus_femoris', coords: [0.11, 0.65, 0.03] },
       { name: 'muscle_sartorius', coords: [0.08, 0.65, 0.02] },
       { name: 'muscle_hamstrings_biceps_femoris', coords: [0.09, 0.62, -0.06] },

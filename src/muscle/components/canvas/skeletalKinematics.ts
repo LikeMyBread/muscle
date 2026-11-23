@@ -227,6 +227,57 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Deltoid group (Anterior, Lateral, Posterior heads span shoulder girdle / spine to humerus)
+  const isDeltoidHumeralInsertion =
+    nodeId === 'atlas_deltoid_muscle_humeral_insertion_r_ed353102' ||
+    text.includes('deltoid_muscle_humeral') ||
+    text.includes('deltoid muscle-humeral insertion');
+
+  const isDeltoidScapularOrClavicularOrigin =
+    nodeId === 'atlas_acromial_head_of_deltoid_muscle_scap_18d4e450' ||
+    nodeId === 'atlas_clavicular_part_of_deltoid_muscle_cl_5b15cb2b' ||
+    nodeId === 'atlas_scapular_head_of_deltoid_muscle_scap_708240d7' ||
+    text.includes('acromial_head_of_deltoid') ||
+    text.includes('clavicular_part_of_deltoid') ||
+    text.includes('scapular_head_of_deltoid') ||
+    text.includes('deltoid muscle-scapular insertion') ||
+    text.includes('deltoid muscle-clavicular insertion');
+
+  if (
+    !isDeltoidHumeralInsertion &&
+    !isDeltoidScapularOrClavicularOrigin &&
+    (nodeId === 'muscle_deltoid_anterior' ||
+      nodeId === 'muscle_deltoid_lateral' ||
+      nodeId === 'muscle_deltoid_posterior' ||
+      text.includes('deltoid'))
+  ) {
+    return 'bridging';
+  }
+
+  // Pectoralis major (Spans sternum, ribs, and clavicle across shoulder to humerus)
+  const isPectoralisHumeralInsertion =
+    nodeId === 'atlas_pectoralis_major_muscle_humeral_inse_782e067b' ||
+    text.includes('pectoralis_major_muscle_humeral') ||
+    text.includes('pectoralis major muscle-humeral insertion');
+
+  const isPectoralisClavicularOrigin =
+    nodeId === 'atlas_pectoralis_major_muscle_clavicular_i_25190cac' ||
+    text.includes('pectoralis_major_muscle_clavicular') ||
+    text.includes('pectoralis major muscle-clavicular insertion');
+
+  if (
+    !isPectoralisHumeralInsertion &&
+    !isPectoralisClavicularOrigin &&
+    !text.includes('minor') &&
+    (nodeId === 'muscle_pectoralis_major' ||
+      text === 'pectoralis major' ||
+      text.includes('pectoralis_major') ||
+      text.includes('pectoralis major') ||
+      (text.includes('pectoralis') && !text.includes('minor')))
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -477,10 +528,11 @@ export function getKinematicSegmentForNodeId(
     nodeId === 'bone_humerus' ||
     nodeId === 'joint_shoulder' ||
     nodeId === 'atlas_brachialis_anterior_muscle_humeral_i_5bacb069' ||
+    isDeltoidHumeralInsertion ||
+    isPectoralisHumeralInsertion ||
     nodeRegion === 'arm' ||
     text.includes('humerus') ||
     text.includes('humeral') ||
-    text.includes('deltoid') ||
     text.includes('biceps_brachii') ||
     text.includes('biceps brachii') ||
     (text.includes('biceps') && !text.includes('femoris')) ||
@@ -1828,6 +1880,20 @@ export function deformBridgingMesh(
       rotations.shinRotationX,
       rotations.thighRotationZ ?? 0,
     );
+  } else if (isDeltoidMesh(mesh)) {
+    deformBridgingDeltoidMesh(
+      mesh,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isPectoralisMajorMesh(mesh)) {
+    deformBridgingPectoralisMajorMesh(
+      mesh,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
   }
 }
 
@@ -2178,6 +2244,267 @@ export function deformBridgingGastrocnemiusMesh(
     arr[idx] = wThigh * xThigh + wShin * xShin;
     arr[idx + 1] = wThigh * yThigh + wShin * yShin;
     arr[idx + 2] = wThigh * zThigh + wShin * zShin;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isDeltoidMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isLandmark =
+    mesh.name.startsWith('atlas_acromial_head_of_deltoid') ||
+    mesh.name.startsWith('atlas_clavicular_part_of_deltoid') ||
+    mesh.name.startsWith('atlas_deltoid_muscle_humeral_insertion') ||
+    mesh.name.startsWith('atlas_scapular_head_of_deltoid') ||
+    text.includes('deltoid_muscle_humeral') ||
+    text.includes('deltoid muscle-humeral insertion') ||
+    text.includes('deltoid muscle-scapular insertion') ||
+    text.includes('deltoid muscle-clavicular insertion');
+  if (isLandmark) return false;
+
+  return (
+    mesh.name === 'muscle_deltoid_anterior' ||
+    mesh.name === 'muscle_deltoid_lateral' ||
+    mesh.name === 'muscle_deltoid_posterior' ||
+    text.includes('deltoid')
+  );
+}
+
+/**
+ * Deforms the dual-anchored Deltoid muscle group (Anterior, Lateral, and Posterior heads)
+ * across compound 2-axis shoulder rotations (abduction/adduction thetaArmZ, flexion/extension thetaArmX).
+ * Proximal origins along the clavicle, acromion, and scapular spine (Y >= 1.410) remain strictly
+ * anchored to the torso / shoulder girdle (spine).
+ * Distal insertion at the deltoid tuberosity of the humerus (Y <= 1.285) strictly follows the
+ * compound arm rotation.
+ * The intervening fibers stretch and squash with volume-preserving belly bulge.
+ */
+export function deformBridgingDeltoidMesh(
+  mesh: THREE.Mesh,
+  thetaArmZ: number,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const sinAbduct = Math.sin(Math.max(0, thetaArmZ));
+  const sinFlex = Math.sin(Math.max(0, -thetaArmX));
+  const sinExt = Math.sin(Math.max(0, thetaArmX));
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
+    const effArmZ = signX * thetaArmZ;
+
+    const cosAZ = Math.cos(effArmZ);
+    const sinAZ = Math.sin(effArmZ);
+
+    // 1. Arm forward kinematics around shoulder pivot (Three.js Euler 'XYZ': Z abduction, then X flexion)
+    const dxS = x0 - shoulderX;
+    const dyS = y0 - shoulder.y;
+    const dzS = z0 - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulderX + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 2. Blend across shoulder joint:
+    // Torso origin (clavicle, acromion, scapula: w = 0 at y0 >= 1.410)
+    // Humeral insertion (deltoid tuberosity: w = 1 at y0 <= 1.285)
+    let t = (1.410 - y0) / (1.410 - 1.285);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let xMid = (1 - w) * x0 + w * xArm;
+    let yMid = (1 - w) * y0 + w * yArm;
+    let zMid = (1 - w) * z0 + w * zArm;
+
+    // 3. Stretch & squash / muscular bulge in the mid-belly:
+    if (t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+
+      // Abduction: lateral muscle belly bulge and upward gathering
+      if (sinAbduct > 0) {
+        xMid += 0.016 * sinAbduct * b * signX;
+        yMid += 0.006 * sinAbduct * b;
+      }
+
+      // Flexion (forward swing): anterior deltoid contracts and bulges anteriorly (+Z)
+      if (sinFlex > 0 && z0 > shoulder.z) {
+        zMid += 0.014 * sinFlex * b;
+      }
+
+      // Extension (backward swing): posterior deltoid contracts and bulges posteriorly (-Z)
+      if (sinExt > 0 && z0 < shoulder.z) {
+        zMid -= 0.014 * sinExt * b;
+      }
+    }
+
+    // 4. Spine transform around spine pivot (pitch around X)
+    const dySp = yMid - spine.y;
+    const dzSp = zMid - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xMid;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isPectoralisMajorMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isLandmark =
+    mesh.name.startsWith('atlas_pectoralis_major_muscle_clavicular_i') ||
+    mesh.name.startsWith('atlas_pectoralis_major_muscle_humeral_inse') ||
+    text.includes('pectoralis_major_muscle_humeral') ||
+    text.includes('pectoralis_major_muscle_clavicular') ||
+    text.includes('pectoralis major muscle-clavicular insertion') ||
+    text.includes('pectoralis major muscle-humeral insertion');
+  if (isLandmark) return false;
+
+  if (text.includes('minor')) return false;
+
+  return (
+    mesh.name === 'muscle_pectoralis_major' ||
+    text === 'pectoralis major' ||
+    text.includes('pectoralis_major') ||
+    text.includes('pectoralis major') ||
+    (text.includes('pectoralis') && !text.includes('minor'))
+  );
+}
+
+/**
+ * Deforms the dual-anchored Pectoralis major muscle across compound 2-axis shoulder rotations
+ * (abduction/adduction thetaArmZ, flexion/extension thetaArmX).
+ * Medial origins along the sternum, ribs, and clavicle remain strictly anchored to the torso (spine).
+ * Lateral tendon insertion at the crest of greater tubercle of humerus (x_abs >= 0.170) strictly follows
+ * the compound arm rotation.
+ * Across the anterior axillary fold and chest, fibers smoothly stretch and squash with volume-preserving bulge.
+ */
+export function deformBridgingPectoralisMajorMesh(
+  mesh: THREE.Mesh,
+  thetaArmZ: number,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const sinFlex = Math.sin(Math.max(0, -thetaArmX));
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const signX = x0 < 0 ? -1 : 1;
+    const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
+    const effArmZ = signX * thetaArmZ;
+
+    const cosAZ = Math.cos(effArmZ);
+    const sinAZ = Math.sin(effArmZ);
+
+    // 1. Arm forward kinematics around shoulder pivot (Three.js Euler 'XYZ': Z abduction, then X flexion)
+    const dxS = x0 - shoulderX;
+    const dyS = y0 - shoulder.y;
+    const dzS = z0 - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulderX + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 2. Blend across chest from medial origins (sternum / clavicle: w = 0) to lateral humeral tendon (w = 1)
+    // Sternal origins: x_abs <= 0.065 (lower) to 0.095 (clavicular head near y0 >= 1.390)
+    // Humeral insertion: x_abs >= 0.170
+    const xabs = Math.abs(x0);
+    const clavClamped = Math.max(0, Math.min(1, (y0 - 1.320) / 0.070));
+    const xOrig = 0.065 + 0.030 * clavClamped;
+
+    let t = (xabs - xOrig) / (0.170 - xOrig);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let xMid = (1 - w) * x0 + w * xArm;
+    let yMid = (1 - w) * y0 + w * yArm;
+    let zMid = (1 - w) * z0 + w * zArm;
+
+    // 3. Stretch & squash / muscular bulge in the mid-belly:
+    // During forward flexion & horizontal adduction (thetaArmX < 0), chest bunches anteriorly (+Z)
+    if (t > 0 && t < 1 && sinFlex > 0) {
+      const b = Math.sin(Math.PI * t);
+      zMid += 0.016 * sinFlex * b;
+      yMid += 0.005 * sinFlex * b;
+    }
+
+    // 4. Spine transform around spine pivot (pitch around X)
+    const dySp = yMid - spine.y;
+    const dzSp = zMid - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xMid;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
   }
 
   posAttr.needsUpdate = true;
