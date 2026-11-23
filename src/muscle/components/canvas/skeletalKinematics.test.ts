@@ -1634,11 +1634,13 @@ describe('skeletalKinematics', () => {
       // 3. Lateral flank never collapses below its rest height
       expect(flankY).toBeGreaterThanOrEqual(rawCoords[7] - 1e-3);
 
-      // 4. As shoulder pivots outward, upper deltoid contracts horizontally and lower half maintains humerus clearance
+      // 4. As shoulder pivots outward, upper deltoid contracts horizontally while apex remains centered above bone
       if (deg >= 30) {
         expect(bellyX).toBeGreaterThanOrEqual(rawCoords[3]);
         expect(bellyY).toBeGreaterThan(rawCoords[4]);
         expect(apexX).toBeLessThan(rawCoords[0]);
+        // Apex remains centered above bone (does not collapse inward past joint pivot X = 0.163)
+        expect(apexX).toBeGreaterThanOrEqual(0.170);
       }
     }
   });
@@ -1714,14 +1716,58 @@ describe('skeletalKinematics', () => {
       const humerusX = shoulder.x + (dxBone * Math.cos(rad) - dyBone * Math.sin(rad));
       expect(v1X).toBeGreaterThan(humerusX + 0.015); // At least 1.5 cm clearance outside bone shaft
 
-      // 3. Upper girdle apex contracts horizontally inward (-X towards joint pivot)
+      // 3. Upper girdle apex contracts gently but remains centered above the bone (X >= 0.170)
       const apexX = pos[9];
       expect(apexX).toBeLessThan(rawCoords[9]);
+      expect(apexX).toBeGreaterThanOrEqual(0.170);
 
       // 4. Medial clavicular corner remains strictly pinned (0 displacement)
       expect(pos[12]).toBeCloseTo(rawCoords[12], 5);
       expect(pos[13]).toBeCloseTo(rawCoords[13], 5);
       expect(pos[14]).toBeCloseTo(rawCoords[14], 5);
+    }
+  });
+
+  it('applies horizontal shrinkage predominantly to the outer deltoid while keeping apex centered above bone', () => {
+    // Representative upper girdle vertices:
+    // 0: Apex crest (X = 0.180, Y = 1.416, Z = -0.030)
+    // 1: Outer lateral flank (X = 0.220, Y = 1.400, Z = -0.020)
+    // 2: Outermost lateral margin (X = 0.235, Y = 1.395, Z = -0.025)
+    const rawCoords = [
+      0.180, 1.416, -0.030,
+      0.220, 1.400, -0.020,
+      0.235, 1.395, -0.025,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    for (const deg of [30, 45, 60, 80]) {
+      restoreOriginalMeshPositions(mesh);
+      const rad = (deg * Math.PI) / 180;
+      deformBridgingDeltoidMesh(mesh, rad, 0, 0);
+      const pos = geom.attributes.position.array as Float32Array;
+
+      const apexX = pos[0];
+      const outerFlankX = pos[3];
+      const outerMarginX = pos[6];
+
+      const apexDispX = rawCoords[0] - apexX;
+      const outerFlankDispX = rawCoords[3] - outerFlankX;
+      const outerMarginDispX = rawCoords[6] - outerMarginX;
+
+      // 1. Apex stays centered above the bone (X in [0.170, 0.180]), with at most 1 cm inward shift
+      expect(apexX).toBeGreaterThanOrEqual(0.170);
+      expect(apexDispX).toBeLessThan(0.010);
+
+      // 2. Outer flank and margin contract significantly more inward than the apex (>= 2.5x ratio)
+      expect(outerFlankDispX).toBeGreaterThan(apexDispX * 2.5);
+      expect(outerMarginDispX).toBeGreaterThan(apexDispX * 3.0);
+
+      // 3. Monotonic spatial ordering is strictly preserved across the shoulder dome
+      expect(apexX).toBeLessThan(outerFlankX);
+      expect(outerFlankX).toBeLessThan(outerMarginX);
     }
   });
 

@@ -2579,10 +2579,12 @@ export function deformBridgingDeltoidMesh(
     const armDispZ = delta.dz * tHumerusY;
 
     // 3. Horizontal contraction across shoulder girdle:
-    // The upper muscle contracts horizontally towards the pinned skeleton anchor,
-    // pulling taut across the shoulder and preventing overlap with bones and adjacent anatomy.
-    const spanFromInner = Math.max(0, absX - 0.105);
-    const shrinkX = spanFromInner * 0.38 * contract;
+    // Shrinking is applied predominantly toward the outer side of the deltoid (|X| > 0.170)
+    // to pull the wide lateral flank inward while keeping the apex centered above the bone
+    // (acromion / greater tubercle). Medial fibers (|X| <= 0.170) maintain gentle tension.
+    const innerSpan = Math.max(0, absX - 0.105);
+    const outerSpan = Math.max(0, absX - 0.170);
+    const shrinkX = (innerSpan * 0.06 + outerSpan * 0.50) * contract;
 
     // 4. Vertical contraction towards joint center:
     // Shortens the muscle belly vertically towards the joint center (Y = 1.378)
