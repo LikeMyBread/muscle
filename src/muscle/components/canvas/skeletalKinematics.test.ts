@@ -1467,9 +1467,10 @@ describe('skeletalKinematics', () => {
     expect(pos[0]).toBeGreaterThan(rawCoords[0] + 0.04);
     expect(pos[1]).toBeGreaterThan(rawCoords[1]);
 
-    // Deltoid body and origin slide up (+Y) and inward (-X) along an arc
+    // Deltoid body contracts and lifts subtly (+Y) and inward (-X) without bulging upward too high
     expect(pos[6]).toBeLessThan(rawCoords[6]);
-    expect(pos[7]).toBeGreaterThan(rawCoords[7] + 0.03);
+    expect(pos[7]).toBeGreaterThan(rawCoords[7] + 0.01);
+    expect(pos[7]).toBeLessThan(rawCoords[7] + 0.025);
 
     // Inner edge remains strictly pinned to the skeleton (0 displacement under arm movements)
     expect(pos[9]).toBeCloseTo(rawCoords[9], 5);

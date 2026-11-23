@@ -2494,11 +2494,9 @@ export function deformBridgingDeltoidMesh(
   // Active contraction factor: aggressively ramps as the arm raises to power abduction
   const contract = Math.sin(Math.min(Math.PI / 2, normAbduct * 1.5));
 
-  // Upward arc lift parameters:
-  // As the arm abducts, the contracting deltoid belly flexes and lifts up along an arc
-  const R = 0.16;
-  const phi = 0.42 * abductAngle;
-  const arcDy = R * Math.sin(phi);
+  // Calibrated upward flex lift:
+  // Provides a subtle, natural crest lift (up to ~3.5 cm) without bulging upward too high into the air.
+  const arcDy = 0.035 * Math.sin(normAbduct * (Math.PI / 2));
 
   // Flexion/extension displacements for forward/backward arm swing
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
@@ -2576,12 +2574,18 @@ export function deformBridgingDeltoidMesh(
     const spanFromInner = Math.max(0, absX - 0.105);
     const shrinkX = spanFromInner * 0.38 * contract;
 
+    // 4. Vertical shrinkage:
+    // Shortens the muscle belly vertically towards the joint center (Y = 1.378)
+    // to model realistic muscular shortening and prevent upward bulging.
+    const vertSpan = y0 - shoulder.y;
+    const shrinkY = vertSpan * 0.35 * contract;
+
     // Blended displacement:
     // Horizontal X: bridges humerus outward translation at insertion with aggressive inward contraction in the belly.
     const dispX = (1 - s) * delta.dx - s * (signX * shrinkX * wMobile);
 
-    // Vertical Y: lifts up with humerus translation and flexes upward along the arc in the mobile belly.
-    const dispY = (1 - s) * delta.dy + s * ((arcDy + arcFlexDy) * wMobile);
+    // Vertical Y: lifts up with humerus translation and shortens vertically in the mobile belly.
+    const dispY = (1 - s) * delta.dy + s * ((arcDy - shrinkY + arcFlexDy) * wMobile);
 
     // Sagittal Z: tracks humeral swing and anterior/posterior deltoid forward/backward flex.
     const dispZ = (1 - s) * delta.dz + s * (arcDz * wMobile);
