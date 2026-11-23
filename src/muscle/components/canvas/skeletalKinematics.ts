@@ -406,15 +406,48 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
-  // 1. Pelvis (Root of hip assembly)
+  // 1. Pelvis (Root of hip assembly, pelvic floor, coccyx, perineum & sphincter muscles)
   if (
     nodeId === 'bone_pelvis' ||
+    nodeId === 'atlas_coccygeus_muscle_r_c7b9df83' ||
+    nodeId === 'atlas_iliococcygeus_muscle_r_f5772056' ||
+    nodeId === 'atlas_pubococcygeus_muscle_r_a87d3b88' ||
+    nodeId === 'atlas_puborectalis_muscle_r_9f43ed9b' ||
+    nodeId === 'atlas_external_anal_sphincter_r_91adc941' ||
+    nodeId === 'atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1' ||
     nodeId === 'atlas_gracilis_muscle_pubic_insertion_r_3568d7dc' ||
     nodeId === 'atlas_long_head_of_biceps_femoris_muscle_i_69d2859a' ||
     nodeId === 'atlas_sartorius_muscle_on_upper_anterior_i_a4219826' ||
+    nodeId === 'atlas_obturator_internus_pelvic_insertion_r_1cf32be7' ||
     text.includes('pelvis') ||
+    text.includes('pelvic') ||
     text.includes('sacrum') ||
+    text.includes('sacral') ||
     text.includes('coccyx') ||
+    text.includes('coccyg') || // matches coccygeus, coccygeal, anococcygeal, iliococcygeus, pubococcygeus
+    text.includes('puborect') || // matches puborectalis
+    text.includes('pubococcyg') ||
+    text.includes('iliococcyg') ||
+    text.includes('levator_ani') ||
+    text.includes('levator ani') ||
+    text.includes('anal_sphincter') ||
+    text.includes('anal sphincter') ||
+    text.includes('sphincter_ani') ||
+    text.includes('sphincter ani') ||
+    text.includes('external_anal') ||
+    text.includes('external anal') ||
+    text.includes('internal_anal') ||
+    text.includes('internal anal') ||
+    text.includes('sphincter_urethrae') ||
+    text.includes('sphincter urethrae') ||
+    text.includes('perine') ||
+    text.includes('ischiocav') ||
+    text.includes('bulbosp') ||
+    text.includes('pelvic_floor') ||
+    text.includes('pelvic floor') ||
+    text.includes('pelvic_diaphragm') ||
+    text.includes('pelvic diaphragm') ||
+    text.includes('pudend') ||
     text.includes('ilium') ||
     text.includes('ischium') ||
     text.includes('pubis') ||

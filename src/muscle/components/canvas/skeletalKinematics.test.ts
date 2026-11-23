@@ -113,6 +113,67 @@ describe('skeletalKinematics', () => {
       ),
     ).toBe('pelvis');
 
+    // Coccygeus muscle area & pelvic floor (attached to pelvis, not torso core / spine)
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_coccygeus_muscle_r_c7b9df83',
+        undefined,
+        'Coccygeus muscle.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_coccygeus_muscle_r_c7b9df83')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_coccygeus')).toBe('pelvis');
+
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_iliococcygeus_muscle_r_f5772056',
+        undefined,
+        'Iliococcygeus muscle.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_iliococcygeus_muscle_r_f5772056')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_iliococcygeus')).toBe('pelvis');
+
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_puborectalis_muscle_r_9f43ed9b',
+        undefined,
+        'Puborectalis muscle.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_puborectalis_muscle_r_9f43ed9b')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_puborectalis')).toBe('pelvis');
+
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_pubococcygeus_muscle_r_a87d3b88',
+        undefined,
+        'Pubococcygeus muscle.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_pubococcygeus_muscle_r_a87d3b88')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_pubococcygeus')).toBe('pelvis');
+
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_external_anal_sphincter_r_91adc941',
+        undefined,
+        'External anal sphincter.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_external_anal_sphincter_r_91adc941')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_external_anal_sphincter')).toBe('pelvis');
+
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1',
+        undefined,
+        'Levator ani-Pubic and ischiatic insertions.r',
+      ),
+    ).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('atlas_levator_ani_pubic_and_ischiatic_inse_3ea30fe1')).toBe('pelvis');
+    expect(getKinematicSegmentForNodeId('muscle_levator_ani')).toBe('pelvis');
+
     // Bridging dual-anchored muscles (Psoas, Plantaris, Transversus abdominis, Fascia lata, Brachioradialis, Biceps, Quads, Sartorius, Hamstrings, Gracilis, Deltoid, Pecs, Torso bend muscles)
     expect(
       getKinematicSegmentForNodeId(
