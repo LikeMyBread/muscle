@@ -15,11 +15,11 @@ describe('JointPoseSliders Component', () => {
     });
   });
 
-  it('renders the Joint Pose Controls panel with all 9 separated joints', () => {
+  it('renders the Joint Pose Controls panel with all 13 separated joints', () => {
     render(<JointPoseSliders />);
     const panel = screen.getByTestId('joint-pose-sliders');
     expect(panel).toBeInTheDocument();
-    expect(JOINT_POSE_CONFIGS).toHaveLength(9);
+    expect(JOINT_POSE_CONFIGS).toHaveLength(13);
 
     for (const config of JOINT_POSE_CONFIGS) {
       const slider = screen.getByTestId(`joint-slider-${config.key}`);
@@ -32,44 +32,66 @@ describe('JointPoseSliders Component', () => {
     render(<JointPoseSliders />);
 
     const torsoItem = screen.getByTestId('joint-item-spineFlexion');
-    const leftShoulderItem = screen.getByTestId('joint-item-leftShoulderAbduction');
+    const leftShoulderAbductItem = screen.getByTestId('joint-item-leftShoulderAbduction');
+    const leftShoulderFlexItem = screen.getByTestId('joint-item-leftShoulderFlexion');
     const leftElbowItem = screen.getByTestId('joint-item-leftElbowFlexion');
-    const rightShoulderItem = screen.getByTestId('joint-item-rightShoulderAbduction');
+    const rightShoulderAbductItem = screen.getByTestId('joint-item-rightShoulderAbduction');
+    const rightShoulderFlexItem = screen.getByTestId('joint-item-rightShoulderFlexion');
     const rightElbowItem = screen.getByTestId('joint-item-rightElbowFlexion');
-    const leftHipItem = screen.getByTestId('joint-item-leftHipFlexion');
+    const leftHipFlexItem = screen.getByTestId('joint-item-leftHipFlexion');
+    const leftHipAbductItem = screen.getByTestId('joint-item-leftHipAbduction');
     const leftKneeItem = screen.getByTestId('joint-item-leftKneeFlexion');
-    const rightHipItem = screen.getByTestId('joint-item-rightHipFlexion');
+    const rightHipFlexItem = screen.getByTestId('joint-item-rightHipFlexion');
+    const rightHipAbductItem = screen.getByTestId('joint-item-rightHipAbduction');
     const rightKneeItem = screen.getByTestId('joint-item-rightKneeFlexion');
 
     // Hierarchy check:
     // Torso: indent 0
-    //   Left Shoulder: indent 1
+    //   Left Shoulder (In/Out): indent 1
+    //   Left Shoulder (Forward/Back): indent 1
     //     Left Elbow: indent 2
-    //   Right Shoulder: indent 1
+    //   Right Shoulder (In/Out): indent 1
+    //   Right Shoulder (Forward/Back): indent 1
     //     Right Elbow: indent 2
-    // Left Hip: indent 0
+    // Left Hip (Forward/Back): indent 0
+    // Left Hip (Outward): indent 0
     //   Left Knee: indent 1
-    // Right Hip: indent 0
+    // Right Hip (Forward/Back): indent 0
+    // Right Hip (Outward): indent 0
     //   Right Knee: indent 1
     expect(torsoItem.className).toContain('muscle-joint-tree__item--indent-0');
-    expect(leftShoulderItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(leftShoulderAbductItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(leftShoulderFlexItem.className).toContain('muscle-joint-tree__item--indent-1');
     expect(leftElbowItem.className).toContain('muscle-joint-tree__item--indent-2');
-    expect(rightShoulderItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(rightShoulderAbductItem.className).toContain('muscle-joint-tree__item--indent-1');
+    expect(rightShoulderFlexItem.className).toContain('muscle-joint-tree__item--indent-1');
     expect(rightElbowItem.className).toContain('muscle-joint-tree__item--indent-2');
-    expect(leftHipItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(leftHipFlexItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(leftHipAbductItem.className).toContain('muscle-joint-tree__item--indent-0');
     expect(leftKneeItem.className).toContain('muscle-joint-tree__item--indent-1');
-    expect(rightHipItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(rightHipFlexItem.className).toContain('muscle-joint-tree__item--indent-0');
+    expect(rightHipAbductItem.className).toContain('muscle-joint-tree__item--indent-0');
     expect(rightKneeItem.className).toContain('muscle-joint-tree__item--indent-1');
   });
 
   it('configures bidirectional joints with 0° in the middle and unidirectional with 0° on the left', () => {
     render(<JointPoseSliders />);
 
-    // Bidirectional: Torso (-30° to +30°), Left Hip (-45° to +45°), Right Hip (-45° to +45°)
+    // Bidirectional: Torso (-30° to +30°), Shoulders Flexion (-90° to +90°), Hips Flexion (-45° to +45°)
     const torsoSlider = screen.getByTestId('joint-slider-spineFlexion');
     expect(torsoSlider).toHaveAttribute('min', '-30');
     expect(torsoSlider).toHaveAttribute('max', '30');
     expect(torsoSlider.className).toContain('muscle-joint-slider--bidirectional');
+
+    const leftShoulderFlexSlider = screen.getByTestId('joint-slider-leftShoulderFlexion');
+    expect(leftShoulderFlexSlider).toHaveAttribute('min', '-90');
+    expect(leftShoulderFlexSlider).toHaveAttribute('max', '90');
+    expect(leftShoulderFlexSlider.className).toContain('muscle-joint-slider--bidirectional');
+
+    const rightShoulderFlexSlider = screen.getByTestId('joint-slider-rightShoulderFlexion');
+    expect(rightShoulderFlexSlider).toHaveAttribute('min', '-90');
+    expect(rightShoulderFlexSlider).toHaveAttribute('max', '90');
+    expect(rightShoulderFlexSlider.className).toContain('muscle-joint-slider--bidirectional');
 
     const leftHipSlider = screen.getByTestId('joint-slider-leftHipFlexion');
     expect(leftHipSlider).toHaveAttribute('min', '-45');
@@ -81,16 +103,16 @@ describe('JointPoseSliders Component', () => {
     expect(rightHipSlider).toHaveAttribute('max', '45');
     expect(rightHipSlider.className).toContain('muscle-joint-slider--bidirectional');
 
-    // Unidirectional: Shoulders (0° to 90°), Elbows (0° to 130°), Knees (0° to 120°)
-    const leftShoulderSlider = screen.getByTestId('joint-slider-leftShoulderAbduction');
-    expect(leftShoulderSlider).toHaveAttribute('min', '0');
-    expect(leftShoulderSlider).toHaveAttribute('max', '90');
-    expect(leftShoulderSlider.className).toContain('muscle-joint-slider--unidirectional');
+    // Unidirectional: Shoulders Abduction (0° to 90°), Elbows (0° to 130°), Hips Abduction (0° to 45°), Knees (0° to 120°)
+    const leftShoulderAbductSlider = screen.getByTestId('joint-slider-leftShoulderAbduction');
+    expect(leftShoulderAbductSlider).toHaveAttribute('min', '0');
+    expect(leftShoulderAbductSlider).toHaveAttribute('max', '90');
+    expect(leftShoulderAbductSlider.className).toContain('muscle-joint-slider--unidirectional');
 
-    const rightShoulderSlider = screen.getByTestId('joint-slider-rightShoulderAbduction');
-    expect(rightShoulderSlider).toHaveAttribute('min', '0');
-    expect(rightShoulderSlider).toHaveAttribute('max', '90');
-    expect(rightShoulderSlider.className).toContain('muscle-joint-slider--unidirectional');
+    const rightShoulderAbductSlider = screen.getByTestId('joint-slider-rightShoulderAbduction');
+    expect(rightShoulderAbductSlider).toHaveAttribute('min', '0');
+    expect(rightShoulderAbductSlider).toHaveAttribute('max', '90');
+    expect(rightShoulderAbductSlider.className).toContain('muscle-joint-slider--unidirectional');
 
     const leftElbowSlider = screen.getByTestId('joint-slider-leftElbowFlexion');
     expect(leftElbowSlider).toHaveAttribute('min', '0');
@@ -101,6 +123,16 @@ describe('JointPoseSliders Component', () => {
     expect(rightElbowSlider).toHaveAttribute('min', '0');
     expect(rightElbowSlider).toHaveAttribute('max', '130');
     expect(rightElbowSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const leftHipAbductSlider = screen.getByTestId('joint-slider-leftHipAbduction');
+    expect(leftHipAbductSlider).toHaveAttribute('min', '0');
+    expect(leftHipAbductSlider).toHaveAttribute('max', '45');
+    expect(leftHipAbductSlider.className).toContain('muscle-joint-slider--unidirectional');
+
+    const rightHipAbductSlider = screen.getByTestId('joint-slider-rightHipAbduction');
+    expect(rightHipAbductSlider).toHaveAttribute('min', '0');
+    expect(rightHipAbductSlider).toHaveAttribute('max', '45');
+    expect(rightHipAbductSlider.className).toContain('muscle-joint-slider--unidirectional');
 
     const leftKneeSlider = screen.getByTestId('joint-slider-leftKneeFlexion');
     expect(leftKneeSlider).toHaveAttribute('min', '0');
@@ -192,15 +224,19 @@ describe('JointPoseSliders Component', () => {
     expect(rightKneeSlider.value).toBe('85');
   });
 
-  it('resets all 9 joint sliders to neutral 0° on clicking Reset Pose', () => {
+  it('resets all 13 joint sliders to neutral 0° on clicking Reset Pose', () => {
     useMuscleStore.getState().setSkeletonJointAngles({
       spineFlexion: (20 * Math.PI) / 180,
       leftShoulderAbduction: (50 * Math.PI) / 180,
       rightShoulderAbduction: (40 * Math.PI) / 180,
+      leftShoulderFlexion: (35 * Math.PI) / 180,
+      rightShoulderFlexion: (-25 * Math.PI) / 180,
       leftElbowFlexion: (90 * Math.PI) / 180,
       rightElbowFlexion: (70 * Math.PI) / 180,
       leftHipFlexion: (30 * Math.PI) / 180,
       rightHipFlexion: (-25 * Math.PI) / 180,
+      leftHipAbduction: (20 * Math.PI) / 180,
+      rightHipAbduction: (15 * Math.PI) / 180,
       leftKneeFlexion: (60 * Math.PI) / 180,
       rightKneeFlexion: (80 * Math.PI) / 180,
     });
@@ -214,16 +250,24 @@ describe('JointPoseSliders Component', () => {
     expect(state.skeletonJointAngles.spineFlexion).toBe(0);
     expect(state.skeletonJointAngles.leftShoulderAbduction).toBe(0);
     expect(state.skeletonJointAngles.rightShoulderAbduction).toBe(0);
+    expect(state.skeletonJointAngles.leftShoulderFlexion).toBe(0);
+    expect(state.skeletonJointAngles.rightShoulderFlexion).toBe(0);
     expect(state.skeletonJointAngles.leftElbowFlexion).toBe(0);
     expect(state.skeletonJointAngles.rightElbowFlexion).toBe(0);
     expect(state.skeletonJointAngles.leftHipFlexion).toBe(0);
     expect(state.skeletonJointAngles.rightHipFlexion).toBe(0);
+    expect(state.skeletonJointAngles.leftHipAbduction).toBe(0);
+    expect(state.skeletonJointAngles.rightHipAbduction).toBe(0);
     expect(state.skeletonJointAngles.leftKneeFlexion).toBe(0);
     expect(state.skeletonJointAngles.rightKneeFlexion).toBe(0);
     expect(state.isSkeletonAnimating).toBe(false);
     expect(state.skeletonPoseResetCount).toBe(1);
 
     expect(screen.getByTestId('joint-val-spineFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-leftShoulderFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-rightShoulderFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-leftHipAbduction')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-val-rightHipAbduction')).toHaveTextContent('0°');
     expect(screen.getByTestId('joint-val-leftElbowFlexion')).toHaveTextContent('0°');
     expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('0°');
   });

@@ -41,10 +41,14 @@ export interface SkeletonJointAngles {
   spineFlexion: number;
   leftShoulderAbduction: number;
   rightShoulderAbduction: number;
+  leftShoulderFlexion: number;
+  rightShoulderFlexion: number;
   leftElbowFlexion: number;
   rightElbowFlexion: number;
   leftHipFlexion: number;
   rightHipFlexion: number;
+  leftHipAbduction: number;
+  rightHipAbduction: number;
   leftKneeFlexion: number;
   rightKneeFlexion: number;
 }
@@ -53,10 +57,14 @@ export const DEFAULT_SKELETON_JOINT_ANGLES: SkeletonJointAngles = {
   spineFlexion: 0,
   leftShoulderAbduction: 0,
   rightShoulderAbduction: 0,
+  leftShoulderFlexion: 0,
+  rightShoulderFlexion: 0,
   leftElbowFlexion: 0,
   rightElbowFlexion: 0,
   leftHipFlexion: 0,
   rightHipFlexion: 0,
+  leftHipAbduction: 0,
+  rightHipAbduction: 0,
   leftKneeFlexion: 0,
   rightKneeFlexion: 0,
 };

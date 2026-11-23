@@ -33,8 +33,10 @@ function extractJointAnglesForSide(
   return {
     spineFlexion: angles.spineFlexion ?? 0,
     shoulderAbduction: (side === 'left' ? angles.leftShoulderAbduction : angles.rightShoulderAbduction) ?? 0,
+    shoulderFlexion: (side === 'left' ? angles.leftShoulderFlexion : angles.rightShoulderFlexion) ?? 0,
     elbowFlexion: (side === 'left' ? angles.leftElbowFlexion : angles.rightElbowFlexion) ?? 0,
     hipFlexion: (side === 'left' ? angles.leftHipFlexion : angles.rightHipFlexion) ?? 0,
+    hipAbduction: (side === 'left' ? angles.leftHipAbduction : angles.rightHipAbduction) ?? 0,
     kneeFlexion: (side === 'left' ? angles.leftKneeFlexion : angles.rightKneeFlexion) ?? 0,
   };
 }
@@ -117,6 +119,7 @@ function SkeletalKinematicsGroupComponent({
       forearmPivotRef.current.rotation.x = rotations.forearmRotationX;
     }
     if (armPivotRef.current) {
+      armPivotRef.current.rotation.x = rotations.armRotationX ?? 0;
       armPivotRef.current.rotation.z = rotations.armRotationZ;
     }
     if (shinPivotRef.current) {
@@ -124,6 +127,7 @@ function SkeletalKinematicsGroupComponent({
     }
     if (thighPivotRef.current) {
       thighPivotRef.current.rotation.x = rotations.thighRotationX;
+      thighPivotRef.current.rotation.z = rotations.thighRotationZ ?? 0;
     }
     if (spinePivotRef.current) {
       spinePivotRef.current.rotation.x = rotations.spineRotationX;
@@ -164,6 +168,7 @@ function SkeletalKinematicsGroupComponent({
         forearmPivotRef.current.rotation.x = THREE.MathUtils.lerp(forearmPivotRef.current.rotation.x, 0, lerpRate);
       }
       if (armPivotRef.current) {
+        armPivotRef.current.rotation.x = THREE.MathUtils.lerp(armPivotRef.current.rotation.x, 0, lerpRate);
         armPivotRef.current.rotation.z = THREE.MathUtils.lerp(armPivotRef.current.rotation.z, 0, lerpRate);
       }
       if (shinPivotRef.current) {
@@ -171,6 +176,7 @@ function SkeletalKinematicsGroupComponent({
       }
       if (thighPivotRef.current) {
         thighPivotRef.current.rotation.x = THREE.MathUtils.lerp(thighPivotRef.current.rotation.x, 0, lerpRate);
+        thighPivotRef.current.rotation.z = THREE.MathUtils.lerp(thighPivotRef.current.rotation.z, 0, lerpRate);
       }
       if (spinePivotRef.current) {
         spinePivotRef.current.rotation.x = THREE.MathUtils.lerp(spinePivotRef.current.rotation.x, 0, lerpRate);
@@ -178,9 +184,11 @@ function SkeletalKinematicsGroupComponent({
 
       const currentRotations: KinematicPivotRotations = {
         forearmRotationX: forearmPivotRef.current?.rotation.x ?? 0,
+        armRotationX: armPivotRef.current?.rotation.x ?? 0,
         armRotationZ: armPivotRef.current?.rotation.z ?? 0,
         shinRotationX: shinPivotRef.current?.rotation.x ?? 0,
         thighRotationX: thighPivotRef.current?.rotation.x ?? 0,
+        thighRotationZ: thighPivotRef.current?.rotation.z ?? 0,
         spineRotationX: spinePivotRef.current?.rotation.x ?? 0,
       };
 
@@ -190,17 +198,25 @@ function SkeletalKinematicsGroupComponent({
 
       const maxRemaining = Math.max(
         Math.abs(forearmPivotRef.current?.rotation.x ?? 0),
+        Math.abs(armPivotRef.current?.rotation.x ?? 0),
         Math.abs(armPivotRef.current?.rotation.z ?? 0),
         Math.abs(shinPivotRef.current?.rotation.x ?? 0),
         Math.abs(thighPivotRef.current?.rotation.x ?? 0),
+        Math.abs(thighPivotRef.current?.rotation.z ?? 0),
         Math.abs(spinePivotRef.current?.rotation.x ?? 0),
       );
 
       if (maxRemaining < 0.001) {
         if (forearmPivotRef.current) forearmPivotRef.current.rotation.x = 0;
-        if (armPivotRef.current) armPivotRef.current.rotation.z = 0;
+        if (armPivotRef.current) {
+          armPivotRef.current.rotation.x = 0;
+          armPivotRef.current.rotation.z = 0;
+        }
         if (shinPivotRef.current) shinPivotRef.current.rotation.x = 0;
-        if (thighPivotRef.current) thighPivotRef.current.rotation.x = 0;
+        if (thighPivotRef.current) {
+          thighPivotRef.current.rotation.x = 0;
+          thighPivotRef.current.rotation.z = 0;
+        }
         if (spinePivotRef.current) spinePivotRef.current.rotation.x = 0;
         for (const mesh of categorizedMeshes.bridging) {
           restoreOriginalMeshPositions(mesh);
@@ -224,6 +240,7 @@ function SkeletalKinematicsGroupComponent({
     }
 
     if (armPivotRef.current) {
+      armPivotRef.current.rotation.x = rotations.armRotationX ?? 0;
       armPivotRef.current.rotation.z = rotations.armRotationZ;
     }
 
@@ -233,6 +250,7 @@ function SkeletalKinematicsGroupComponent({
 
     if (thighPivotRef.current) {
       thighPivotRef.current.rotation.x = rotations.thighRotationX;
+      thighPivotRef.current.rotation.z = rotations.thighRotationZ ?? 0;
     }
 
     if (spinePivotRef.current) {
@@ -248,10 +266,14 @@ function SkeletalKinematicsGroupComponent({
         spineFlexion: currentAngles.spineFlexion,
         leftShoulderAbduction: currentAngles.leftShoulderAbduction,
         rightShoulderAbduction: currentAngles.rightShoulderAbduction,
+        leftShoulderFlexion: currentAngles.leftShoulderFlexion,
+        rightShoulderFlexion: currentAngles.rightShoulderFlexion,
         leftElbowFlexion: currentAngles.leftElbowFlexion,
         rightElbowFlexion: currentAngles.rightElbowFlexion,
         leftHipFlexion: currentAngles.leftHipFlexion,
         rightHipFlexion: currentAngles.rightHipFlexion,
+        leftHipAbduction: currentAngles.leftHipAbduction,
+        rightHipAbduction: currentAngles.rightHipAbduction,
         leftKneeFlexion: currentAngles.leftKneeFlexion,
         rightKneeFlexion: currentAngles.rightKneeFlexion,
       });

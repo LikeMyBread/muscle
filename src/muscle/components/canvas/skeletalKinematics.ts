@@ -325,8 +325,10 @@ export function getKinematicSegmentForNodeId(
 export interface JointAngleState {
   elbowFlexion: number;
   shoulderAbduction: number;
+  shoulderFlexion?: number;
   kneeFlexion: number;
   hipFlexion: number;
+  hipAbduction?: number;
   spineFlexion: number;
   activeMotionLabel?: string;
 }
@@ -334,19 +336,25 @@ export interface JointAngleState {
 export interface ProceduralJointAngles extends JointAngleState {
   leftShoulderAbduction: number;
   rightShoulderAbduction: number;
+  leftShoulderFlexion: number;
+  rightShoulderFlexion: number;
   leftElbowFlexion: number;
   rightElbowFlexion: number;
   leftHipFlexion: number;
   rightHipFlexion: number;
+  leftHipAbduction: number;
+  rightHipAbduction: number;
   leftKneeFlexion: number;
   rightKneeFlexion: number;
 }
 
 export interface KinematicPivotRotations {
   forearmRotationX: number;
+  armRotationX?: number;
   armRotationZ: number;
   shinRotationX: number;
   thighRotationX: number;
+  thighRotationZ?: number;
   spineRotationX: number;
 }
 
@@ -357,16 +365,20 @@ export interface KinematicPivotRotations {
  * - Forearm hangs down (-Y): a negative rotation around X swings it forward (+Z, anterior) -> Elbow flexion.
  * - Shin hangs down (-Y): a positive rotation around X swings it backward (-Z, posterior) -> Knee flexion.
  * - Thigh hangs down (-Y): a negative rotation around X swings it forward (+Z, anterior) -> Hip flexion.
+ * - Thigh hangs down (-Y): a positive rotation around Z swings it outward (+X laterally) -> Hip abduction.
  * - Spine extends up (+Y): a positive rotation around X bends it forward (+Z, anterior) -> Trunk flexion.
  * - Arm hangs down: a positive rotation around Z swings it laterally (+X) -> Shoulder abduction.
+ * - Arm hangs down: a negative rotation around X swings it forward (+Z, anterior) -> Shoulder flexion.
  */
-export function computeKinematicRotations(angles: JointAngleState): KinematicPivotRotations {
+export function computeKinematicRotations(angles: Partial<JointAngleState>): KinematicPivotRotations {
   return {
-    forearmRotationX: -angles.elbowFlexion,
-    armRotationZ: angles.shoulderAbduction,
-    shinRotationX: angles.kneeFlexion,
-    thighRotationX: -angles.hipFlexion,
-    spineRotationX: angles.spineFlexion,
+    forearmRotationX: -(angles.elbowFlexion ?? 0),
+    armRotationX: -(angles.shoulderFlexion ?? 0),
+    armRotationZ: angles.shoulderAbduction ?? 0,
+    shinRotationX: angles.kneeFlexion ?? 0,
+    thighRotationX: -(angles.hipFlexion ?? 0),
+    thighRotationZ: angles.hipAbduction ?? 0,
+    spineRotationX: angles.spineFlexion ?? 0,
   };
 }
 
@@ -392,10 +404,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): Procedural
       rightElbowFlexion: angle,
       leftShoulderAbduction: 0,
       rightShoulderAbduction: 0,
+      leftShoulderFlexion: 0,
+      rightShoulderFlexion: 0,
       leftKneeFlexion: 0,
       rightKneeFlexion: 0,
       leftHipFlexion: 0,
       rightHipFlexion: 0,
+      leftHipAbduction: 0,
+      rightHipAbduction: 0,
       activeMotionLabel: 'Elbow flexion & extension',
     };
   }
@@ -414,10 +430,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): Procedural
       rightElbowFlexion: 0,
       leftShoulderAbduction: angle,
       rightShoulderAbduction: angle,
+      leftShoulderFlexion: 0,
+      rightShoulderFlexion: 0,
       leftKneeFlexion: 0,
       rightKneeFlexion: 0,
       leftHipFlexion: 0,
       rightHipFlexion: 0,
+      leftHipAbduction: 0,
+      rightHipAbduction: 0,
       activeMotionLabel: 'Shoulder abduction & adduction',
     };
   }
@@ -436,10 +456,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): Procedural
       rightElbowFlexion: 0,
       leftShoulderAbduction: 0,
       rightShoulderAbduction: 0,
+      leftShoulderFlexion: 0,
+      rightShoulderFlexion: 0,
       leftKneeFlexion: angle,
       rightKneeFlexion: angle,
       leftHipFlexion: 0,
       rightHipFlexion: 0,
+      leftHipAbduction: 0,
+      rightHipAbduction: 0,
       activeMotionLabel: 'Knee flexion & extension',
     };
   }
@@ -458,10 +482,14 @@ export function computeProceduralJointAngles(elapsedSeconds: number): Procedural
     rightElbowFlexion: 0,
     leftShoulderAbduction: 0,
     rightShoulderAbduction: 0,
+    leftShoulderFlexion: 0,
+    rightShoulderFlexion: 0,
     leftKneeFlexion: 0,
     rightKneeFlexion: 0,
     leftHipFlexion: hipAngle,
     rightHipFlexion: hipAngle,
+    leftHipAbduction: 0,
+    rightHipAbduction: 0,
     activeMotionLabel: 'Hip & trunk motion',
   };
 }
@@ -727,6 +755,7 @@ export function deformBridgingFasciaLataMesh(
   mesh: THREE.Mesh,
   thetaHip: number,
   thetaKnee: number,
+  thetaHipZ: number = 0,
 ): void {
   const geom = mesh.geometry;
   const posAttr = geom.attributes.position;
@@ -773,17 +802,28 @@ export function deformBridgingFasciaLataMesh(
     if (tH < 0) tH = 0;
     if (tH > 1) tH = 1;
     const wH = tH * tH * (3 - 2 * tH);
-    const thetaH_eff = (1 - wH) * thetaHip;
 
-    const cosH_eff = Math.cos(thetaH_eff);
-    const sinH_eff = Math.sin(thetaH_eff);
+    // Lateral outward abduction around Z axis
+    const thetaHZ_eff = (1 - wH) * thetaHipZ;
+    const cosHZ = Math.cos(thetaHZ_eff);
+    const sinHZ = Math.sin(thetaHZ_eff);
 
-    const dyH = yK_prime - hip.y;
-    const dzH = zK_prime - hip.z;
-    const yFinal = hip.y + (dyH * cosH_eff - dzH * sinH_eff);
-    const zFinal = hip.z + (dyH * sinH_eff + dzH * cosH_eff);
+    const dxH = x0 - hip.x;
+    const dyH_forZ = yK_prime - hip.y;
+    const xH_prime = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yH_prime = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
 
-    arr[idx] = x0;
+    // Anterior / posterior flexion around X axis
+    const thetaHX_eff = (1 - wH) * thetaHip;
+    const cosHX = Math.cos(thetaHX_eff);
+    const sinHX = Math.sin(thetaHX_eff);
+
+    const dyHX = yH_prime - hip.y;
+    const dzHX = zK_prime - hip.z;
+    const yFinal = hip.y + (dyHX * cosHX - dzHX * sinHX);
+    const zFinal = hip.z + (dyHX * sinHX + dzHX * cosHX);
+
+    arr[idx] = xH_prime;
     arr[idx + 1] = yFinal;
     arr[idx + 2] = zFinal;
   }
@@ -806,7 +846,12 @@ export function deformBridgingMesh(
   } else if (isTransversusAbdominisMesh(mesh)) {
     deformBridgingTransversusAbdominisMesh(mesh, rotations.spineRotationX);
   } else if (isFasciaLataMesh(mesh)) {
-    deformBridgingFasciaLataMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
+    deformBridgingFasciaLataMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
   }
 }
 

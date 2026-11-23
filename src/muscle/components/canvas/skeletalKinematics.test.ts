@@ -286,6 +286,18 @@ describe('skeletalKinematics', () => {
     // Spine flexion bends the trunk forward (+Z), which requires positive X rotation
     expect(hipRot.spineRotationX).toBeGreaterThan(0);
     expect(hipRot.spineRotationX).toBeCloseTo(hipPose.spineFlexion, 4);
+
+    // Shoulder flexion (forward) swings arm into +Z, requiring negative X rotation
+    const shoulderFlexForward = computeKinematicRotations({ shoulderFlexion: 0.5 });
+    expect(shoulderFlexForward.armRotationX).toBeCloseTo(-0.5, 4);
+
+    // Shoulder extension (backward) swings arm into -Z, requiring positive X rotation
+    const shoulderExtBack = computeKinematicRotations({ shoulderFlexion: -0.5 });
+    expect(shoulderExtBack.armRotationX).toBeCloseTo(0.5, 4);
+
+    // Hip abduction pivots thigh outward laterally away from midline
+    const hipAbduct = computeKinematicRotations({ hipAbduction: 0.4 });
+    expect(hipAbduct.thighRotationZ).toBeCloseTo(0.4, 4);
   });
 
   it('deforms bridging psoas mesh without protruding through lumbar spine during hip flexion', () => {
@@ -546,7 +558,21 @@ describe('skeletalKinematics', () => {
     expect(pos[7]).toBeCloseTo(0.98, 5);
     expect(pos[8]).toBeCloseTo(-0.02, 5);
 
-    // D. Restore original positions:
+    // D. Hip outward abduction (thetaHipZ):
+    // Thigh rotates outward laterally (+Z Euler rotation in Three.js coordinates)
+    const hipAbductionAngle = (30 * Math.PI) / 180;
+    deformBridgingFasciaLataMesh(mesh, 0, 0, hipAbductionAngle);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Proximal iliac vertex (idx 6..8) remains anchored to pelvis
+    expect(pos[6]).toBeCloseTo(0.142, 5);
+    expect(pos[7]).toBeCloseTo(0.98, 5);
+    // Mid-thigh vertex (idx 3..5) moves laterally outward (+X)
+    expect(pos[3]).toBeGreaterThan(0.14);
+    // Distal vertex (idx 0..2) also moves laterally outward (+X)
+    expect(pos[0]).toBeGreaterThan(0.118);
+
+    // E. Restore original positions:
     restoreOriginalMeshPositions(mesh);
     pos = geom.attributes.position.array as Float32Array;
     expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
