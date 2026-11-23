@@ -186,7 +186,7 @@ export default function TrainingCanvas() {
           gl.shadowMap.needsUpdate = true;
         }}
         dpr={[1, 2]}
-        camera={{ position: [0, 0.95, 2.85], fov: 40, near: 0.05, far: 100 }}
+        camera={{ position: [0, 0.95, 2.35], fov: 40, near: 0.05, far: 100 }}
       >
         <Suspense fallback={null}>
           <AnatomySceneInner showPerf={showPerf} />

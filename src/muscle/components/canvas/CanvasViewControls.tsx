@@ -1,13 +1,10 @@
 import CenterFocusStrongOutlinedIcon from '@mui/icons-material/CenterFocusStrongOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
 import RestartAltOutlinedIcon from '@mui/icons-material/RestartAltOutlined';
 import { useMuscleStore } from '../../store/useMuscleStore';
 
 export default function CanvasViewControls() {
-  const focusedNodeId = useMuscleStore((s) => s.focusedNodeId);
-  const clearFocus = useMuscleStore((s) => s.clearFocus);
   const resetCameraView = useMuscleStore((s) => s.resetCameraView);
   const isSkeletonAnimating = useMuscleStore((s) => s.isSkeletonAnimating);
   const toggleSkeletonAnimation = useMuscleStore((s) => s.toggleSkeletonAnimation);
@@ -56,17 +53,6 @@ export default function CanvasViewControls() {
       >
         <CenterFocusStrongOutlinedIcon fontSize="small" aria-hidden />
       </button>
-      {focusedNodeId ? (
-        <button
-          type="button"
-          className="muscle-canvas-view-controls__btn muscle-canvas-view-controls__btn--icon"
-          onClick={clearFocus}
-          aria-label="Show all structures (Esc)"
-          title="Show all (Esc)"
-        >
-          <VisibilityOutlinedIcon fontSize="small" aria-hidden />
-        </button>
-      ) : null}
     </div>
   );
 }

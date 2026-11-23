@@ -182,7 +182,6 @@ function JointPoseSlidersComponent() {
     <section className="muscle-joint-pose-panel" aria-label="Joint pose controls" data-testid="joint-pose-sliders">
       <div className="muscle-joint-pose-panel__header">
         <div className="muscle-joint-pose-panel__titles">
-          <span className="muscle-joint-pose-panel__eyebrow">Kinematics</span>
           <h3 className="muscle-joint-pose-panel__title">Joint Pose Controls</h3>
         </div>
         <div className="muscle-joint-pose-panel__controls">

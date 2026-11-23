@@ -42,6 +42,27 @@ export default function App() {
           >
             <TrainingCanvas />
           </Suspense>
+          <div className="muscle-canvas-citation" aria-label="Anatomy models citation">
+            Anatomy models adapted from{' '}
+            <a
+              href="https://github.com/Z-Anatomy/Models-of-human-anatomy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="muscle-canvas-citation__link"
+            >
+              Z-Anatomy
+            </a>{' '}
+            (
+            <a
+              href="https://creativecommons.org/licenses/by-sa/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="muscle-canvas-citation__link"
+            >
+              CC BY-SA 4.0
+            </a>
+            )
+          </div>
           <StructureInfoBox />
         </main>
       </div>

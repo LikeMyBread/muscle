@@ -56,4 +56,10 @@ describe('CanvasViewControls Animate Button', () => {
     expect(useMuscleStore.getState().isSkeletonAnimating).toBe(false);
     expect(useMuscleStore.getState().skeletonPoseResetCount).toBe(1);
   });
+
+  it('does not render a Show all button even when a structure is focused', () => {
+    useMuscleStore.setState({ focusedNodeId: 'muscle_biceps_brachii' });
+    render(<CanvasViewControls />);
+    expect(screen.queryByLabelText(/show all/i)).toBeNull();
+  });
 });

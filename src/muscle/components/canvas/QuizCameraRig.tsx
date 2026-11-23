@@ -46,8 +46,8 @@ export default function QuizCameraRig({
 
   useEffect(() => {
     const isFullBody = bodyView === 'full_body';
-    camera.position.set(isFullBody ? 0.65 : 0, stageCenter[1] + 0.05, isFullBody ? 2.25 : 2.85);
-    goalTarget.set(stageCenter[0], stageCenter[1], stageCenter[2]);
+    camera.position.set(0, stageCenter[1] + 0.05, isFullBody ? 2.35 : 2.85);
+    goalTarget.set(0, stageCenter[1] + 0.05, 0);
     if (controlsRef.current) {
       controlsRef.current.target.copy(goalTarget);
       controlsRef.current.update();
