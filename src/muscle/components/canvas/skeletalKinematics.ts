@@ -511,6 +511,7 @@ export function deformBridgingPsoasMesh(
   mesh: THREE.Mesh,
   thetaHip: number,
   thetaSpine: number,
+  thetaHipZ: number = 0,
 ): void {
   const geom = mesh.geometry;
   const posAttr = geom.attributes.position;
@@ -525,6 +526,8 @@ export function deformBridgingPsoasMesh(
 
   const cosH = Math.cos(thetaHip);
   const sinH = Math.sin(thetaHip);
+  const cosHZ = Math.cos(thetaHipZ);
+  const sinHZ = Math.sin(thetaHipZ);
   const cosS = Math.cos(thetaSpine);
   const sinS = Math.sin(thetaSpine);
 
@@ -539,11 +542,18 @@ export function deformBridgingPsoasMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    // Thigh transform around hip pivot
+    // Thigh transform around hip pivot (Three.js Euler 'XYZ': Z first, then X)
+    const dxH = x0 - hip.x;
     const dyH = y0 - hip.y;
     const dzH = z0 - hip.z;
-    const yThigh = hip.y + (dyH * cosH - dzH * sinH);
-    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
+
+    const xThigh_Z = dxH * cosHZ - dyH * sinHZ;
+    const yThigh_Z = dxH * sinHZ + dyH * cosHZ;
+    const zThigh_Z = dzH;
+
+    const xThigh = hip.x + xThigh_Z;
+    const yThigh = hip.y + (yThigh_Z * cosH - zThigh_Z * sinH);
+    const zThigh = hip.z + (yThigh_Z * sinH + zThigh_Z * cosH);
 
     // Spine transform around spine pivot
     const dyS = y0 - spine.y;
@@ -557,7 +567,7 @@ export function deformBridgingPsoasMesh(
     if (t > 1) t = 1;
     const w = t * t * (3 - 2 * t);
 
-    arr[idx] = x0;
+    arr[idx] = (1 - w) * x0 + w * xThigh;
     arr[idx + 1] = (1 - w) * ySpine + w * yThigh;
     arr[idx + 2] = (1 - w) * zSpine + w * zThigh;
   }
@@ -627,36 +637,36 @@ export function deformBridgingPlantarisMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    // --- 1. Thigh transform around hip pivot ---
-    // A. Flexion / extension around hip X:
+    // --- 1. Thigh transform around hip pivot (Three.js Euler 'XYZ': Z first, then X) ---
     const dxH = x0 - hip.x;
     const dyH = y0 - hip.y;
     const dzH = z0 - hip.z;
-    const yThigh_X = hip.y + (dyH * cosH - dzH * sinH);
-    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
 
-    // B. Lateral outward abduction around hip Z:
-    const dyH_forZ = yThigh_X - hip.y;
-    const xThigh = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
-    const yThigh = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+    const xThigh_Z = dxH * cosHZ - dyH * sinHZ;
+    const yThigh_Z = dxH * sinHZ + dyH * cosHZ;
+    const zThigh_Z = dzH;
 
-    // --- 2. Shin transform: knee pivot followed by hip pivot ---
-    // A. Shin flexion around knee X:
+    const xThigh = hip.x + xThigh_Z;
+    const yThigh = hip.y + (yThigh_Z * cosH - zThigh_Z * sinH);
+    const zThigh = hip.z + (yThigh_Z * sinH + zThigh_Z * cosH);
+
+    // --- 2. Shin transform: knee pivot followed by hip pivot (Z first, then X) ---
     const dyK = y0 - knee.y;
     const dzK = z0 - knee.z;
     const yK = knee.y + (dyK * cosK - dzK * sinK);
     const zK = knee.z + (dyK * sinK + dzK * cosK);
 
-    // B. Compound rotation around hip X:
-    const dyH_K = yK - hip.y;
-    const dzH_K = zK - hip.z;
-    const yShin_X = hip.y + (dyH_K * cosH - dzH_K * sinH);
-    const zShin = hip.z + (dyH_K * sinH + dzH_K * cosH);
+    const dxShin_H = x0 - hip.x;
+    const dyShin_H = yK - hip.y;
+    const dzShin_H = zK - hip.z;
 
-    // C. Lateral outward abduction around hip Z:
-    const dyShin_forZ = yShin_X - hip.y;
-    const xShin = hip.x + (dxH * cosHZ - dyShin_forZ * sinHZ);
-    const yShin = hip.y + (dxH * sinHZ + dyShin_forZ * cosHZ);
+    const xShin_Z = dxShin_H * cosHZ - dyShin_H * sinHZ;
+    const yShin_Z = dxShin_H * sinHZ + dyShin_H * cosHZ;
+    const zShin_Z = dzShin_H;
+
+    const xShin = hip.x + xShin_Z;
+    const yShin = hip.y + (yShin_Z * cosH - zShin_Z * sinH);
+    const zShin = hip.z + (yShin_Z * sinH + zShin_Z * cosH);
 
     // --- 3. Smooth blend across knee joint ---
     // Smooth weight between shin (w = 1 at y0 <= 0.410) and femur (w = 0 at y0 >= 0.485)
@@ -870,7 +880,12 @@ export function deformBridgingMesh(
   rotations: KinematicPivotRotations,
 ): void {
   if (isPsoasMesh(mesh)) {
-    deformBridgingPsoasMesh(mesh, rotations.thighRotationX, rotations.spineRotationX);
+    deformBridgingPsoasMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.spineRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
   } else if (isPlantarisMesh(mesh)) {
     deformBridgingPlantarisMesh(
       mesh,

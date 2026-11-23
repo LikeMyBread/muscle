@@ -398,6 +398,54 @@ describe('skeletalKinematics', () => {
     // Clean up
     restoreOriginalMeshPositions(mesh);
     expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+
+    // Compound motion: hip moved outward (thetaThighZ = 0.4) AND moved forward/back (thetaThigh = -0.5)
+    // with knee flexion (thetaShin = 0.8)
+    deformBridgingPlantarisMesh(mesh, -0.5, 0.8, 0.4);
+
+    // Verify against exact Three.js scene graph hierarchy
+    const testThighPivot = new THREE.Group();
+    testThighPivot.position.copy(KINEMATIC_PIVOTS.hip);
+    const testContentThigh = new THREE.Group();
+    testContentThigh.position.copy(KINEMATIC_PIVOTS.hip).negate();
+    testThighPivot.add(testContentThigh);
+
+    const femurMarker = new THREE.Object3D();
+    femurMarker.position.set(rawCoords[0], rawCoords[1], rawCoords[2]);
+    testContentThigh.add(femurMarker);
+
+    const testShinPivot = new THREE.Group();
+    testShinPivot.position.copy(KINEMATIC_PIVOTS.knee);
+    testContentThigh.add(testShinPivot);
+    const testContentShin = new THREE.Group();
+    testContentShin.position.copy(KINEMATIC_PIVOTS.knee).negate();
+    testShinPivot.add(testContentShin);
+
+    const shinMarker = new THREE.Object3D();
+    shinMarker.position.set(rawCoords[3], rawCoords[4], rawCoords[5]);
+    testContentShin.add(shinMarker);
+
+    testThighPivot.rotation.x = -0.5;
+    testThighPivot.rotation.z = 0.4;
+    testShinPivot.rotation.x = 0.8;
+    testThighPivot.updateMatrixWorld(true);
+
+    const expectedFemur = new THREE.Vector3();
+    femurMarker.getWorldPosition(expectedFemur);
+    const expectedShin = new THREE.Vector3();
+    shinMarker.getWorldPosition(expectedShin);
+
+    expect(pos[0]).toBeCloseTo(expectedFemur.x, 4);
+    expect(pos[1]).toBeCloseTo(expectedFemur.y, 4);
+    expect(pos[2]).toBeCloseTo(expectedFemur.z, 4);
+
+    expect(pos[3]).toBeCloseTo(expectedShin.x, 4);
+    expect(pos[4]).toBeCloseTo(expectedShin.y, 4);
+    expect(pos[5]).toBeCloseTo(expectedShin.z, 4);
+
+    // Clean up
+    restoreOriginalMeshPositions(mesh);
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
   });
 
   it('deforms bridging transversus abdominis mesh across spine flexion with pelvic anchor and squash/stretch', () => {
