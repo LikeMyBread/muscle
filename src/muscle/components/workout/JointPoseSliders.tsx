@@ -222,17 +222,6 @@ function JointPoseSlidersComponent() {
                 Anatomy Depth
               </label>
             </div>
-            <div className="muscle-joint-tree__meta">
-              <span
-                className="muscle-joint-tree__rom"
-                title="Layer peel depth: Full muscle to Skeleton"
-              >
-                [Surface … Skeleton]
-              </span>
-              <span className="muscle-joint-tree__val-badge" data-testid="joint-val-layerDepth">
-                {layerPeelDepthLabel(layerPeelDepth)}
-              </span>
-            </div>
           </div>
 
           <div className="muscle-joint-slider__wrap">
@@ -285,17 +274,6 @@ function JointPoseSlidersComponent() {
                     {config.label}
                   </label>
                 </div>
-                <div className="muscle-joint-tree__meta">
-                  <span
-                    className="muscle-joint-tree__rom"
-                    title={`Range of Motion: ${config.minDeg}° to +${config.maxDeg}°`}
-                  >
-                    [{config.minDeg}° … {config.maxDeg > 0 ? `+${config.maxDeg}°` : `${config.maxDeg}°`}]
-                  </span>
-                  <span className="muscle-joint-tree__val-badge" data-testid={`joint-val-${config.key}`}>
-                    {formatAngleDeg(clampedDeg)}
-                  </span>
-                </div>
               </div>
 
               <div className="muscle-joint-slider__wrap">
@@ -317,7 +295,7 @@ function JointPoseSlidersComponent() {
                   aria-valuemin={config.minDeg}
                   aria-valuemax={config.maxDeg}
                   aria-valuenow={clampedDeg}
-                  aria-valuetext={`${clampedDeg}°`}
+                  aria-valuetext={formatAngleDeg(clampedDeg)}
                 />
                 <div className="muscle-joint-slider__ticks" aria-hidden="true">
                   {config.isBidirectional ? (

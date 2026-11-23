@@ -21,11 +21,11 @@ describe('JointPoseSliders Component', () => {
     const depthSlider = screen.getByTestId('joint-slider-layerDepth');
     expect(depthSlider).toBeInTheDocument();
     expect(screen.getByText('Anatomy Depth')).toBeInTheDocument();
-    expect(screen.getByTestId('joint-val-layerDepth')).toHaveTextContent('Full muscle');
+    expect(depthSlider).toHaveAttribute('aria-valuetext', 'Full muscle');
 
     fireEvent.change(depthSlider, { target: { value: '2' } });
     expect(useMuscleStore.getState().layerPeelDepth).toBe(2);
-    expect(screen.getByTestId('joint-val-layerDepth')).toHaveTextContent('Deep muscles');
+    expect(depthSlider).toHaveAttribute('aria-valuetext', 'Deep muscles');
   });
 
   it('renders the Joint Pose Controls panel with all 13 separated joints', () => {
@@ -170,8 +170,9 @@ describe('JointPoseSliders Component', () => {
     expect(state.isSkeletonAnimating).toBe(false);
     expect(state.skeletonJointAngles.leftElbowFlexion).toBeCloseTo((45 * Math.PI) / 180, 4);
     expect(state.skeletonJointAngles.rightElbowFlexion).toBe(0); // Right stays 0!
-    expect(screen.getByTestId('joint-val-leftElbowFlexion')).toHaveTextContent('+45°');
-    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('0°');
+    expect(leftElbowSlider).toHaveValue('45');
+    expect(leftElbowSlider).toHaveAttribute('aria-valuetext', '+45°');
+    expect(screen.getByTestId('joint-slider-rightElbowFlexion')).toHaveValue('0');
 
     // Move Right Elbow to 90°
     const rightElbowSlider = screen.getByTestId('joint-slider-rightElbowFlexion');
@@ -180,7 +181,8 @@ describe('JointPoseSliders Component', () => {
     state = useMuscleStore.getState();
     expect(state.skeletonJointAngles.leftElbowFlexion).toBeCloseTo((45 * Math.PI) / 180, 4);
     expect(state.skeletonJointAngles.rightElbowFlexion).toBeCloseTo((90 * Math.PI) / 180, 4);
-    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('+90°');
+    expect(rightElbowSlider).toHaveValue('90');
+    expect(rightElbowSlider).toHaveAttribute('aria-valuetext', '+90°');
   });
 
   it('updates left and right shoulders, hips, and knees independently', () => {
@@ -206,8 +208,8 @@ describe('JointPoseSliders Component', () => {
     expect(state.skeletonJointAngles.leftKneeFlexion).toBeCloseTo((80 * Math.PI) / 180, 4);
     expect(state.skeletonJointAngles.rightKneeFlexion).toBeCloseTo((100 * Math.PI) / 180, 4);
 
-    expect(screen.getByTestId('joint-val-leftHipFlexion')).toHaveTextContent('-20°');
-    expect(screen.getByTestId('joint-val-rightHipFlexion')).toHaveTextContent('+35°');
+    expect(screen.getByTestId('joint-slider-leftHipFlexion')).toHaveAttribute('aria-valuetext', '-20°');
+    expect(screen.getByTestId('joint-slider-rightHipFlexion')).toHaveAttribute('aria-valuetext', '+35°');
   });
 
   it('matches joint positions when angles are updated from animation', () => {
@@ -224,11 +226,11 @@ describe('JointPoseSliders Component', () => {
 
     const leftShoulderSlider = screen.getByTestId('joint-slider-leftShoulderAbduction') as HTMLInputElement;
     expect(leftShoulderSlider.value).toBe('45');
-    expect(screen.getByTestId('joint-val-leftShoulderAbduction')).toHaveTextContent('+45°');
+    expect(leftShoulderSlider).toHaveAttribute('aria-valuetext', '+45°');
 
     const rightShoulderSlider = screen.getByTestId('joint-slider-rightShoulderAbduction') as HTMLInputElement;
     expect(rightShoulderSlider.value).toBe('70');
-    expect(screen.getByTestId('joint-val-rightShoulderAbduction')).toHaveTextContent('+70°');
+    expect(rightShoulderSlider).toHaveAttribute('aria-valuetext', '+70°');
 
     const leftKneeSlider = screen.getByTestId('joint-slider-leftKneeFlexion') as HTMLInputElement;
     expect(leftKneeSlider.value).toBe('50');
@@ -276,13 +278,13 @@ describe('JointPoseSliders Component', () => {
     expect(state.isSkeletonAnimating).toBe(false);
     expect(state.skeletonPoseResetCount).toBe(1);
 
-    expect(screen.getByTestId('joint-val-spineFlexion')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-leftShoulderFlexion')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-rightShoulderFlexion')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-leftHipAbduction')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-rightHipAbduction')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-leftElbowFlexion')).toHaveTextContent('0°');
-    expect(screen.getByTestId('joint-val-rightElbowFlexion')).toHaveTextContent('0°');
+    expect(screen.getByTestId('joint-slider-spineFlexion')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-leftShoulderFlexion')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-rightShoulderFlexion')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-leftHipAbduction')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-rightHipAbduction')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-leftElbowFlexion')).toHaveAttribute('aria-valuetext', '0°');
+    expect(screen.getByTestId('joint-slider-rightElbowFlexion')).toHaveAttribute('aria-valuetext', '0°');
   });
 
   it('does not render when bodyView is not full_body', () => {

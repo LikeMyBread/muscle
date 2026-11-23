@@ -833,14 +833,6 @@ body {
   background: rgba(212, 160, 23, 0.22);
 }
 
-.muscle-canvas-hud__hover-meta--group {
-  color: rgba(245, 240, 232, 0.82);
-}
-
-.muscle-canvas-hud__hover-meta--selected {
-  color: var(--muscle-amber);
-}
-
 .muscle-panel-stack {
   flex: 1 1 auto;
   min-height: 0;
@@ -1618,25 +1610,6 @@ body {
   text-align: center;
 }
 
-.muscle-canvas-hud__hover {
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(245, 240, 232, 0.94);
-  color: var(--muscle-navy);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-}
-
-.muscle-canvas-hud__hover-name {
-  font-weight: 600;
-  font-size: 0.9375rem;
-}
-
-.muscle-canvas-hud__hover-meta {
-  margin-left: 0.45rem;
-  font-size: 0.8125rem;
-  color: rgba(26, 39, 68, 0.72);
-}
-
 .muscle-canvas-hud__hint,
 .muscle-canvas-hud__nav-hint,
 .muscle-canvas-hud__ecorche-hint {
@@ -1965,34 +1938,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.muscle-joint-tree__meta {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-}
-
-.muscle-joint-tree__rom {
-  font-size: 0.625rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: var(--muscle-muted, #64748b);
-  background: rgba(148, 163, 184, 0.12);
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-}
-
-.muscle-joint-tree__val-badge {
-  font-size: 0.6875rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 600;
-  color: var(--muscle-amber, #b45309);
-  background: rgba(217, 119, 6, 0.12);
-  min-width: 2.2rem;
-  text-align: center;
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
 }
 
 /* Range Slider Styling */
