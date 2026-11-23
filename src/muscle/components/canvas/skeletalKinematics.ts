@@ -79,15 +79,122 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  const isBrachioradialisInsertion =
+    nodeId === 'atlas_bracioradialis_muscle_humeral_insert_03bc4dad' ||
+    text.includes('humeral_insert') ||
+    text.includes('humeral insertion');
+
+  if (
+    !isBrachioradialisInsertion &&
+    (nodeId === 'muscle_brachioradialis' ||
+      text === 'brachioradialis' ||
+      text.includes('brachioradialis') ||
+      text.includes('bracioradialis'))
+  ) {
+    return 'bridging';
+  }
+
+  const isBicepsRadialInsertion =
+    nodeId === 'atlas_biceps_brachii_muscle_radial_inserti_5a9942a5' ||
+    text.includes('radial_insert') ||
+    text.includes('radial insertion');
+
+  if (
+    !isBicepsRadialInsertion &&
+    (nodeId === 'muscle_biceps_brachii' ||
+      text === 'biceps brachii' ||
+      text.includes('biceps_brachii') ||
+      (text.includes('biceps') && text.includes('brachii')))
+  ) {
+    return 'bridging';
+  }
+
+  const isQuadOriginOrInsertion =
+    nodeId === 'atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6' ||
+    nodeId.startsWith('atlas_origin_of_vastus') ||
+    text.includes('origin_of_vastus') ||
+    text.includes('on_base_of_patell') ||
+    text.includes('patell');
+
+  if (
+    !isQuadOriginOrInsertion &&
+    (nodeId === 'muscle_quadriceps_rectus_femoris' ||
+      nodeId === 'muscle_vastus_lateralis' ||
+      nodeId === 'muscle_vastus_medialis' ||
+      nodeId === 'muscle_vastus_intermedius' ||
+      text.includes('rectus_femoris') ||
+      text.includes('rectus femoris') ||
+      text.includes('vastus') ||
+      text.includes('quadriceps'))
+  ) {
+    return 'bridging';
+  }
+
+  const isSartoriusOriginOrInsertion =
+    nodeId === 'atlas_sartorius_muscle_on_upper_anterior_i_a4219826' ||
+    nodeId === 'atlas_sartorius_on_patte_d_oie_r_114b15fb' ||
+    text.includes('patte') ||
+    text.includes('anterior_i') ||
+    text.includes('iliac');
+
+  if (
+    !isSartoriusOriginOrInsertion &&
+    (nodeId === 'muscle_sartorius' ||
+      text === 'sartorius' ||
+      text.includes('sartorius'))
+  ) {
+    return 'bridging';
+  }
+
+  const isHamstringOriginOrInsertion =
+    nodeId === 'atlas_long_head_of_biceps_femoris_muscle_i_69d2859a' ||
+    nodeId === 'atlas_long_head_of_biceps_femoris_on_fibul_ed8ca122' ||
+    text.includes('ischiat') ||
+    text.includes('fibul') ||
+    text.includes('patte');
+
+  if (
+    !isHamstringOriginOrInsertion &&
+    (nodeId === 'muscle_hamstrings_biceps_femoris' ||
+      nodeId === 'muscle_semitendinosus' ||
+      nodeId === 'muscle_semimembranosus' ||
+      text.includes('hamstring') ||
+      text.includes('semitendinosus') ||
+      text.includes('semimembranosus') ||
+      (text.includes('biceps') && text.includes('femoris')))
+  ) {
+    return 'bridging';
+  }
+
+  const isGracilisOriginOrInsertion =
+    nodeId === 'atlas_gracilis_muscle_pubic_insertion_r_3568d7dc' ||
+    nodeId === 'atlas_gracilis_on_patte_d_oie_r_c1543752' ||
+    text.includes('pubic') ||
+    text.includes('patte');
+
+  if (
+    !isGracilisOriginOrInsertion &&
+    (nodeId === 'muscle_gracilis' ||
+      text === 'gracilis' ||
+      text.includes('gracilis'))
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
+    nodeId === 'atlas_gracilis_muscle_pubic_insertion_r_3568d7dc' ||
+    nodeId === 'atlas_long_head_of_biceps_femoris_muscle_i_69d2859a' ||
+    nodeId === 'atlas_sartorius_muscle_on_upper_anterior_i_a4219826' ||
     text.includes('pelvis') ||
     text.includes('sacrum') ||
     text.includes('coccyx') ||
     text.includes('ilium') ||
     text.includes('ischium') ||
     text.includes('pubis') ||
+    text.includes('pubic') ||
+    text.includes('ischiat') ||
     text.includes('sacroiliac') ||
     text.includes('iliac') ||
     text.includes('iliac_fossa') ||
@@ -147,10 +254,19 @@ export function getKinematicSegmentForNodeId(
     nodeId === 'bone_fibula' ||
     nodeId === 'bone_patella' ||
     nodeId === 'joint_knee' ||
+    nodeId === 'atlas_sartorius_on_patte_d_oie_r_114b15fb' ||
+    nodeId === 'atlas_gracilis_on_patte_d_oie_r_c1543752' ||
+    nodeId === 'atlas_long_head_of_biceps_femoris_on_fibul_ed8ca122' ||
+    nodeId === 'atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6' ||
     text.includes('tibia') ||
     text.includes('fibula') ||
     text.includes('fibular') ||
     text.includes('patella') ||
+    text.includes('patell') ||
+    text.includes('patte') ||
+    text.includes('patte_d_oie') ||
+    text.includes('pes_anserinus') ||
+    text.includes('pes anserinus') ||
     text.includes('interosseus_membrane_of_leg') ||
     text.includes('interosseus membrane of leg') ||
     text.includes('tibialis') ||
@@ -875,6 +991,685 @@ export function deformBridgingFasciaLataMesh(
 /**
  * Universal dispatcher to deform any bridging mesh across its anchored kinematic joints.
  */
+export function isBrachioradialisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isHumeralInsert =
+    mesh.name === 'atlas_bracioradialis_muscle_humeral_insert_03bc4dad' ||
+    text.includes('humeral_insert') ||
+    text.includes('humeral insertion');
+  return (
+    (mesh.name === 'muscle_brachioradialis' ||
+      text === 'brachioradialis' ||
+      text.includes('brachioradialis') ||
+      text.includes('bracioradialis')) &&
+    !isHumeralInsert
+  );
+}
+
+/**
+ * Deforms the dual-anchored Brachioradialis muscle mesh across the elbow joint between
+ * the lateral supracondylar ridge of the humerus (arm) and the styloid process of the radius (forearm).
+ * Proximal vertices (Y >= 1.140) follow the arm / shoulder transform.
+ * Distal vertices (Y <= 0.950) follow the forearm / elbow transform.
+ * Intermediate vertices smoothly blend and squash/bulge anterolaterally during elbow flexion.
+ */
+export function deformBridgingBrachioradialisMesh(
+  mesh: THREE.Mesh,
+  thetaForearmX: number,
+  thetaArmZ: number = 0,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosFE = Math.cos(thetaForearmX);
+  const sinFE = Math.sin(thetaForearmX);
+
+  const cosAZ = Math.cos(thetaArmZ);
+  const sinAZ = Math.sin(thetaArmZ);
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const elbow = KINEMATIC_PIVOTS.elbow;
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const thetaFlex = Math.max(0, -thetaForearmX);
+  const sinFlex = Math.sin(thetaFlex);
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Forearm rotation around elbow pivot
+    const dyE = y0 - elbow.y;
+    const dzE = z0 - elbow.z;
+    const yFE = elbow.y + (dyE * cosFE - dzE * sinFE);
+    const zFE = elbow.z + (dyE * sinFE + dzE * cosFE);
+
+    // 2. Blend across elbow joint between humerus (arm, y0 >= 1.140) and radius (forearm, y0 <= 0.950)
+    let t = (1.140 - y0) / (1.140 - 0.950);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let xMid = x0;
+    let yMid = (1 - w) * y0 + w * yFE;
+    let zMid = (1 - w) * z0 + w * zFE;
+
+    // 3. Stretch & squash (anterolateral belly bulge during elbow flexion)
+    if (thetaFlex > 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      zMid += 0.022 * sinFlex * b;
+      xMid += 0.016 * sinFlex * b * (x0 >= 0 ? 1 : -1);
+    }
+
+    // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
+    const dxS = xMid - shoulder.x;
+    const dyS = yMid - shoulder.y;
+    const dzS = zMid - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulder.x + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 5. Spine transform (Spine flexion around spine pivot)
+    const dySp = yArm - spine.y;
+    const dzSp = zArm - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xArm;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isBicepsBrachiiMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isRadialInsert =
+    mesh.name === 'atlas_biceps_brachii_muscle_radial_inserti_5a9942a5' ||
+    text.includes('radial_insert') ||
+    text.includes('radial insertion');
+  return (
+    (mesh.name === 'muscle_biceps_brachii' ||
+      text === 'biceps brachii' ||
+      text.includes('biceps_brachii') ||
+      (text.includes('biceps') && text.includes('brachii'))) &&
+    !isRadialInsert
+  );
+}
+
+/**
+ * Deforms the dual-anchored Biceps brachii muscle mesh across the elbow joint between
+ * the scapula/shoulder (arm) and the radial tuberosity of the radius (forearm).
+ * Proximal vertices (Y >= 1.160, extending to 1.408) follow the arm / shoulder transform.
+ * Distal vertices (Y <= 1.074) follow the forearm / elbow transform.
+ * Mid-belly vertices (Y in [1.08, 1.36]) squash along length and bulge anteriorly/radially
+ * during elbow flexion, creating realistic muscle contraction while keeping both ends firmly constrained.
+ */
+export function deformBridgingBicepsBrachiiMesh(
+  mesh: THREE.Mesh,
+  thetaForearmX: number,
+  thetaArmZ: number = 0,
+  thetaArmX: number = 0,
+  thetaSpineX: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const cosFE = Math.cos(thetaForearmX);
+  const sinFE = Math.sin(thetaForearmX);
+
+  const cosAZ = Math.cos(thetaArmZ);
+  const sinAZ = Math.sin(thetaArmZ);
+  const cosAX = Math.cos(thetaArmX);
+  const sinAX = Math.sin(thetaArmX);
+
+  const cosS = Math.cos(thetaSpineX);
+  const sinS = Math.sin(thetaSpineX);
+
+  const elbow = KINEMATIC_PIVOTS.elbow;
+  const shoulder = KINEMATIC_PIVOTS.shoulder;
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const thetaFlex = Math.max(0, -thetaForearmX);
+  const sinFlex = Math.sin(thetaFlex);
+
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Forearm rotation around elbow pivot
+    const dyE = y0 - elbow.y;
+    const dzE = z0 - elbow.z;
+    const yFE = elbow.y + (dyE * cosFE - dzE * sinFE);
+    const zFE = elbow.z + (dyE * sinFE + dzE * cosFE);
+
+    // 2. Blend across elbow joint between arm (y0 >= 1.160) and radial tuberosity (forearm, y0 <= 1.074)
+    let t = (1.160 - y0) / (1.160 - 1.074);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let xMid = x0;
+    let yMid = (1 - w) * y0 + w * yFE;
+    let zMid = (1 - w) * z0 + w * zFE;
+
+    // 3. Squash & stretch (anterior and radial belly bulge during elbow flexion)
+    let tBelly = (y0 - 1.074) / (1.360 - 1.074);
+    if (thetaFlex > 0 && tBelly > 0 && tBelly < 1) {
+      const b = Math.sin(Math.PI * tBelly);
+      zMid += 0.038 * sinFlex * b;
+      const xOffset = Math.abs(x0) - 0.185;
+      xMid += 0.015 * sinFlex * b * (xOffset / 0.04) * (x0 >= 0 ? 1 : -1);
+    }
+
+    // 4. Shoulder transform (Three.js Euler 'XYZ': Z abduction first, then X flexion second)
+    const dxS = xMid - shoulder.x;
+    const dyS = yMid - shoulder.y;
+    const dzS = zMid - shoulder.z;
+
+    const xSZ = dxS * cosAZ - dyS * sinAZ;
+    const ySZ = dxS * sinAZ + dyS * cosAZ;
+    const zSZ = dzS;
+
+    const xArm = shoulder.x + xSZ;
+    const yArm = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
+    const zArm = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
+
+    // 5. Spine transform (Spine flexion around spine pivot)
+    const dySp = yArm - spine.y;
+    const dzSp = zArm - spine.z;
+    const yFinal = spine.y + (dySp * cosS - dzSp * sinS);
+    const zFinal = spine.z + (dySp * sinS + dzSp * cosS);
+
+    arr[idx] = xArm;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isQuadricepsMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isPatellarOrOrigin =
+    mesh.name === 'atlas_quadriceps_femoris_on_base_of_patell_0a32a9b6' ||
+    mesh.name.startsWith('atlas_origin_of_vastus') ||
+    text.includes('origin_of_vastus') ||
+    text.includes('on_base_of_patell') ||
+    text.includes('patellar') ||
+    text.includes('patella');
+  if (isPatellarOrOrigin) return false;
+
+  return (
+    mesh.name === 'muscle_quadriceps_rectus_femoris' ||
+    mesh.name === 'muscle_vastus_lateralis' ||
+    mesh.name === 'muscle_vastus_medialis' ||
+    mesh.name === 'muscle_vastus_intermedius' ||
+    text.includes('rectus_femoris') ||
+    text.includes('rectus femoris') ||
+    text.includes('vastus_lateralis') ||
+    text.includes('vastus lateralis') ||
+    text.includes('vastus_medialis') ||
+    text.includes('vastus medialis') ||
+    text.includes('vastus_intermedius') ||
+    text.includes('vastus intermedius') ||
+    text.includes('quadriceps') ||
+    text.includes('vastus')
+  );
+}
+
+/**
+ * Deforms the multi-joint Quadriceps femoris muscle bellies (Rectus femoris and Vasti) across
+ * hip and knee motions.
+ * Distal insertions (base of patella / tibial tuberosity at Y <= 0.410) follow the shin.
+ * Across the knee joint line (Y in [0.410, 0.470]), vertices smoothly wrap along the arc of the
+ * femoral condyles, preventing bone clipping.
+ * Proximal ends: Vasti follow the femur shaft around the hip pivot; Rectus femoris anchors to
+ * the anterior inferior iliac spine (AIIS) on the pelvis (Y >= 0.885).
+ */
+export function deformBridgingQuadricepsMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaShinX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const isRectusFemoris =
+    mesh.name === 'muscle_quadriceps_rectus_femoris' ||
+    (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase().includes('rectus_femoris') ||
+    (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase().includes('rectus femoris');
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  const thetaHflex = Math.max(0, -thetaThighX);
+  const sinHflex = Math.sin(thetaHflex);
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    let x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    let z0 = orig[idx + 2];
+
+    // Rectus femoris belly bulge during hip flexion
+    if (isRectusFemoris && sinHflex > 0) {
+      let tBelly = (y0 - 0.50) / (0.85 - 0.50);
+      if (tBelly > 0 && tBelly < 1) {
+        z0 += 0.020 * sinHflex * Math.sin(Math.PI * tBelly);
+      }
+    }
+
+    // 1. Distal knee blend:
+    // Below 0.410: fully follows shin (wK = 1)
+    // Above 0.470: fully follows thigh (wK = 0)
+    let tK = (0.470 - y0) / (0.470 - 0.410);
+    if (tK < 0) tK = 0;
+    if (tK > 1) tK = 1;
+    const wK = tK * tK * (3 - 2 * tK);
+    const thetaK_eff = wK * thetaShinX;
+
+    const cosK = Math.cos(thetaK_eff);
+    const sinK = Math.sin(thetaK_eff);
+
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK_prime = knee.y + (dyK * cosK - dzK * sinK);
+    const zK_prime = knee.z + (dyK * sinK + dzK * cosK);
+
+    // 2. Proximal hip blend:
+    // Rectus femoris originates on AIIS on pelvis (y0 >= 0.885).
+    // Vasti originate on the femur shaft and move with thigh.
+    let wH = 0;
+    if (isRectusFemoris) {
+      let tH = (y0 - 0.820) / (0.885 - 0.820);
+      if (tH < 0) tH = 0;
+      if (tH > 1) tH = 1;
+      wH = tH * tH * (3 - 2 * tH);
+    }
+
+    const thetaHZ_eff = (1 - wH) * thetaThighZ;
+    const cosHZ = Math.cos(thetaHZ_eff);
+    const sinHZ = Math.sin(thetaHZ_eff);
+
+    const dxH = x0 - hip.x;
+    const dyH_forZ = yK_prime - hip.y;
+    const xH_prime = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yH_prime = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+
+    const thetaHX_eff = (1 - wH) * thetaThighX;
+    const cosHX = Math.cos(thetaHX_eff);
+    const sinHX = Math.sin(thetaHX_eff);
+
+    const dyHX = yH_prime - hip.y;
+    const dzHX = zK_prime - hip.z;
+    const yFinal = hip.y + (dyHX * cosHX - dzHX * sinHX);
+    const zFinal = hip.z + (dyHX * sinHX + dzHX * cosHX);
+
+    arr[idx] = xH_prime;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isSartoriusMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isPatch =
+    mesh.name === 'atlas_sartorius_muscle_on_upper_anterior_i_a4219826' ||
+    mesh.name === 'atlas_sartorius_on_patte_d_oie_r_114b15fb' ||
+    text.includes('patte') ||
+    text.includes('anterior_i') ||
+    text.includes('iliac');
+  return (
+    (mesh.name === 'muscle_sartorius' ||
+      text === 'sartorius' ||
+      text.includes('sartorius')) &&
+    !isPatch
+  );
+}
+
+/**
+ * Deforms the multi-joint Sartorius muscle ribbon between the ASIS on the pelvis (Y >= 0.880)
+ * and the pes anserinus on the medial tibia (Y <= 0.410).
+ * Stretches smoothly across hip flexion, hip abduction, and knee flexion.
+ */
+export function deformBridgingSartoriusMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaShinX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Distal knee blend (insertion at pes anserinus on medial tibia at y0 <= 0.410)
+    let tK = (0.470 - y0) / (0.470 - 0.410);
+    if (tK < 0) tK = 0;
+    if (tK > 1) tK = 1;
+    const wK = tK * tK * (3 - 2 * tK);
+    const thetaK_eff = wK * thetaShinX;
+
+    const cosK = Math.cos(thetaK_eff);
+    const sinK = Math.sin(thetaK_eff);
+
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK_prime = knee.y + (dyK * cosK - dzK * sinK);
+    const zK_prime = knee.z + (dyK * sinK + dzK * cosK);
+
+    // 2. Proximal hip blend (origin at ASIS on pelvis at y0 >= 0.880)
+    let tH = (y0 - 0.830) / (0.880 - 0.830);
+    if (tH < 0) tH = 0;
+    if (tH > 1) tH = 1;
+    const wH = tH * tH * (3 - 2 * tH);
+
+    const thetaHZ_eff = (1 - wH) * thetaThighZ;
+    const cosHZ = Math.cos(thetaHZ_eff);
+    const sinHZ = Math.sin(thetaHZ_eff);
+
+    const dxH = x0 - hip.x;
+    const dyH_forZ = yK_prime - hip.y;
+    const xH_prime = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yH_prime = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+
+    const thetaHX_eff = (1 - wH) * thetaThighX;
+    const cosHX = Math.cos(thetaHX_eff);
+    const sinHX = Math.sin(thetaHX_eff);
+
+    const dyHX = yH_prime - hip.y;
+    const dzHX = zK_prime - hip.z;
+    const yFinal = hip.y + (dyHX * cosHX - dzHX * sinHX);
+    const zFinal = hip.z + (dyHX * sinHX + dzHX * cosHX);
+
+    arr[idx] = xH_prime;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isHamstringsMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isPatch =
+    mesh.name === 'atlas_long_head_of_biceps_femoris_muscle_i_69d2859a' ||
+    mesh.name === 'atlas_long_head_of_biceps_femoris_on_fibul_ed8ca122' ||
+    text.includes('ischiat') ||
+    text.includes('fibul') ||
+    text.includes('patte');
+  if (isPatch) return false;
+
+  return (
+    mesh.name === 'muscle_hamstrings_biceps_femoris' ||
+    mesh.name === 'muscle_semitendinosus' ||
+    mesh.name === 'muscle_semimembranosus' ||
+    text.includes('hamstring') ||
+    text.includes('semitendinosus') ||
+    text.includes('semimembranosus') ||
+    (text.includes('biceps') && text.includes('femoris'))
+  );
+}
+
+/**
+ * Deforms the dual-anchored Hamstrings muscle bellies (Biceps femoris, Semitendinosus, Semimembranosus)
+ * between the ischial tuberosity on the pelvis (Y >= 0.800) and the head of the fibula / tibia (Y <= 0.410).
+ * During knee flexion, the belly squashes along its length and bulges posteriorly into negative Z,
+ * matching natural knee flexor contraction while keeping both ends firmly anchored.
+ */
+export function deformBridgingHamstringsMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaShinX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  const sinKnee = Math.sin(Math.max(0, thetaShinX));
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    let x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    let z0 = orig[idx + 2];
+
+    // Squash & stretch (posterior belly bulge during knee flexion)
+    let tBelly = (y0 - 0.460) / (0.760 - 0.460);
+    if (sinKnee > 0 && tBelly > 0 && tBelly < 1) {
+      const b = Math.sin(Math.PI * tBelly);
+      z0 -= 0.026 * sinKnee * b;
+      x0 += 0.012 * sinKnee * b * ((x0 - hip.x) / 0.04);
+    }
+
+    // 1. Distal knee blend (insertions at head of fibula and medial tibia at y0 <= 0.410)
+    let tK = (0.460 - y0) / (0.460 - 0.410);
+    if (tK < 0) tK = 0;
+    if (tK > 1) tK = 1;
+    const wK = tK * tK * (3 - 2 * tK);
+    const thetaK_eff = wK * thetaShinX;
+
+    const cosK = Math.cos(thetaK_eff);
+    const sinK = Math.sin(thetaK_eff);
+
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK_prime = knee.y + (dyK * cosK - dzK * sinK);
+    const zK_prime = knee.z + (dyK * sinK + dzK * cosK);
+
+    // 2. Proximal hip blend (origin at ischial tuberosity on pelvis at y0 >= 0.800)
+    let tH = (y0 - 0.760) / (0.800 - 0.760);
+    if (tH < 0) tH = 0;
+    if (tH > 1) tH = 1;
+    const wH = tH * tH * (3 - 2 * tH);
+
+    const thetaHZ_eff = (1 - wH) * thetaThighZ;
+    const cosHZ = Math.cos(thetaHZ_eff);
+    const sinHZ = Math.sin(thetaHZ_eff);
+
+    const dxH = x0 - hip.x;
+    const dyH_forZ = yK_prime - hip.y;
+    const xH_prime = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yH_prime = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+
+    const thetaHX_eff = (1 - wH) * thetaThighX;
+    const cosHX = Math.cos(thetaHX_eff);
+    const sinHX = Math.sin(thetaHX_eff);
+
+    const dyHX = yH_prime - hip.y;
+    const dzHX = zK_prime - hip.z;
+    const yFinal = hip.y + (dyHX * cosHX - dzHX * sinHX);
+    const zFinal = hip.z + (dyHX * sinHX + dzHX * cosHX);
+
+    arr[idx] = xH_prime;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isGracilisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isPatch =
+    mesh.name === 'atlas_gracilis_muscle_pubic_insertion_r_3568d7dc' ||
+    mesh.name === 'atlas_gracilis_on_patte_d_oie_r_c1543752' ||
+    text.includes('pubic') ||
+    text.includes('patte');
+  return (
+    (mesh.name === 'muscle_gracilis' ||
+      text === 'gracilis' ||
+      text.includes('gracilis')) &&
+    !isPatch
+  );
+}
+
+/**
+ * Deforms the dual-anchored Gracilis muscle strap between the pubic bone on the pelvis (Y >= 0.800)
+ * and the pes anserinus on the medial tibia (Y <= 0.410).
+ * Stretches across hip abduction, hip flexion, and knee flexion.
+ */
+export function deformBridgingGracilisMesh(
+  mesh: THREE.Mesh,
+  thetaThighX: number,
+  thetaShinX: number,
+  thetaThighZ: number = 0,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+
+  const knee = KINEMATIC_PIVOTS.knee;
+  const hip = KINEMATIC_PIVOTS.hip;
+  const arr = posAttr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    // 1. Distal knee blend (insertion at pes anserinus on medial tibia at y0 <= 0.410)
+    let tK = (0.460 - y0) / (0.460 - 0.410);
+    if (tK < 0) tK = 0;
+    if (tK > 1) tK = 1;
+    const wK = tK * tK * (3 - 2 * tK);
+    const thetaK_eff = wK * thetaShinX;
+
+    const cosK = Math.cos(thetaK_eff);
+    const sinK = Math.sin(thetaK_eff);
+
+    const dyK = y0 - knee.y;
+    const dzK = z0 - knee.z;
+    const yK_prime = knee.y + (dyK * cosK - dzK * sinK);
+    const zK_prime = knee.z + (dyK * sinK + dzK * cosK);
+
+    // 2. Proximal hip blend (origin at pubic bone on pelvis at y0 >= 0.800)
+    let tH = (y0 - 0.760) / (0.800 - 0.760);
+    if (tH < 0) tH = 0;
+    if (tH > 1) tH = 1;
+    const wH = tH * tH * (3 - 2 * tH);
+
+    const thetaHZ_eff = (1 - wH) * thetaThighZ;
+    const cosHZ = Math.cos(thetaHZ_eff);
+    const sinHZ = Math.sin(thetaHZ_eff);
+
+    const dxH = x0 - hip.x;
+    const dyH_forZ = yK_prime - hip.y;
+    const xH_prime = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yH_prime = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+
+    const thetaHX_eff = (1 - wH) * thetaThighX;
+    const cosHX = Math.cos(thetaHX_eff);
+    const sinHX = Math.sin(thetaHX_eff);
+
+    const dyHX = yH_prime - hip.y;
+    const dzHX = zK_prime - hip.z;
+    const yFinal = hip.y + (dyHX * cosHX - dzHX * sinHX);
+    const zFinal = hip.z + (dyHX * sinHX + dzHX * cosHX);
+
+    arr[idx] = xH_prime;
+    arr[idx + 1] = yFinal;
+    arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+/**
+ * Universal dispatcher to deform any bridging mesh across its anchored kinematic joints.
+ */
 export function deformBridgingMesh(
   mesh: THREE.Mesh,
   rotations: KinematicPivotRotations,
@@ -897,6 +1692,50 @@ export function deformBridgingMesh(
     deformBridgingTransversusAbdominisMesh(mesh, rotations.spineRotationX);
   } else if (isFasciaLataMesh(mesh)) {
     deformBridgingFasciaLataMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isBrachioradialisMesh(mesh)) {
+    deformBridgingBrachioradialisMesh(
+      mesh,
+      rotations.forearmRotationX,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isBicepsBrachiiMesh(mesh)) {
+    deformBridgingBicepsBrachiiMesh(
+      mesh,
+      rotations.forearmRotationX,
+      rotations.armRotationZ,
+      rotations.armRotationX ?? 0,
+      rotations.spineRotationX,
+    );
+  } else if (isQuadricepsMesh(mesh)) {
+    deformBridgingQuadricepsMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isSartoriusMesh(mesh)) {
+    deformBridgingSartoriusMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isHamstringsMesh(mesh)) {
+    deformBridgingHamstringsMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
+  } else if (isGracilisMesh(mesh)) {
+    deformBridgingGracilisMesh(
       mesh,
       rotations.thighRotationX,
       rotations.shinRotationX,
