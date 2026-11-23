@@ -45,11 +45,18 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  const isPlantarisOrigin =
+    nodeId === 'atlas_plantaris_muscle_medially_to_the_lat_143de19a' ||
+    nodeId === 'atlas_plantaris_muscle_medially_to_the_lat_3ef61b75' ||
+    text.includes('origin') ||
+    text.includes('orig') ||
+    text.includes('medially_to_the_lat');
+
   if (
     nodeId === 'atlas_plantaris_muscle_r_5a2fd02c' ||
     text === 'plantaris muscle.r' ||
     text.includes('plantaris_muscle_r') ||
-    (text.includes('plantaris') && !text.includes('origin') && !text.includes('orig'))
+    (text.includes('plantaris') && !isPlantarisOrigin)
   ) {
     return 'bridging';
   }
@@ -294,7 +301,7 @@ export function getKinematicSegmentForNodeId(
     text.includes('tensor_fasciae_latae') ||
     text.includes('iliopsoas_ending') ||
     text.includes('iliopsoas ending') ||
-    (text.includes('plantaris') && (text.includes('origin') || text.includes('orig')))
+    (text.includes('plantaris') && isPlantarisOrigin)
   ) {
     return 'thigh';
   }
@@ -566,9 +573,15 @@ export function isPsoasMesh(mesh: THREE.Mesh): boolean {
 
 export function isPlantarisMesh(mesh: THREE.Mesh): boolean {
   const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isOrigin =
+    mesh.name === 'atlas_plantaris_muscle_medially_to_the_lat_143de19a' ||
+    mesh.name === 'atlas_plantaris_muscle_medially_to_the_lat_3ef61b75' ||
+    text.includes('origin') ||
+    text.includes('orig') ||
+    text.includes('medially_to_the_lat');
   return (
     mesh.name === 'atlas_plantaris_muscle_r_5a2fd02c' ||
-    (text.includes('plantaris') && !text.includes('origin') && !text.includes('orig'))
+    (text.includes('plantaris') && !isOrigin)
   );
 }
 
@@ -583,6 +596,7 @@ export function deformBridgingPlantarisMesh(
   mesh: THREE.Mesh,
   thetaThigh: number,
   thetaShin: number,
+  thetaThighZ: number = 0,
 ): void {
   const geom = mesh.geometry;
   const posAttr = geom.attributes.position;
@@ -599,6 +613,8 @@ export function deformBridgingPlantarisMesh(
   const sinK = Math.sin(thetaShin);
   const cosH = Math.cos(thetaThigh);
   const sinH = Math.sin(thetaThigh);
+  const cosHZ = Math.cos(thetaThighZ);
+  const sinHZ = Math.sin(thetaThighZ);
 
   const knee = KINEMATIC_PIVOTS.knee;
   const hip = KINEMATIC_PIVOTS.hip;
@@ -611,24 +627,38 @@ export function deformBridgingPlantarisMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
-    // Shin transform: rotate around knee pivot
+    // --- 1. Thigh transform around hip pivot ---
+    // A. Flexion / extension around hip X:
+    const dxH = x0 - hip.x;
+    const dyH = y0 - hip.y;
+    const dzH = z0 - hip.z;
+    const yThigh_X = hip.y + (dyH * cosH - dzH * sinH);
+    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
+
+    // B. Lateral outward abduction around hip Z:
+    const dyH_forZ = yThigh_X - hip.y;
+    const xThigh = hip.x + (dxH * cosHZ - dyH_forZ * sinHZ);
+    const yThigh = hip.y + (dxH * sinHZ + dyH_forZ * cosHZ);
+
+    // --- 2. Shin transform: knee pivot followed by hip pivot ---
+    // A. Shin flexion around knee X:
     const dyK = y0 - knee.y;
     const dzK = z0 - knee.z;
     const yK = knee.y + (dyK * cosK - dzK * sinK);
     const zK = knee.z + (dyK * sinK + dzK * cosK);
 
-    // Shin vertex in root space: compound rotation with hip
+    // B. Compound rotation around hip X:
     const dyH_K = yK - hip.y;
     const dzH_K = zK - hip.z;
-    const yShin = hip.y + (dyH_K * cosH - dzH_K * sinH);
+    const yShin_X = hip.y + (dyH_K * cosH - dzH_K * sinH);
     const zShin = hip.z + (dyH_K * sinH + dzH_K * cosH);
 
-    // Thigh vertex in root space: rotation with hip only (stays fixed to femur)
-    const dyH = y0 - hip.y;
-    const dzH = z0 - hip.z;
-    const yThigh = hip.y + (dyH * cosH - dzH * sinH);
-    const zThigh = hip.z + (dyH * sinH + dzH * cosH);
+    // C. Lateral outward abduction around hip Z:
+    const dyShin_forZ = yShin_X - hip.y;
+    const xShin = hip.x + (dxH * cosHZ - dyShin_forZ * sinHZ);
+    const yShin = hip.y + (dxH * sinHZ + dyShin_forZ * cosHZ);
 
+    // --- 3. Smooth blend across knee joint ---
     // Smooth weight between shin (w = 1 at y0 <= 0.410) and femur (w = 0 at y0 >= 0.485)
     let t = (0.485 - y0) / (0.485 - 0.410);
     if (t < 0) t = 0;
@@ -636,7 +666,7 @@ export function deformBridgingPlantarisMesh(
     const wShin = t * t * (3 - 2 * t);
     const wThigh = 1 - wShin;
 
-    arr[idx] = x0;
+    arr[idx] = wThigh * xThigh + wShin * xShin;
     arr[idx + 1] = wThigh * yThigh + wShin * yShin;
     arr[idx + 2] = wThigh * zThigh + wShin * zShin;
   }
@@ -842,7 +872,12 @@ export function deformBridgingMesh(
   if (isPsoasMesh(mesh)) {
     deformBridgingPsoasMesh(mesh, rotations.thighRotationX, rotations.spineRotationX);
   } else if (isPlantarisMesh(mesh)) {
-    deformBridgingPlantarisMesh(mesh, rotations.thighRotationX, rotations.shinRotationX);
+    deformBridgingPlantarisMesh(
+      mesh,
+      rotations.thighRotationX,
+      rotations.shinRotationX,
+      rotations.thighRotationZ ?? 0,
+    );
   } else if (isTransversusAbdominisMesh(mesh)) {
     deformBridgingTransversusAbdominisMesh(mesh, rotations.spineRotationX);
   } else if (isFasciaLataMesh(mesh)) {

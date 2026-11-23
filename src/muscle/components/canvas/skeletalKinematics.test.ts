@@ -169,11 +169,17 @@ describe('skeletalKinematics', () => {
       ),
     ).toBe('thigh');
     expect(
+      getKinematicSegmentForNodeId('atlas_plantaris_muscle_medially_to_the_lat_3ef61b75'),
+    ).toBe('thigh');
+    expect(
       getKinematicSegmentForNodeId(
         'atlas_plantaris_muscle_medially_to_the_lat_143de19a',
         undefined,
         'Plantaris muscle medially to the lateral gastrocnemius orig',
       ),
+    ).toBe('thigh');
+    expect(
+      getKinematicSegmentForNodeId('atlas_plantaris_muscle_medially_to_the_lat_143de19a'),
     ).toBe('thigh');
     expect(
       getKinematicSegmentForNodeId(
@@ -380,6 +386,18 @@ describe('skeletalKinematics', () => {
     expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
     expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
     expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+
+    // Apply outward hip abduction (thetaThighZ = 0.5 rad, ~28.6 degrees lateral swing) with neutral flexion
+    deformBridgingPlantarisMesh(mesh, 0.0, 0.0, 0.5);
+
+    // Both femur origin and calf tendon must pivot laterally outward (+X) around hip pivot
+    expect(pos[0]).toBeGreaterThan(rawCoords[0]); // upper femur origin follows thigh outward
+    expect(pos[3]).toBeGreaterThan(rawCoords[3]); // lower calf tendon follows shin outward
+    expect(pos[6]).toBeGreaterThan(rawCoords[6]); // middle belly follows outward
+
+    // Clean up
+    restoreOriginalMeshPositions(mesh);
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
   });
 
   it('deforms bridging transversus abdominis mesh across spine flexion with pelvic anchor and squash/stretch', () => {
@@ -657,5 +675,29 @@ describe('skeletalKinematics', () => {
     expect(leftPosPlantaris[5]).toBeCloseTo(-0.06, 5);
     // Right distal plantaris swung posteriorly with the flexed knee
     expect(rightPosPlantaris[5]).toBeLessThan(-0.06);
+
+    // Plantaris: Left leg pivots hip outward (thighRotationZ = 0.4 rad), Right leg neutral
+    restoreOriginalMeshPositions(leftMeshPlantaris);
+    restoreOriginalMeshPositions(rightMeshPlantaris);
+    deformBridgingMesh(leftMeshPlantaris, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      thighRotationZ: 0.4,
+      spineRotationX: 0,
+    });
+    deformBridgingMesh(rightMeshPlantaris, {
+      forearmRotationX: 0,
+      armRotationZ: 0,
+      shinRotationX: 0,
+      thighRotationX: 0,
+      thighRotationZ: 0,
+      spineRotationX: 0,
+    });
+    // Left Plantaris moved outward laterally (+X)
+    expect(leftPosPlantaris[0]).toBeGreaterThan(rawCoordsPlantaris[0]);
+    // Right Plantaris remains at rest
+    expect(rightPosPlantaris[0]).toBeCloseTo(rawCoordsPlantaris[0], 5);
   });
 });
