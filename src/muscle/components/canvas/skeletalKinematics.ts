@@ -2276,16 +2276,20 @@ export function isDeltoidMesh(mesh: THREE.Mesh): boolean {
  * across compound 2-axis shoulder rotations (abduction/adduction thetaArmZ, flexion/extension thetaArmX).
  *
  * Anatomical & Kinematic Constraints:
- * 1. Arc-preserving joint wrapping: Instead of a straight Cartesian chord between origin and insertion
+ * 1. Inner edge / Torso bone constraint: Vertices along the medial attachment borders (|X| <= 0.115)
+ *    attach to the clavicle (anteriorly) and the spine of the scapula (posteriorly). They are strictly
+ *    pinned to the torso bones (wX = 0) and do not pull away or lift during arm movements.
+ * 2. Sloping origin boundary: The spine of the scapula slopes from Y ~ 1.410 at X = 0.170 down to
+ *    Y ~ 1.365 at X = 0.090, while the clavicular origin sits at Y in [1.385, 1.415]. Origin vertices
+ *    along this boundary remain 100% anchored to the shoulder girdle.
+ * 3. Arc-preserving joint wrapping: Instead of a straight Cartesian chord between origin and insertion
  *    that cuts into the humeral head and acromion, rotation angles (effArmZ, effArmX) blend smoothly
  *    along the joint arc, preserving the radial contour of the shoulder.
- * 2. Active upward flex: When the shoulder moves outward (abduction thetaArmZ > 0), the deltoid actively
+ * 4. Active upward flex: When the shoulder moves outward (abduction thetaArmZ > 0), the deltoid actively
  *    contracts and flexes upward in +Y, swelling into a rounded muscular crest over the subacromial space
  *    and greater tubercle instead of sinking down into the bone.
- * 3. Origin anchor: Proximal origins along the clavicle, acromion, and scapular spine (Y >= 1.415)
- *    remain strictly anchored to the shoulder girdle / torso.
- * 4. Distal insertion: Insertion at the deltoid tuberosity of the humerus (Y <= 1.280) strictly follows
- *    the humerus rotation around the shoulder pivot.
+ * 5. Distal insertion: Insertion at the deltoid tuberosity of the humerus (Y <= 1.280, |X| >= 0.165)
+ *    strictly follows the humerus rotation around the shoulder pivot.
  */
 export function deformBridgingDeltoidMesh(
   mesh: THREE.Mesh,
@@ -2322,18 +2326,46 @@ export function deformBridgingDeltoidMesh(
     const y0 = orig[idx + 1];
     const z0 = orig[idx + 2];
 
+    const absX = Math.abs(x0);
     const signX = x0 < 0 ? -1 : 1;
     const shoulderX = x0 < 0 ? -shoulder.x : shoulder.x;
 
-    // 1. Blend across shoulder joint:
-    // Torso origin (clavicle, acromion, scapula: w = 0 at y0 >= 1.415)
-    // Humeral insertion (deltoid tuberosity: w = 1 at y0 <= 1.280)
-    let t = (1.415 - y0) / (1.415 - 1.280);
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-    const w = t * t * (3 - 2 * t);
+    // 1. Inner edge constraint (medial origin on torso bones):
+    // Vertices at |X| <= 0.115 attach to the clavicle (anterior) or spine of the scapula (posterior)
+    // and must remain strictly pinned to the torso bones (wX = 0).
+    let tX = (absX - 0.115) / (0.165 - 0.115);
+    if (tX < 0) tX = 0;
+    if (tX > 1) tX = 1;
+    const wX = tX * tX * (3 - 2 * tX);
 
-    // 2. Arc rotation around shoulder pivot:
+    // 2. Anatomical origin boundary along the shoulder girdle:
+    // The spine of the scapula slopes from Y ~ 1.410 at X = 0.170 down to Y ~ 1.365 at X = 0.090.
+    // The clavicle slopes from Y ~ 1.415 down to Y ~ 1.385 at X = 0.085.
+    let yOrigin = 1.415;
+    if (z0 < -0.040) {
+      // Posterior head (spine of scapula)
+      let tScap = (absX - 0.090) / (0.170 - 0.090);
+      if (tScap < 0) tScap = 0;
+      if (tScap > 1) tScap = 1;
+      yOrigin = 1.365 + tScap * 0.045;
+    } else if (z0 > -0.010) {
+      // Anterior head (clavicle)
+      let tClav = (absX - 0.085) / (0.160 - 0.085);
+      if (tClav < 0) tClav = 0;
+      if (tClav > 1) tClav = 1;
+      yOrigin = 1.390 + tClav * 0.025;
+    }
+
+    // Vertical blend from torso origin (y0 >= yOrigin) to humeral insertion (y0 <= 1.280)
+    let tY = (yOrigin - y0) / (yOrigin - 1.280);
+    if (tY < 0) tY = 0;
+    if (tY > 1) tY = 1;
+    const wY = tY * tY * (3 - 2 * tY);
+
+    // Combined blend weight: inner edge is strictly 0 (no movement)
+    const w = wX * wY;
+
+    // 3. Arc rotation around shoulder pivot:
     // Effective angles interpolate along the joint rotation arc rather than straight Cartesian chords,
     // maintaining radial standoff from the joint center and preventing chord collapse into the bone.
     const effArmZ = signX * w * thetaArmZ;
@@ -2356,37 +2388,38 @@ export function deformBridgingDeltoidMesh(
     let yMid = shoulder.y + (ySZ * cosAX - zSZ * sinAX);
     let zMid = shoulder.z + (ySZ * sinAX + zSZ * cosAX);
 
-    // 3. Active muscular flex & belly bulge:
+    // 4. Active muscular flex & belly bulge:
     // When the shoulder abducts (moves outward), the deltoid actively contracts,
     // gathers, and flexes upward in +Y while bulging outward in X.
-    if (t > 0 && t < 1) {
-      const b = Math.sin(Math.PI * t);
+    // Scaled by wX so inner edge never lifts or bulges off the torso bones.
+    if (tY > 0 && tY < 1 && wX > 0) {
+      const b = Math.sin(Math.PI * tY);
 
       if (abductFactor > 0) {
-        // Upward flex profile peaking over subacromial space & greater tubercle (t ~ 0.35-0.55)
-        const upwardFlexProfile = Math.sin(Math.PI * Math.pow(t, 0.75));
-        const upwardLift = 0.048 * abductFactor * upwardFlexProfile;
+        // Upward flex profile peaking over subacromial space & greater tubercle (tY ~ 0.35-0.55)
+        const upwardFlexProfile = Math.sin(Math.PI * Math.pow(tY, 0.75));
+        const upwardLift = 0.048 * abductFactor * upwardFlexProfile * wX;
         yMid += upwardLift;
 
         // Lateral outward bulge
-        const lateralBulge = 0.026 * abductFactor * b * signX;
+        const lateralBulge = 0.026 * abductFactor * b * signX * wX;
         xMid += lateralBulge;
       }
 
       // Flexion (forward swing): anterior deltoid contracts and bulges anteriorly (+Z) & upward (+Y)
       if (sinFlex > 0 && z0 > shoulder.z) {
-        zMid += 0.018 * sinFlex * b;
-        yMid += 0.010 * sinFlex * b;
+        zMid += 0.018 * sinFlex * b * wX;
+        yMid += 0.010 * sinFlex * b * wX;
       }
 
       // Extension (backward swing): posterior deltoid contracts and bulges posteriorly (-Z) & upward (+Y)
       if (sinExt > 0 && z0 < shoulder.z) {
-        zMid -= 0.018 * sinExt * b;
-        yMid += 0.010 * sinExt * b;
+        zMid -= 0.018 * sinExt * b * wX;
+        yMid += 0.010 * sinExt * b * wX;
       }
     }
 
-    // 4. Spine transform around spine pivot (pitch around X)
+    // 5. Spine transform around spine pivot (pitch around X)
     const dySp = yMid - spine.y;
     const dzSp = zMid - spine.z;
     const yFinal = spine.y + (dySp * cosS - dzSp * sinS);

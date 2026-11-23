@@ -1274,14 +1274,16 @@ describe('skeletalKinematics', () => {
   });
 
   it('deforms bridging deltoid mesh across 2-axis shoulder movements (abduction, flexion, and combined)', () => {
-    // 3 representative vertices:
-    // 0: distal humeral insertion at deltoid tuberosity (Y = 1.28, below 1.285 threshold)
-    // 1: mid-belly (Y = 1.35, between shoulder pivot 1.378 and insertion)
-    // 2: proximal clavicular/acromial origin (Y = 1.415, above 1.410 threshold)
+    // 4 representative vertices:
+    // 0: distal humeral insertion at deltoid tuberosity (Y = 1.28, below 1.280 threshold, X = 0.20)
+    // 1: mid-belly (Y = 1.35, between shoulder pivot 1.378 and insertion, X = 0.21)
+    // 2: proximal acromial origin (Y = 1.415, above origin threshold, X = 0.16)
+    // 3: inner edge along torso bones (X = 0.10, Y = 1.37, Z = -0.09, spine of scapula / clavicle)
     const rawCoords = [
       0.20, 1.28, -0.03, // Deltoid tuberosity on humerus
       0.21, 1.35, -0.01, // Lateral deltoid belly
-      0.16, 1.415, -0.03, // Clavicular/acromial origin on torso
+      0.16, 1.415, -0.03, // Acromial origin on shoulder girdle
+      0.10, 1.37, -0.09, // Inner edge on scapular spine / clavicle (X <= 0.115)
     ];
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
@@ -1303,6 +1305,11 @@ describe('skeletalKinematics', () => {
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
 
+    // Inner edge remains strictly pinned to torso bones (0.0000 displacement)
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
     // Mid-belly experiences outward lateral bulge (+X) and flexes upward (+Y)
     expect(pos[3]).toBeGreaterThan(rawCoords[3] + 0.01);
     expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.02);
@@ -1319,6 +1326,11 @@ describe('skeletalKinematics', () => {
     expect(pos[6]).toBeCloseTo(rawCoords[6], 5);
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
+
+    // Inner edge remains strictly pinned to torso bones during flexion
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
 
     // Mid-belly moves forward (+Z)
     expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.01);
@@ -1337,12 +1349,20 @@ describe('skeletalKinematics', () => {
     expect(pos[7]).toBeCloseTo(rawCoords[7], 5);
     expect(pos[8]).toBeCloseTo(rawCoords[8], 5);
 
+    // Inner edge stays anchored during compound movement
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
+
     // D. Restore
     restoreOriginalMeshPositions(mesh);
     pos = geom.attributes.position.array as Float32Array;
     expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
     expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
     expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+    expect(pos[9]).toBeCloseTo(rawCoords[9], 5);
+    expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
+    expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
   it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {
