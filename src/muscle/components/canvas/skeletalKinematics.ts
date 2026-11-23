@@ -2315,7 +2315,12 @@ export function deformBridgingDeltoidMesh(
   const cosS = Math.cos(thetaSpineX);
   const sinS = Math.sin(thetaSpineX);
 
-  const abductFactor = Math.sin(Math.min(Math.PI / 2, Math.max(0, thetaArmZ)));
+  const abductAngle = Math.max(0, thetaArmZ);
+  const liftFactor = Math.sin(Math.min(Math.PI / 2, abductAngle * 1.3));
+  const normAbduct = Math.min(1, abductAngle / (Math.PI / 2));
+  // Smooth cubic ease-in-out curve for inward slide so it ramps smoothly with arm rotation without premature lateral hollowing
+  const slideFactor = normAbduct * normAbduct * (3 - 2 * normAbduct);
+
   const sinFlex = Math.sin(Math.max(0, -thetaArmX));
   const sinExt = Math.sin(Math.max(0, thetaArmX));
 
@@ -2342,6 +2347,9 @@ export function deformBridgingDeltoidMesh(
     // 2. Anatomical origin boundary along the shoulder girdle:
     // The spine of the scapula slopes from Y ~ 1.410 at X = 0.170 down to Y ~ 1.365 at X = 0.090.
     // The clavicle slopes from Y ~ 1.415 down to Y ~ 1.385 at X = 0.085.
+    // The acromion origin is anchored at X <= 0.165. For lateral fibers (X > 0.165) arching over
+    // the greater tubercle, the effective origin extends to Y ~ 1.422 so the apex (Y ~ 1.416)
+    // belongs to the mobile, contracting muscle belly rather than being frozen to bone.
     let yOrigin = 1.415;
     if (z0 < -0.040) {
       // Posterior head (spine of scapula)
@@ -2355,11 +2363,16 @@ export function deformBridgingDeltoidMesh(
       if (tClav < 0) tClav = 0;
       if (tClav > 1) tClav = 1;
       yOrigin = 1.390 + tClav * 0.025;
+    } else if (absX > 0.165) {
+      // Lateral head: mobile belly fibers lateral to the acromial tip
+      let tLat = (absX - 0.165) / (0.185 - 0.165);
+      if (tLat > 1) tLat = 1;
+      yOrigin = 1.415 + tLat * 0.007;
     }
 
     // Vertical blend from torso origin (y0 >= yOrigin) to humeral insertion (y0 <= 1.280)
     let tY = (yOrigin - y0) / (yOrigin - 1.280);
-    if (tY < 0) tY = 0;
+    if (y0 >= yOrigin - 0.0005 || tY < 0) tY = 0;
     if (tY > 1) tY = 1;
     const wY = tY * tY * (3 - 2 * tY);
 
@@ -2391,20 +2404,20 @@ export function deformBridgingDeltoidMesh(
 
     // 4. Active muscular flex & belly bulge:
     // When the shoulder abducts (moves outward), the deltoid actively contracts,
-    // gathers, and flexes upward in +Y while bulging outward in X.
+    // gathers, and flexes upward in +Y while smoothly sliding inward toward the joint pivot.
     // Scaled by wX so inner edge never lifts or bulges off the torso bones.
     if (tY > 0 && tY < 1 && wX > 0) {
       const b = Math.sin(Math.PI * tY);
 
-      if (abductFactor > 0) {
+      if (abductAngle > 0) {
         // Upward flex profile peaking over subacromial space & greater tubercle (tY ~ 0.35-0.55)
-        const upwardFlexProfile = Math.sin(Math.PI * Math.pow(tY, 0.75));
-        const upwardLift = 0.048 * abductFactor * upwardFlexProfile * wX;
+        const upwardFlexProfile = Math.sin(Math.PI * Math.pow(tY, 0.65));
+        const upwardLift = 0.046 * liftFactor * upwardFlexProfile * wX;
         yMid += upwardLift;
 
         // Inward slide: as the shoulders pivot outward, the muscle belly contracts
         // and gathers inward towards the joint pivot, keeping the peak centered above the joint.
-        const inwardSlide = 0.075 * abductFactor * upwardFlexProfile * wX * signX;
+        const inwardSlide = 0.085 * slideFactor * upwardFlexProfile * wX * signX;
         xMid -= inwardSlide;
       }
 

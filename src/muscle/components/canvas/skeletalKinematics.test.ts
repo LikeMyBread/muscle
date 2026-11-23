@@ -1366,6 +1366,64 @@ describe('skeletalKinematics', () => {
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
+  it('smoothly lifts and slides deltoid across intermediate abduction angles without apex collapse', () => {
+    // Representative lateral deltoid profile vertices:
+    // 0: Apex crest over greater tubercle (X = 0.18, Y = 1.416, Z = -0.03)
+    // 1: Mid-lateral belly (X = 0.21, Y = 1.35, Z = -0.01)
+    // 2: Lateral flank (X = 0.22, Y = 1.40, Z = -0.02)
+    // 3: Inner torso edge (X = 0.10, Y = 1.37, Z = -0.09)
+    const rawCoords = [
+      0.18, 1.416, -0.03, // Deltoid apex
+      0.21, 1.350, -0.01, // Mid-belly
+      0.22, 1.400, -0.02, // Lateral flank
+      0.10, 1.370, -0.09, // Inner edge on clavicle/scapular spine (X <= 0.115)
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    const testAnglesDeg = [0, 10, 20, 30, 45, 60, 80];
+    let prevApexY = 1.416;
+
+    for (const deg of testAnglesDeg) {
+      restoreOriginalMeshPositions(mesh);
+      const rad = (deg * Math.PI) / 180;
+      deformBridgingDeltoidMesh(mesh, rad, 0, 0);
+      const pos = geom.attributes.position.array as Float32Array;
+
+      const apexX = pos[0];
+      const apexY = pos[1];
+      const bellyX = pos[3];
+      const bellyY = pos[4];
+      const flankY = pos[7];
+      const innerX = pos[9];
+      const innerY = pos[10];
+      const innerZ = pos[11];
+
+      // 1. Inner edge remains strictly pinned to torso bones (0 displacement) at every angle
+      expect(innerX).toBeCloseTo(rawCoords[9], 5);
+      expect(innerY).toBeCloseTo(rawCoords[10], 5);
+      expect(innerZ).toBeCloseTo(rawCoords[11], 5);
+
+      // 2. Apex lifts monotonically without collapsing or dipping
+      expect(apexY).toBeGreaterThanOrEqual(prevApexY - 1e-4);
+      prevApexY = apexY;
+
+      // 3. Lateral flank never collapses below its rest height
+      expect(flankY).toBeGreaterThanOrEqual(rawCoords[7] - 1e-3);
+
+      // 4. As shoulder pivots outward, belly slides inward, centering over joint pivot (X ~ 0.163)
+      if (deg >= 30) {
+        expect(bellyX).toBeLessThan(rawCoords[3]);
+        expect(bellyY).toBeGreaterThan(rawCoords[4]);
+      }
+      if (deg >= 45) {
+        expect(Math.abs(bellyX - 0.163)).toBeLessThan(0.025);
+      }
+    }
+  });
+
   it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {
     // 4 representative vertices:
     // 0: medial sternal origin (X = 0.04, Y = 1.30, Z = 0.06)
