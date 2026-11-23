@@ -17,6 +17,7 @@ import {
   deformBridgingHamstringsMesh,
   deformBridgingInternalObliqueMesh,
   deformBridgingLineaAlbaMesh,
+  deformBridgingLumbarSpineMesh,
   deformBridgingMesh,
   deformBridgingPectoralisMajorMesh,
   deformBridgingPlantarisMesh,
@@ -40,6 +41,7 @@ import {
   isHamstringsMesh,
   isInternalObliqueMesh,
   isLineaAlbaMesh,
+  isLumbarSpineMesh,
   isPectoralisMajorMesh,
   isQuadratusLumborumMesh,
   isQuadricepsMesh,
@@ -187,6 +189,34 @@ describe('skeletalKinematics', () => {
         'atlas_quadratus_lumborum_muscle_r_d64800b8',
         undefined,
         'Quadratus lumborum muscle.r',
+      ),
+    ).toBe('bridging');
+
+    // Lumbar vertebrae and discs (articulated bridging chain between sacrum/pelvis and thoracic cage)
+    expect(getKinematicSegmentForNodeId('atlas_l5_3a4b083c', undefined, 'L5')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('atlas_l4_08ade9e0', undefined, 'L4')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('atlas_l3_c6cacbbe', undefined, 'L3')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('atlas_l2_a58b12bf', undefined, 'L2')).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('atlas_l1_52b1773e', undefined, 'L1')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_intervertebral_disc_l5_s1_80789ffd',
+        undefined,
+        'Intervertebral disc L5-S1',
+      ),
+    ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_intervertebral_disc_l4_l5_260f550f',
+        undefined,
+        'Intervertebral disc L4-L5',
+      ),
+    ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_intervertebral_disc_t12_l1_5710f59d',
+        undefined,
+        'Intervertebral disc T12-L1',
       ),
     ).toBe('bridging');
 
@@ -1820,6 +1850,111 @@ describe('skeletalKinematics', () => {
     expect(pos[8]).toBeGreaterThan(rawCoords[8]);
   });
 
+  it('articulates lower vertebrae (L5-L1) and lumbar discs with L5 anchored to hip bone and progressive rotation up to T12', () => {
+    // 1. Identification checks
+    const l5Mesh = new THREE.Mesh(new THREE.BufferGeometry());
+    l5Mesh.name = 'atlas_l5_3a4b083c';
+    expect(isLumbarSpineMesh(l5Mesh)).toBe(true);
+
+    const l1Mesh = new THREE.Mesh(new THREE.BufferGeometry());
+    l1Mesh.name = 'atlas_l1_52b1773e';
+    expect(isLumbarSpineMesh(l1Mesh)).toBe(true);
+
+    const discMesh = new THREE.Mesh(new THREE.BufferGeometry());
+    discMesh.name = 'atlas_intervertebral_disc_l5_s1_80789ffd';
+    expect(isLumbarSpineMesh(discMesh)).toBe(true);
+
+    const nonLumbar = new THREE.Mesh(new THREE.BufferGeometry());
+    nonLumbar.name = 'atlas_sacrum_fb87013e';
+    expect(isLumbarSpineMesh(nonLumbar)).toBe(false);
+
+    // 2. L5 vertebra anchor to sacrum / pelvis:
+    // L5 body: Y = 0.983, Z = -0.029 (anterior body, posterior facet)
+    const rawCoordsL5 = [
+      0.00, 0.983, -0.015, // anterior body
+      0.00, 0.983, -0.043, // posterior spinous process
+    ];
+    const geomL5 = new THREE.BufferGeometry();
+    geomL5.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsL5, 3));
+    const meshL5 = new THREE.Mesh(geomL5);
+    meshL5.name = 'atlas_l5_3a4b083c';
+
+    // Apply 20 deg (0.35 rad) spine flexion
+    deformBridgingLumbarSpineMesh(meshL5, 0.35);
+    const posL5 = geomL5.attributes.position.array as Float32Array;
+
+    // Displacement of L5 must be very small (< 0.004m / 4mm) to stay attached to sacrum S1 plate
+    const dL5_0 = Math.hypot(posL5[0] - rawCoordsL5[0], posL5[1] - rawCoordsL5[1], posL5[2] - rawCoordsL5[2]);
+    expect(dL5_0).toBeLessThan(0.004);
+
+    // Rigid isometry check: distance between vertices inside the vertebra must remain exactly identical
+    const distBeforeL5 = Math.hypot(
+      rawCoordsL5[3] - rawCoordsL5[0],
+      rawCoordsL5[4] - rawCoordsL5[1],
+      rawCoordsL5[5] - rawCoordsL5[2],
+    );
+    const distAfterL5 = Math.hypot(
+      posL5[3] - posL5[0],
+      posL5[4] - posL5[1],
+      posL5[5] - posL5[2],
+    );
+    expect(distAfterL5).toBeCloseTo(distBeforeL5, 5);
+
+    // 3. Progressive rotation up to L1:
+    const rawCoordsL1 = [
+      0.00, 1.104, -0.015,
+      0.00, 1.104, -0.043,
+    ];
+    const geomL1 = new THREE.BufferGeometry();
+    geomL1.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsL1, 3));
+    const meshL1 = new THREE.Mesh(geomL1);
+    meshL1.name = 'atlas_l1_52b1773e';
+
+    deformBridgingLumbarSpineMesh(meshL1, 0.35);
+    const posL1 = geomL1.attributes.position.array as Float32Array;
+
+    // L1 is near the top of the lumbar spine (u ~ 0.80), so displacement should be substantial (> 0.015m)
+    const dL1_0 = Math.hypot(posL1[0] - rawCoordsL1[0], posL1[1] - rawCoordsL1[1], posL1[2] - rawCoordsL1[2]);
+    expect(dL1_0).toBeGreaterThan(0.015);
+    expect(posL1[1]).toBeLessThan(rawCoordsL1[1]); // dips downward in Y
+    expect(posL1[2]).toBeGreaterThan(rawCoordsL1[2]); // moves forward in +Z
+
+    // 4. Continuous contact without separation:
+    // Distance between L5 and L1 along the curve stays proportional to arc length
+    const l1CenterY = (posL1[1] + posL1[4]) / 2;
+    const l5CenterY = (posL5[1] + posL5[4]) / 2;
+    expect(l1CenterY).toBeGreaterThan(l5CenterY);
+
+    // 5. Intervertebral disc wedging:
+    // L5-S1 disc: lower edge at Y = 0.955 (near sacrum), upper edge at Y = 0.970 (near L5)
+    const rawCoordsDisc = [
+      0.00, 0.955, -0.020, // inferior endplate (attached to S1)
+      0.00, 0.970, -0.020, // superior endplate (attached to L5)
+    ];
+    const geomDisc = new THREE.BufferGeometry();
+    geomDisc.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsDisc, 3));
+    const meshDisc = new THREE.Mesh(geomDisc);
+    meshDisc.name = 'atlas_intervertebral_disc_l5_s1_80789ffd';
+
+    deformBridgingLumbarSpineMesh(meshDisc, 0.35);
+    const posDisc = geomDisc.attributes.position.array as Float32Array;
+
+    // Inferior endplate stays closely anchored to sacrum (< 1.5mm movement)
+    const dDiscInferior = Math.hypot(posDisc[0] - rawCoordsDisc[0], posDisc[1] - rawCoordsDisc[1], posDisc[2] - rawCoordsDisc[2]);
+    expect(dDiscInferior).toBeLessThan(0.002);
+
+    // Superior endplate moves slightly more to match L5
+    const dDiscSuperior = Math.hypot(posDisc[3] - rawCoordsDisc[3], posDisc[4] - rawCoordsDisc[4], posDisc[5] - rawCoordsDisc[5]);
+    expect(dDiscSuperior).toBeGreaterThan(dDiscInferior);
+
+    // 6. Reset restores original coordinates
+    restoreOriginalMeshPositions(meshL5);
+    const posRestored = geomL5.attributes.position.array as Float32Array;
+    expect(posRestored[0]).toBeCloseTo(rawCoordsL5[0], 5);
+    expect(posRestored[1]).toBeCloseTo(rawCoordsL5[1], 5);
+    expect(posRestored[2]).toBeCloseTo(rawCoordsL5[2], 5);
+  });
+
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {
     const muscles = [
       { name: 'atlas_psoas_muscle_r_08af9941', coords: [0.06, 0.90, -0.02] },
@@ -1843,6 +1978,8 @@ describe('skeletalKinematics', () => {
       { name: 'atlas_linea_alba_eeb055b3', coords: [0.00, 1.05, 0.08] },
       { name: 'muscle_rectus_abdominis', coords: [-0.04, 1.05, 0.08] },
       { name: 'atlas_quadratus_lumborum_muscle_r_d64800b8', coords: [-0.04, 1.05, -0.05] },
+      { name: 'atlas_l5_3a4b083c', coords: [0.00, 0.983, -0.029] },
+      { name: 'atlas_intervertebral_disc_l5_s1_80789ffd', coords: [0.00, 0.962, -0.015] },
     ];
 
     const rotations = {

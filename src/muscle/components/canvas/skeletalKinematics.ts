@@ -377,6 +377,35 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Lumbar spine vertebrae (L1-L5) and intervertebral discs (L5-S1 through T12-L1)
+  // These bridge between the sacrum / hip bone assembly and the thoracic cage,
+  // articulating along a smooth continuous spinal curve as the torso moves.
+  if (
+    nodeId === 'atlas_l5_3a4b083c' ||
+    nodeId === 'atlas_l4_08ade9e0' ||
+    nodeId === 'atlas_l3_c6cacbbe' ||
+    nodeId === 'atlas_l2_a58b12bf' ||
+    nodeId === 'atlas_l1_52b1773e' ||
+    nodeId === 'atlas_intervertebral_disc_l5_s1_80789ffd' ||
+    nodeId === 'atlas_intervertebral_disc_l4_l5_260f550f' ||
+    nodeId === 'atlas_intervertebral_disc_l3_l4_bdf9d7c5' ||
+    nodeId === 'atlas_intervertebral_disc_l2_l3_ac930073' ||
+    nodeId === 'atlas_intervertebral_disc_l1_l2_c10e90aa' ||
+    nodeId === 'atlas_intervertebral_disc_t12_l1_5710f59d' ||
+    text.includes('intervertebral_disc_l') ||
+    text.includes('intervertebral disc l') ||
+    text.includes('intervertebral_disc_t12_l1') ||
+    text.includes('intervertebral disc t12-l1') ||
+    /^atlas_l[1-5](_|$)/.test(nodeId) ||
+    text === 'l1' || text === 'l2' || text === 'l3' || text === 'l4' || text === 'l5' ||
+    text.includes('vertebra_l') ||
+    text.includes('vertebra l') ||
+    text.includes('lumbar_vertebra') ||
+    text.includes('lumbar vertebra')
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -2005,6 +2034,8 @@ export function deformBridgingMesh(
     deformBridgingRectusAbdominisMesh(mesh, rotations.spineRotationX);
   } else if (isQuadratusLumborumMesh(mesh)) {
     deformBridgingQuadratusLumborumMesh(mesh, rotations.spineRotationX);
+  } else if (isLumbarSpineMesh(mesh)) {
+    deformBridgingLumbarSpineMesh(mesh, rotations.spineRotationX);
   }
 }
 
@@ -3233,6 +3264,136 @@ export function deformBridgingQuadratusLumborumMesh(
     arr[idx] = x;
     arr[idx + 1] = y;
     arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isLumbarSpineMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'atlas_l5_3a4b083c' ||
+    mesh.name === 'atlas_l4_08ade9e0' ||
+    mesh.name === 'atlas_l3_c6cacbbe' ||
+    mesh.name === 'atlas_l2_a58b12bf' ||
+    mesh.name === 'atlas_l1_52b1773e' ||
+    mesh.name === 'atlas_intervertebral_disc_l5_s1_80789ffd' ||
+    mesh.name === 'atlas_intervertebral_disc_l4_l5_260f550f' ||
+    mesh.name === 'atlas_intervertebral_disc_l3_l4_bdf9d7c5' ||
+    mesh.name === 'atlas_intervertebral_disc_l2_l3_ac930073' ||
+    mesh.name === 'atlas_intervertebral_disc_l1_l2_c10e90aa' ||
+    mesh.name === 'atlas_intervertebral_disc_t12_l1_5710f59d' ||
+    text.includes('intervertebral_disc_l') ||
+    text.includes('intervertebral disc l') ||
+    text.includes('intervertebral_disc_t12_l1') ||
+    text.includes('intervertebral disc t12-l1') ||
+    /^atlas_l[1-5](_|$)/.test(mesh.name) ||
+    text === 'l1' ||
+    text === 'l2' ||
+    text === 'l3' ||
+    text === 'l4' ||
+    text === 'l5' ||
+    text.includes('vertebra_l') ||
+    text.includes('vertebra l') ||
+    text.includes('lumbar_vertebra') ||
+    text.includes('lumbar vertebra')
+  );
+}
+
+/**
+ * Deforms and articulates the lower vertebrae (L5, L4, L3, L2, L1) and lumbar intervertebral discs
+ * across torso flexion and extension.
+ *
+ * - L5 attaches directly to the sacrum on the hip bone (S1 endplate at Y = 0.960), remaining
+ *   firmly seated with only minimal rotation (~13% of total bend).
+ * - L4 through L1 progressively rotate and translate along a smooth continuous spinal arc:
+ *   L4 (~31%), L3 (~47%), L2 (~64%), L1 (~80%), meeting the thoracic cage / T12 at 100%.
+ * - Adjacent vertebrae preserve intervertebral spacing and stay in continuous contact with zero gaping or collision.
+ * - Intervertebral discs smoothly articulate and naturally wedge between the vertebral endplates.
+ */
+export function deformBridgingLumbarSpineMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  if (!geom.userData.lumbarCenter) {
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+    for (let i = 0; i < count; i++) {
+      const y = orig[i * 3 + 1];
+      const z = orig[i * 3 + 2];
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    }
+    const midY = (minY + maxY) / 2;
+    const midZ = (minZ + maxZ) / 2;
+    const name = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+    const isDisc = name.includes('disc');
+    geom.userData.lumbarCenter = { midY, midZ, isDisc };
+  }
+
+  const { midY, midZ, isDisc } = geom.userData.lumbarCenter;
+
+  if (Math.abs(thetaSpine) < 1e-6) {
+    arr.set(orig);
+    posAttr.needsUpdate = true;
+    geom.computeVertexNormals();
+    return;
+  }
+
+  const yBase = 0.960;
+  const L = 0.179;
+
+  const s = Math.max(0, Math.min(L, midY - yBase));
+  const u = s / L;
+  const phi = u * thetaSpine;
+  const cosP = Math.cos(phi);
+  const sinP = Math.sin(phi);
+
+  const yCenter = yBase + (L / thetaSpine) * Math.sin(phi);
+  const zCenter = midZ + (L / thetaSpine) * (1 - Math.cos(phi));
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    if (isDisc) {
+      // Intervertebral disc: elastomeric continuous blend along disc height with anatomical wedging
+      const s = Math.max(0, Math.min(L, y0 - yBase));
+      const u = s / L;
+      const phiv = u * thetaSpine;
+      const dyArc = (L / thetaSpine) * Math.sin(phiv) - s;
+      const dzArc = (L / thetaSpine) * (1 - Math.cos(phiv));
+      const dz = z0 - midZ;
+      const dyTilt = -dz * Math.sin(phiv);
+      const dzTilt = dz * (Math.cos(phiv) - 1);
+      arr[idx] = x0;
+      arr[idx + 1] = y0 + dyArc + dyTilt;
+      arr[idx + 2] = z0 + dzArc + dzTilt;
+    } else {
+      // Rigid vertebra bone: rotates and translates with its level along the articulated arc
+      const dy = y0 - midY;
+      const dz = z0 - midZ;
+      arr[idx] = x0;
+      arr[idx + 1] = yCenter + (dy * cosP - dz * sinP);
+      arr[idx + 2] = zCenter + (dy * sinP + dz * cosP);
+    }
   }
 
   posAttr.needsUpdate = true;
