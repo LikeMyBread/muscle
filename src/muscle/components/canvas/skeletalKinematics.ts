@@ -278,6 +278,105 @@ export function getKinematicSegmentForNodeId(
     return 'bridging';
   }
 
+  // Erector spinae group (spans posterior pelvis/sacrum to thoracic spine and ribs)
+  const isErectorSpinaeIliacInsertion =
+    nodeId === 'atlas_erector_spinae_muscles_iliac_inserti_bfc50f21' ||
+    text.includes('erector_spinae_muscles_iliac') ||
+    text.includes('erector spinae muscles-iliac');
+
+  if (
+    !isErectorSpinaeIliacInsertion &&
+    (nodeId === 'muscle_erector_spinae' ||
+      text === 'erector spinae' ||
+      text === 'erector spinae.r' ||
+      text === 'erector spinae.l' ||
+      text.includes('muscle_erector_spinae') ||
+      nodeId === 'atlas_longissimus_thoracis_r_9a6c4246' ||
+      text.includes('longissimus_thoracis') ||
+      text.includes('longissimus thoracis') ||
+      text.includes('iliocostalis_lumborum') ||
+      text.includes('iliocostalis lumborum') ||
+      text.includes('sacrospinalis') ||
+      (text.includes('erector') && text.includes('spinae')))
+  ) {
+    return 'bridging';
+  }
+
+  // External oblique (spans iliac crest / inguinal ligament to lower ribs)
+  const isExternalObliqueIliacInsertion =
+    nodeId === 'atlas_external_abdominal_oblique_muscle_il_ef830ec5' ||
+    text.includes('external_abdominal_oblique_muscle_il') ||
+    text.includes('external abdominal oblique muscle-iliac');
+
+  if (
+    !isExternalObliqueIliacInsertion &&
+    (nodeId === 'muscle_external_oblique' ||
+      text === 'external oblique' ||
+      text === 'external oblique.r' ||
+      text === 'external oblique.l' ||
+      text.includes('external_oblique') ||
+      text.includes('external oblique') ||
+      text.includes('external_abdominal_oblique') ||
+      text.includes('external abdominal oblique') ||
+      text.includes('obliquus_externus') ||
+      text.includes('obliquus externus'))
+  ) {
+    return 'bridging';
+  }
+
+  // Internal abdominal oblique (spans iliac crest / inguinal ligament to lower ribs and linea alba)
+  const isInternalObliqueIliacInsertion =
+    nodeId === 'atlas_internal_abdominal_oblique_muscle_il_45b42876' ||
+    text.includes('internal_abdominal_oblique_muscle_il') ||
+    text.includes('internal abdominal oblique muscle-iliac');
+
+  if (
+    !isInternalObliqueIliacInsertion &&
+    (nodeId === 'atlas_internal_abdominal_oblique_r_7656165c' ||
+      text === 'internal abdominal oblique.r' ||
+      text === 'internal abdominal oblique' ||
+      text.includes('internal_abdominal_oblique') ||
+      text.includes('internal abdominal oblique') ||
+      text.includes('internal_oblique') ||
+      text.includes('internal oblique') ||
+      text.includes('obliquus_internus') ||
+      text.includes('obliquus internus'))
+  ) {
+    return 'bridging';
+  }
+
+  // Linea alba (spans pubic symphysis to xiphoid process along anterior midline)
+  if (
+    nodeId === 'atlas_linea_alba_eeb055b3' ||
+    text === 'linea alba' ||
+    text.includes('linea_alba') ||
+    text.includes('linea alba')
+  ) {
+    return 'bridging';
+  }
+
+  // Rectus abdominis (spans pubic crest to cartilages of ribs 5-7 and xiphoid)
+  if (
+    nodeId === 'muscle_rectus_abdominis' ||
+    text === 'rectus abdominis' ||
+    text === 'rectus abdominis.r' ||
+    text === 'rectus abdominis.l' ||
+    text.includes('rectus_abdominis') ||
+    text.includes('rectus abdominis')
+  ) {
+    return 'bridging';
+  }
+
+  // Quadratus lumborum (spans iliac crest to 12th rib and lumbar transverse processes)
+  if (
+    nodeId === 'atlas_quadratus_lumborum_muscle_r_d64800b8' ||
+    text === 'quadratus lumborum muscle.r' ||
+    text.includes('quadratus_lumborum') ||
+    text.includes('quadratus lumborum')
+  ) {
+    return 'bridging';
+  }
+
   // 1. Pelvis (Root of hip assembly)
   if (
     nodeId === 'bone_pelvis' ||
@@ -1894,6 +1993,18 @@ export function deformBridgingMesh(
       rotations.armRotationX ?? 0,
       rotations.spineRotationX,
     );
+  } else if (isErectorSpinaeMesh(mesh)) {
+    deformBridgingErectorSpinaeMesh(mesh, rotations.spineRotationX);
+  } else if (isExternalObliqueMesh(mesh)) {
+    deformBridgingExternalObliqueMesh(mesh, rotations.spineRotationX);
+  } else if (isInternalObliqueMesh(mesh)) {
+    deformBridgingInternalObliqueMesh(mesh, rotations.spineRotationX);
+  } else if (isLineaAlbaMesh(mesh)) {
+    deformBridgingLineaAlbaMesh(mesh, rotations.spineRotationX);
+  } else if (isRectusAbdominisMesh(mesh)) {
+    deformBridgingRectusAbdominisMesh(mesh, rotations.spineRotationX);
+  } else if (isQuadratusLumborumMesh(mesh)) {
+    deformBridgingQuadratusLumborumMesh(mesh, rotations.spineRotationX);
   }
 }
 
@@ -2603,6 +2714,525 @@ export function deformBridgingPectoralisMajorMesh(
     arr[idx] = xMid;
     arr[idx + 1] = yFinal;
     arr[idx + 2] = zFinal;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isErectorSpinaeMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isIliac =
+    mesh.name === 'atlas_erector_spinae_muscles_iliac_inserti_bfc50f21' ||
+    text.includes('erector_spinae_muscles_iliac') ||
+    text.includes('erector spinae muscles-iliac');
+  return (
+    !isIliac &&
+    (mesh.name === 'muscle_erector_spinae' ||
+      mesh.name === 'atlas_longissimus_thoracis_r_9a6c4246' ||
+      text.includes('erector_spinae') ||
+      text.includes('erector spinae') ||
+      text.includes('longissimus_thoracis') ||
+      text.includes('longissimus thoracis') ||
+      text.includes('iliocostalis_lumborum') ||
+      text.includes('iliocostalis lumborum') ||
+      text.includes('sacrospinalis') ||
+      (text.includes('erector') && text.includes('spinae')))
+  );
+}
+
+/**
+ * Deforms the Erector spinae group (including longissimus thoracis, iliocostalis) spanning the torso bend.
+ *
+ * Lower vertices (Y <= 0.96) attach to the posterior iliac crest, sacrum, and lower lumbar spines,
+ * remaining strictly anchored to the pelvis (displacement = 0).
+ * Upper vertices (Y >= 1.15) rotate rigidly with the thoracic spine and ribcage.
+ *
+ * Intermediate vertices smoothly interpolate:
+ * - During torso flexion (thetaSpine > 0): the posterior column stretches over the flexion curve,
+ *   pulling taut against the lumbar vertebrae to prevent protrusion.
+ * - During torso extension (thetaSpine < 0): the erector spinae shortens and contracts, squashing
+ *   and bulging posteriorly (in -Z) and widening laterally (+/-X) to form muscular spinal columns.
+ */
+export function deformBridgingErectorSpinaeMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const yBot = 0.96;
+  const yTop = 1.15;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      if (thetaSpine < 0) {
+        // Torso extension: active contraction, squashing, posterior bulge in -Z and lateral widening
+        const extFactor = -sinS;
+        z -= 0.032 * extFactor * b;
+        x += 0.045 * extFactor * b * x0;
+      } else {
+        // Torso flexion: passive stretch, drawing taut against lumbar curve
+        const flexFactor = sinS;
+        z += 0.015 * flexFactor * b;
+        x -= 0.020 * flexFactor * b * x0;
+      }
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isExternalObliqueMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isIliac =
+    mesh.name === 'atlas_external_abdominal_oblique_muscle_il_ef830ec5' ||
+    text.includes('external_abdominal_oblique_muscle_il') ||
+    text.includes('external abdominal oblique muscle-iliac');
+  return (
+    !isIliac &&
+    (mesh.name === 'muscle_external_oblique' ||
+      text.includes('external_oblique') ||
+      text.includes('external oblique') ||
+      text.includes('external_abdominal_oblique') ||
+      text.includes('external abdominal oblique') ||
+      text.includes('obliquus_externus') ||
+      text.includes('obliquus externus'))
+  );
+}
+
+/**
+ * Deforms the External oblique muscle mesh across torso flexion and extension.
+ *
+ * Lower edge attaches along the outer lip of the iliac crest and inguinal ligament to the pubic tubercle,
+ * remaining strictly anchored to the pelvis.
+ * Upper digitations attach to the lower 8 ribs (ribs 5-12), rotating with the ribcage and spine.
+ *
+ * Squash & stretch: volume preservation of the abdominal cavity bulges the anterior wall and flanks
+ * forward and outward during trunk flexion, while drawing taut during extension.
+ */
+export function deformBridgingExternalObliqueMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    // Pelvic contour: iliac crest (Y ≈ 0.98 at Z <= 0.01) to inguinal/pubic crest (Y ≈ 0.91 at Z ≈ 0.11)
+    const yBot = 0.98 - 0.70 * Math.max(0, z0 - 0.01);
+    const yTop = 1.15;
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      const zFactor = Math.max(0, (z0 - (-0.02)) / 0.12);
+      if (thetaSpine > 0) {
+        z += 0.038 * sinS * b * zFactor;
+        x += 0.070 * sinS * b * zFactor * x0;
+      } else {
+        z += 0.020 * sinS * b * zFactor;
+        x += 0.035 * sinS * b * zFactor * x0;
+      }
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isInternalObliqueMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  const isIliac =
+    mesh.name === 'atlas_internal_abdominal_oblique_muscle_il_45b42876' ||
+    text.includes('internal_abdominal_oblique_muscle_il') ||
+    text.includes('internal abdominal oblique muscle-iliac');
+  return (
+    !isIliac &&
+    (mesh.name === 'atlas_internal_abdominal_oblique_r_7656165c' ||
+      text.includes('internal_abdominal_oblique') ||
+      text.includes('internal abdominal oblique') ||
+      text.includes('internal_oblique') ||
+      text.includes('internal oblique') ||
+      text.includes('obliquus_internus') ||
+      text.includes('obliquus internus'))
+  );
+}
+
+/**
+ * Deforms the Internal abdominal oblique muscle mesh across torso flexion and extension.
+ *
+ * Lower edge attaches along the intermediate lip of the iliac crest and lateral inguinal ligament,
+ * anchored to the pelvis.
+ * Upper insertions attach to the lower ribs (ribs 9-12) and the rectus sheath / linea alba.
+ */
+export function deformBridgingInternalObliqueMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    const yBot = 0.98 - 0.70 * Math.max(0, z0 - 0.01);
+    const yTop = 1.14;
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      const zFactor = Math.max(0, (z0 - (-0.02)) / 0.12);
+      if (thetaSpine > 0) {
+        z += 0.036 * sinS * b * zFactor;
+        x += 0.065 * sinS * b * zFactor * x0;
+      } else {
+        z += 0.015 * sinS * b * zFactor;
+        x += 0.025 * sinS * b * zFactor * x0;
+      }
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isLineaAlbaMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'atlas_linea_alba_eeb055b3' ||
+    text.includes('linea_alba') ||
+    text.includes('linea alba')
+  );
+}
+
+/**
+ * Deforms the Linea alba tendonous seam running down the anterior abdominal midline.
+ *
+ * Inferior attachment: pubic symphysis and pubic crest (Y <= 0.91), anchored to the pelvis.
+ * Superior attachment: xiphoid process (Y >= 1.16), following the sternum.
+ * Intermediate: bulges anteriorly in +Z during flexion as the rectus abdominis bellies squash.
+ */
+export function deformBridgingLineaAlbaMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const yBot = 0.91;
+  const yTop = 1.16;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      if (thetaSpine > 0) {
+        z += 0.042 * sinS * b;
+      } else {
+        z += 0.022 * sinS * b;
+      }
+    }
+
+    arr[idx] = x0;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isRectusAbdominisMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'muscle_rectus_abdominis' ||
+    text.includes('rectus_abdominis') ||
+    text.includes('rectus abdominis')
+  );
+}
+
+/**
+ * Deforms the Rectus abdominis muscle columns flanking the anterior midline.
+ *
+ * Inferior origin: pubic crest and pubic tubercle (Y <= 0.91), anchored to the pelvis.
+ * Superior insertion: cartilages of ribs 5-7 and xiphoid process (Y >= 1.15), following the ribcage.
+ * Intermediate belly: squashes and bulges anteriorly in +Z and slightly laterally in X during flexion,
+ * and stretches taut during trunk extension.
+ */
+export function deformBridgingRectusAbdominisMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const yBot = 0.91;
+  const yTop = 1.15;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      if (thetaSpine > 0) {
+        z += 0.042 * sinS * b;
+        x += 0.045 * sinS * b * x0;
+      } else {
+        z += 0.022 * sinS * b;
+        x += 0.020 * sinS * b * x0;
+      }
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
+  }
+
+  posAttr.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+export function isQuadratusLumborumMesh(mesh: THREE.Mesh): boolean {
+  const text = (mesh.name + ' ' + (mesh.userData?.name || '')).toLowerCase();
+  return (
+    mesh.name === 'atlas_quadratus_lumborum_muscle_r_d64800b8' ||
+    text.includes('quadratus_lumborum') ||
+    text.includes('quadratus lumborum')
+  );
+}
+
+/**
+ * Deforms the Quadratus lumborum muscle spanning the posterior abdominal wall between the iliac crest and 12th rib.
+ *
+ * Lower edge (Y <= 0.98) anchored to the internal lip of the iliac crest and iliolumbar ligament on the pelvis.
+ * Upper edge (Y >= 1.10) attached to the lower border of the 12th rib and L1-L4 transverse processes.
+ */
+export function deformBridgingQuadratusLumborumMesh(
+  mesh: THREE.Mesh,
+  thetaSpine: number,
+): void {
+  const geom = mesh.geometry;
+  const posAttr = geom.attributes.position;
+  if (!posAttr) return;
+
+  if (!geom.userData.origPositions) {
+    geom.userData.origPositions = Float32Array.from(posAttr.array);
+  }
+
+  const orig = geom.userData.origPositions as Float32Array;
+  const count = posAttr.count;
+  const arr = posAttr.array as Float32Array;
+
+  const cosS = Math.cos(thetaSpine);
+  const sinS = Math.sin(thetaSpine);
+  const spine = KINEMATIC_PIVOTS.spine;
+
+  const yBot = 0.98;
+  const yTop = 1.10;
+
+  for (let i = 0; i < count; i++) {
+    const idx = i * 3;
+    const x0 = orig[idx];
+    const y0 = orig[idx + 1];
+    const z0 = orig[idx + 2];
+
+    const dyS = y0 - spine.y;
+    const dzS = z0 - spine.z;
+    const ySpine = spine.y + (dyS * cosS - dzS * sinS);
+    const zSpine = spine.z + (dyS * sinS + dzS * cosS);
+
+    let t = (y0 - yBot) / (yTop - yBot);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    const w = t * t * (3 - 2 * t);
+
+    let x = x0;
+    let y = (1 - w) * y0 + w * ySpine;
+    let z = (1 - w) * z0 + w * zSpine;
+
+    if (thetaSpine !== 0 && t > 0 && t < 1) {
+      const b = Math.sin(Math.PI * t);
+      if (thetaSpine < 0) {
+        const extFactor = -sinS;
+        z -= 0.025 * extFactor * b;
+        x += 0.035 * extFactor * b * x0;
+      } else {
+        const flexFactor = sinS;
+        z += 0.012 * flexFactor * b;
+        x -= 0.015 * flexFactor * b * x0;
+      }
+    }
+
+    arr[idx] = x;
+    arr[idx + 1] = y;
+    arr[idx + 2] = z;
   }
 
   posAttr.needsUpdate = true;

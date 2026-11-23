@@ -8,16 +8,22 @@ import {
   deformBridgingBrachialisMesh,
   deformBridgingBrachioradialisMesh,
   deformBridgingDeltoidMesh,
+  deformBridgingErectorSpinaeMesh,
   deformBridgingExtensorCarpiRadialisMesh,
+  deformBridgingExternalObliqueMesh,
   deformBridgingFasciaLataMesh,
   deformBridgingGastrocnemiusMesh,
   deformBridgingGracilisMesh,
   deformBridgingHamstringsMesh,
+  deformBridgingInternalObliqueMesh,
+  deformBridgingLineaAlbaMesh,
   deformBridgingMesh,
   deformBridgingPectoralisMajorMesh,
   deformBridgingPlantarisMesh,
   deformBridgingPsoasMesh,
+  deformBridgingQuadratusLumborumMesh,
   deformBridgingQuadricepsMesh,
+  deformBridgingRectusAbdominisMesh,
   deformBridgingSartoriusMesh,
   deformBridgingTransversusAbdominisMesh,
   getKinematicSegmentForNodeId,
@@ -25,13 +31,19 @@ import {
   isBrachialisMesh,
   isBrachioradialisMesh,
   isDeltoidMesh,
+  isErectorSpinaeMesh,
   isExtensorCarpiRadialisMesh,
+  isExternalObliqueMesh,
   isFasciaLataMesh,
   isGastrocnemiusMesh,
   isGracilisMesh,
   isHamstringsMesh,
+  isInternalObliqueMesh,
+  isLineaAlbaMesh,
   isPectoralisMajorMesh,
+  isQuadratusLumborumMesh,
   isQuadricepsMesh,
+  isRectusAbdominisMesh,
   isSartoriusMesh,
   KINEMATIC_PIVOTS,
   restoreOriginalMeshPositions,
@@ -77,8 +89,29 @@ describe('skeletalKinematics', () => {
         'Origin of sartorius muscle on Upper anterior iliac spine.r',
       ),
     ).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_erector_spinae_muscles_iliac_inserti_bfc50f21',
+        undefined,
+        'Erector spinae muscles-Iliac insertions.r',
+      ),
+    ).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_external_abdominal_oblique_muscle_il_ef830ec5',
+        undefined,
+        'External abdominal oblique muscle-Iliac insertion.r',
+      ),
+    ).toBe('pelvis');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_internal_abdominal_oblique_muscle_il_45b42876',
+        undefined,
+        'Internal abdominal oblique muscle-Iliac insertion.r',
+      ),
+    ).toBe('pelvis');
 
-    // Bridging dual-anchored muscles (Psoas, Plantaris, Transversus abdominis, Fascia lata, Brachioradialis, Biceps, Quads, Sartorius, Hamstrings, Gracilis)
+    // Bridging dual-anchored muscles (Psoas, Plantaris, Transversus abdominis, Fascia lata, Brachioradialis, Biceps, Quads, Sartorius, Hamstrings, Gracilis, Deltoid, Pecs, Torso bend muscles)
     expect(
       getKinematicSegmentForNodeId(
         'atlas_psoas_muscle_r_08af9941',
@@ -123,6 +156,39 @@ describe('skeletalKinematics', () => {
     expect(getKinematicSegmentForNodeId('muscle_semitendinosus')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_semimembranosus')).toBe('bridging');
     expect(getKinematicSegmentForNodeId('muscle_gracilis')).toBe('bridging');
+
+    // Torso bend muscles bridging between hip bones (pelvis) and spine/ribcage
+    expect(getKinematicSegmentForNodeId('muscle_erector_spinae')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_longissimus_thoracis_r_9a6c4246',
+        undefined,
+        'Longissimus thoracis.r',
+      ),
+    ).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_external_oblique')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_internal_abdominal_oblique_r_7656165c',
+        undefined,
+        'Internal abdominal oblique.r',
+      ),
+    ).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_linea_alba_eeb055b3',
+        undefined,
+        'Linea alba',
+      ),
+    ).toBe('bridging');
+    expect(getKinematicSegmentForNodeId('muscle_rectus_abdominis')).toBe('bridging');
+    expect(
+      getKinematicSegmentForNodeId(
+        'atlas_quadratus_lumborum_muscle_r_d64800b8',
+        undefined,
+        'Quadratus lumborum muscle.r',
+      ),
+    ).toBe('bridging');
 
     // Spine & upper trunk
     expect(getKinematicSegmentForNodeId('bone_spine')).toBe('spine');
@@ -1543,6 +1609,217 @@ describe('skeletalKinematics', () => {
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
   });
 
+  it('deforms bridging erector spinae mesh across spine flexion and extension, securing lower edge to sacrum/pelvis with posterior bulge in extension', () => {
+    // 3 vertices:
+    // v0: Sacral / posterior iliac spine anchor (X = -0.05, Y = 0.92, Z = -0.06) -> fixed to pelvis (w = 0)
+    // v1: Lumbar muscular belly (X = -0.05, Y = 1.05, Z = -0.07) -> flexible squashing/stretching column
+    // v2: Thoracic spine attachment (X = -0.04, Y = 1.25, Z = -0.07) -> rotates with thoracic spine (w = 1)
+    const rawCoords = [
+      -0.05, 0.92, -0.06,
+      -0.05, 1.05, -0.07,
+      -0.04, 1.25, -0.07,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_erector_spinae';
+
+    // A. Torso Extension (thetaSpine = -0.35 rad, ~-20 degrees backbend)
+    deformBridgingErectorSpinaeMesh(mesh, -0.35);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Pelvic anchor (sacrum / PSIS) strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Lumbar belly squashes and bulges posteriorly (in -Z) and widens laterally
+    expect(pos[5]).toBeLessThan(rawCoords[5] - 0.008);
+    expect(Math.abs(pos[3])).toBeGreaterThan(Math.abs(rawCoords[3]));
+
+    // Thoracic spine rotates backward
+    expect(pos[8]).toBeLessThan(rawCoords[8]);
+
+    // B. Torso Flexion (thetaSpine = 0.35 rad, ~20 degrees forward bend)
+    restoreOriginalMeshPositions(mesh);
+    deformBridgingErectorSpinaeMesh(mesh, 0.35);
+    pos = geom.attributes.position.array as Float32Array;
+
+    // Pelvic anchor remains strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Lumbar belly stretches forward with curved spine, drawing taut against vertebrae
+    expect(pos[5]).toBeGreaterThan(rawCoords[5]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+
+    // C. Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+  });
+
+  it('deforms bridging external oblique mesh across spine flexion/extension with pelvic anchor and flank volume preservation', () => {
+    // 4 representative vertices:
+    // v0: Pubic / inguinal anchor (X = -0.06, Y = 0.88, Z = 0.08) -> fixed (w = 0)
+    // v1: Iliac crest anchor (X = -0.12, Y = 0.97, Z = -0.01) -> fixed (w = 0)
+    // v2: Flank belly (X = -0.10, Y = 1.06, Z = 0.06) -> flexible squashing/bulging wall
+    // v3: Costal origin on lower ribs (X = -0.08, Y = 1.20, Z = 0.05) -> rotates with ribcage (w = 1)
+    const rawCoords = [
+      -0.06, 0.88, 0.08,
+      -0.12, 0.97, -0.01,
+      -0.10, 1.06, 0.06,
+      -0.08, 1.20, 0.05,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_external_oblique';
+
+    // Apply forward torso flexion (thetaSpine = 0.35 rad)
+    deformBridgingExternalObliqueMesh(mesh, 0.35);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Both pelvic anchors (pubic/inguinal and iliac crest) must remain strictly fixed
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+
+    // Flank belly squashes vertically (lower Y) and bulges forward (+Z) and outward (|X|)
+    expect(pos[7]).toBeLessThan(rawCoords[7]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.005);
+    expect(Math.abs(pos[6])).toBeGreaterThan(Math.abs(rawCoords[6]) + 0.001);
+
+    // Costal origin moves forward and down with ribcage
+    expect(pos[10]).toBeLessThan(rawCoords[10]);
+    expect(pos[11]).toBeGreaterThan(rawCoords[11]);
+
+    // Restore
+    restoreOriginalMeshPositions(mesh);
+    pos = geom.attributes.position.array as Float32Array;
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+  });
+
+  it('deforms bridging internal oblique mesh across spine flexion/extension with pelvic anchor and volume preservation', () => {
+    const rawCoords = [
+      -0.06, 0.88, 0.07,
+      -0.11, 0.97, -0.01,
+      -0.09, 1.05, 0.05,
+      -0.07, 1.18, 0.04,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'atlas_internal_abdominal_oblique_r_7656165c';
+
+    deformBridgingInternalObliqueMesh(mesh, 0.35);
+    const pos = geom.attributes.position.array as Float32Array;
+
+    // Fixed pelvic border
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    expect(pos[3]).toBeCloseTo(rawCoords[3], 5);
+    expect(pos[4]).toBeCloseTo(rawCoords[4], 5);
+    expect(pos[5]).toBeCloseTo(rawCoords[5], 5);
+
+    // Bulge in mid-belly
+    expect(pos[7]).toBeLessThan(rawCoords[7]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8] + 0.003);
+  });
+
+  it('deforms bridging linea alba and rectus abdominis meshes across spine flexion/extension with pubic anchor and anterior bulge', () => {
+    // Rectus abdominis:
+    // v0: Pubic crest anchor (X = -0.04, Y = 0.88, Z = 0.06) -> fixed (w = 0)
+    // v1: Mid-rectus belly (X = -0.04, Y = 1.03, Z = 0.08) -> squashes/bulges forward
+    // v2: Ribs 5-7 / xiphoid (X = -0.03, Y = 1.20, Z = 0.10) -> follows sternum/ribs (w = 1)
+    const rawCoords = [
+      -0.04, 0.88, 0.06,
+      -0.04, 1.03, 0.08,
+      -0.03, 1.20, 0.10,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_rectus_abdominis';
+
+    deformBridgingRectusAbdominisMesh(mesh, 0.35);
+    let pos = geom.attributes.position.array as Float32Array;
+
+    // Pubic anchor strictly anchored
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Mid-belly squashes and bulges forward in +Z
+    expect(pos[4]).toBeLessThan(rawCoords[4]);
+    expect(pos[5]).toBeGreaterThan(rawCoords[5] + 0.005);
+
+    // Upper end rotates forward and down
+    expect(pos[7]).toBeLessThan(rawCoords[7]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+
+    // Linea alba (midline seam)
+    const rawCoordsLa = [
+      0.00, 0.88, 0.05,
+      0.00, 1.03, 0.07,
+      0.00, 1.20, 0.09,
+    ];
+    const geomLa = new THREE.BufferGeometry();
+    geomLa.setAttribute('position', new THREE.Float32BufferAttribute(rawCoordsLa, 3));
+    const meshLa = new THREE.Mesh(geomLa);
+    meshLa.name = 'atlas_linea_alba_eeb055b3';
+
+    deformBridgingLineaAlbaMesh(meshLa, 0.35);
+    pos = geomLa.attributes.position.array as Float32Array;
+
+    // Fixed pubic anchor
+    expect(pos[0]).toBeCloseTo(rawCoordsLa[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoordsLa[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoordsLa[2], 5);
+
+    // Stays centered on midline while bulging forward in +Z
+    expect(pos[3]).toBeCloseTo(0.00, 5);
+    expect(pos[4]).toBeLessThan(rawCoordsLa[4]);
+    expect(pos[5]).toBeGreaterThan(rawCoordsLa[5] + 0.005);
+  });
+
+  it('deforms bridging quadratus lumborum mesh across spine flexion/extension with iliac crest anchor', () => {
+    // v0: Iliac crest (X = -0.04, Y = 0.97, Z = -0.05) -> fixed (w = 0)
+    // v1: Mid-belly (X = -0.04, Y = 1.04, Z = -0.05) -> flexible
+    // v2: 12th rib (X = -0.03, Y = 1.12, Z = -0.05) -> follows ribcage (w = 1)
+    const rawCoords = [
+      -0.04, 0.97, -0.05,
+      -0.04, 1.04, -0.05,
+      -0.03, 1.12, -0.05,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'atlas_quadratus_lumborum_muscle_r_d64800b8';
+
+    deformBridgingQuadratusLumborumMesh(mesh, 0.35);
+    const pos = geom.attributes.position.array as Float32Array;
+
+    // Fixed to iliac crest
+    expect(pos[0]).toBeCloseTo(rawCoords[0], 5);
+    expect(pos[1]).toBeCloseTo(rawCoords[1], 5);
+    expect(pos[2]).toBeCloseTo(rawCoords[2], 5);
+
+    // Upper end rotates
+    expect(pos[7]).toBeLessThan(rawCoords[7]);
+    expect(pos[8]).toBeGreaterThan(rawCoords[8]);
+  });
+
   it('deformBridgingMesh correctly dispatches all bridging muscle groups', () => {
     const muscles = [
       { name: 'atlas_psoas_muscle_r_08af9941', coords: [0.06, 0.90, -0.02] },
@@ -1560,6 +1837,12 @@ describe('skeletalKinematics', () => {
       { name: 'muscle_sartorius', coords: [0.08, 0.65, 0.02] },
       { name: 'muscle_hamstrings_biceps_femoris', coords: [0.09, 0.62, -0.06] },
       { name: 'muscle_gracilis', coords: [0.03, 0.60, 0.00] },
+      { name: 'muscle_erector_spinae', coords: [-0.05, 1.05, -0.07] },
+      { name: 'muscle_external_oblique', coords: [-0.10, 1.05, 0.05] },
+      { name: 'atlas_internal_abdominal_oblique_r_7656165c', coords: [-0.09, 1.05, 0.05] },
+      { name: 'atlas_linea_alba_eeb055b3', coords: [0.00, 1.05, 0.08] },
+      { name: 'muscle_rectus_abdominis', coords: [-0.04, 1.05, 0.08] },
+      { name: 'atlas_quadratus_lumborum_muscle_r_d64800b8', coords: [-0.04, 1.05, -0.05] },
     ];
 
     const rotations = {
