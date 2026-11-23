@@ -9,10 +9,23 @@ describe('JointPoseSliders Component', () => {
   beforeEach(() => {
     useMuscleStore.setState({
       bodyView: 'full_body',
+      layerPeelDepth: 0,
       isSkeletonAnimating: false,
       skeletonPoseResetCount: 0,
       skeletonJointAngles: { ...DEFAULT_SKELETON_JOINT_ANGLES },
     });
+  });
+
+  it('renders the depth slider above the joint sliders and updates layer depth on change', () => {
+    render(<JointPoseSliders />);
+    const depthSlider = screen.getByTestId('joint-slider-layerDepth');
+    expect(depthSlider).toBeInTheDocument();
+    expect(screen.getByText('Anatomy Depth')).toBeInTheDocument();
+    expect(screen.getByTestId('joint-val-layerDepth')).toHaveTextContent('Full muscle');
+
+    fireEvent.change(depthSlider, { target: { value: '2' } });
+    expect(useMuscleStore.getState().layerPeelDepth).toBe(2);
+    expect(screen.getByTestId('joint-val-layerDepth')).toHaveTextContent('Deep muscles');
   });
 
   it('renders the Joint Pose Controls panel with all 13 separated joints', () => {

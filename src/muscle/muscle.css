@@ -1918,6 +1918,12 @@ body {
   margin-left: 0;
 }
 
+.muscle-joint-tree__item--depth {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed rgba(26, 39, 68, 0.16);
+  margin-bottom: 0.2rem;
+}
+
 .muscle-joint-tree__item--indent-1 {
   margin-left: 1.15rem;
   padding-left: 0.65rem;

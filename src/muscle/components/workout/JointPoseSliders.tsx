@@ -1,4 +1,9 @@
 import { memo, useCallback, useState } from 'react';
+import {
+  LAYER_PEEL_STOPS,
+  layerPeelDepthLabel,
+  type LayerPeelDepth,
+} from '../../layerDepthView';
 import { useMuscleStore, type SkeletonJointAngles } from '../../store/useMuscleStore';
 
 export interface JointPoseConfig {
@@ -153,6 +158,8 @@ function formatAngleDeg(deg: number): string {
 function JointPoseSlidersComponent() {
   const [isExpanded, setIsExpanded] = useState(true);
   const bodyView = useMuscleStore((s) => s.bodyView);
+  const layerPeelDepth = useMuscleStore((s) => s.layerPeelDepth);
+  const setLayerPeelDepth = useMuscleStore((s) => s.setLayerPeelDepth);
   const skeletonJointAngles = useMuscleStore((s) => s.skeletonJointAngles);
   const setSkeletonJointAngle = useMuscleStore((s) => s.setSkeletonJointAngle);
   const resetSkeletonPose = useMuscleStore((s) => s.resetSkeletonPose);
@@ -205,6 +212,57 @@ function JointPoseSlidersComponent() {
         role="group"
         aria-label="Kinematic joint pose sliders"
       >
+        <div
+          className="muscle-joint-tree__item muscle-joint-tree__item--indent-0 muscle-joint-tree__item--depth"
+          data-testid="joint-item-layerDepth"
+        >
+          <div className="muscle-joint-tree__node-header">
+            <div className="muscle-joint-tree__label-wrap">
+              <label htmlFor="joint-slider-layerDepth" className="muscle-joint-tree__label">
+                Anatomy Depth
+              </label>
+            </div>
+            <div className="muscle-joint-tree__meta">
+              <span
+                className="muscle-joint-tree__rom"
+                title="Layer peel depth: Full muscle to Skeleton"
+              >
+                [Surface … Skeleton]
+              </span>
+              <span className="muscle-joint-tree__val-badge" data-testid="joint-val-layerDepth">
+                {layerPeelDepthLabel(layerPeelDepth)}
+              </span>
+            </div>
+          </div>
+
+          <div className="muscle-joint-slider__wrap">
+            <input
+              id="joint-slider-layerDepth"
+              type="range"
+              min={0}
+              max={LAYER_PEEL_STOPS.length - 1}
+              step={1}
+              value={layerPeelDepth}
+              onChange={(e) => setLayerPeelDepth(Number(e.target.value) as LayerPeelDepth)}
+              className="muscle-joint-slider muscle-joint-slider--unidirectional"
+              data-testid="joint-slider-layerDepth"
+              aria-label="Anatomy layer depth"
+              aria-valuemin={0}
+              aria-valuemax={LAYER_PEEL_STOPS.length - 1}
+              aria-valuenow={layerPeelDepth}
+              aria-valuetext={layerPeelDepthLabel(layerPeelDepth)}
+            />
+            <div className="muscle-joint-slider__ticks" aria-hidden="true">
+              <span className="muscle-joint-slider__tick muscle-joint-slider__tick--start">
+                Surface
+              </span>
+              <span className="muscle-joint-slider__tick muscle-joint-slider__tick--end">
+                Skeleton
+              </span>
+            </div>
+          </div>
+        </div>
+
         {JOINT_POSE_CONFIGS.map((config) => {
           const currentRad = skeletonJointAngles[config.key] ?? 0;
           const currentDeg = Math.round((currentRad * 180) / Math.PI);

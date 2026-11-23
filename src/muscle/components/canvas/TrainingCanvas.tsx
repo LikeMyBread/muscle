@@ -6,7 +6,6 @@ import { useMuscleStore } from '../../store/useMuscleStore';
 import AnatomyCanvasHud from './AnatomyCanvasHud';
 import AnatomySceneLighting from './AnatomySceneLighting';
 import AnatomySceneEnvironment from './AnatomySceneEnvironment';
-import LayerDepthControl from '../workout/LayerDepthControl';
 import JointPoseSliders from '../workout/JointPoseSliders';
 import MuscleCanvasPerfOverlay from './MuscleCanvasPerfOverlay';
 import RegionModel from './RegionModel';
@@ -195,7 +194,6 @@ export default function TrainingCanvas() {
       <AnatomyCanvasHud />
       <CanvasViewControls />
       <div className="muscle-canvas-overlay" aria-label="3D view controls">
-        <LayerDepthControl variant="canvas" />
         <JointPoseSliders />
       </div>
     </div>
