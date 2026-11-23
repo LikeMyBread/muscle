@@ -2560,35 +2560,42 @@ export function deformBridgingDeltoidMesh(
     if (tPin > 1) tPin = 1;
     const wMobile = tPin * tPin * (3 - 2 * tPin);
 
-    // 2. Transition blend weight u:
-    // u = 0 at humeral insertion (y0 <= 1.285): purely follows humerus translation without twist.
-    // u = 1 in deltoid body / apex (y0 >= 1.350): mobile contracting belly.
-    let u = (y0 - 1.285) / (1.350 - 1.285);
-    if (u < 0) u = 0;
-    if (u > 1) u = 1;
-    const s = u * u * (3 - 2 * u);
+    // 2. Vertical transition between lower humerus shaft and upper shoulder girdle:
+    // Vertices in the lower half (y0 <= 1.320) ride on the outside of the humerus shaft,
+    // following the humerus outward and upward without inward collapse.
+    // The upper shoulder girdle (y0 >= 1.400) contracts horizontally and vertically.
+    let tGirdle = (y0 - 1.320) / (1.400 - 1.320);
+    if (tGirdle < 0) tGirdle = 0;
+    if (tGirdle > 1) tGirdle = 1;
+    const sGirdle = tGirdle * tGirdle * (3 - 2 * tGirdle);
+    const sArm = 1 - sGirdle;
 
-    // 3. Aggressive horizontal shrinkage:
-    // The muscle contracts aggressively horizontally towards the pinned skeleton anchor,
+    // Humerus outward displacement at height y0 (tapers from insertion delta at y<=1.285 to 0 at joint y=1.390):
+    let tHumerusY = (1.390 - y0) / (1.390 - 1.285);
+    if (tHumerusY < 0) tHumerusY = 0;
+    if (tHumerusY > 1) tHumerusY = 1;
+    const armDispX = delta.dx * tHumerusY;
+    const armDispY = delta.dy * tHumerusY;
+    const armDispZ = delta.dz * tHumerusY;
+
+    // 3. Horizontal contraction across shoulder girdle:
+    // The upper muscle contracts horizontally towards the pinned skeleton anchor,
     // pulling taut across the shoulder and preventing overlap with bones and adjacent anatomy.
     const spanFromInner = Math.max(0, absX - 0.105);
     const shrinkX = spanFromInner * 0.38 * contract;
 
-    // 4. Vertical shrinkage:
+    // 4. Vertical contraction towards joint center:
     // Shortens the muscle belly vertically towards the joint center (Y = 1.378)
     // to model realistic muscular shortening and prevent upward bulging.
     const vertSpan = y0 - shoulder.y;
     const shrinkY = vertSpan * 0.35 * contract;
 
     // Blended displacement:
-    // Horizontal X: bridges humerus outward translation at insertion with aggressive inward contraction in the belly.
-    const dispX = (1 - s) * delta.dx - s * (signX * shrinkX * wMobile);
-
-    // Vertical Y: lifts up with humerus translation and shortens vertically in the mobile belly.
-    const dispY = (1 - s) * delta.dy + s * ((arcDy - shrinkY + arcFlexDy) * wMobile);
-
-    // Sagittal Z: tracks humeral swing and anterior/posterior deltoid forward/backward flex.
-    const dispZ = (1 - s) * delta.dz + s * (arcDz * wMobile);
+    // Lower half follows outward humerus translation to prevent bone and muscle clipping;
+    // Upper girdle contracts inward and shortens vertically over the joint.
+    const dispX = wMobile * (sArm * armDispX - sGirdle * (signX * shrinkX));
+    const dispY = wMobile * (sArm * armDispY + sGirdle * (arcDy - shrinkY + arcFlexDy));
+    const dispZ = wMobile * (sArm * armDispZ + sGirdle * arcDz);
 
     const xMid = x0 + dispX;
     const yMid = y0 + dispY;

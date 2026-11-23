@@ -1477,9 +1477,9 @@ describe('skeletalKinematics', () => {
     expect(pos[10]).toBeCloseTo(rawCoords[10], 5);
     expect(pos[11]).toBeCloseTo(rawCoords[11], 5);
 
-    // Mid-belly flexes upward (+Y) and aggressively shrinks horizontally inward
-    expect(pos[3]).toBeLessThan(rawCoords[3]);
-    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.03);
+    // Lower-mid belly flexes upward (+Y) and maintains outward humerus tracking (+X) to prevent bone clipping
+    expect(pos[3]).toBeGreaterThanOrEqual(rawCoords[3]);
+    expect(pos[4]).toBeGreaterThan(rawCoords[4] + 0.02);
 
     // B. Shoulder Flexion (thetaArmX = -0.8 rad forward swing)
     restoreOriginalMeshPositions(mesh);
@@ -1634,9 +1634,9 @@ describe('skeletalKinematics', () => {
       // 3. Lateral flank never collapses below its rest height
       expect(flankY).toBeGreaterThanOrEqual(rawCoords[7] - 1e-3);
 
-      // 4. As shoulder pivots outward, deltoid aggressively contracts and shrinks horizontally
+      // 4. As shoulder pivots outward, upper deltoid contracts horizontally and lower half maintains humerus clearance
       if (deg >= 30) {
-        expect(bellyX).toBeLessThan(rawCoords[3]);
+        expect(bellyX).toBeGreaterThanOrEqual(rawCoords[3]);
         expect(bellyY).toBeGreaterThan(rawCoords[4]);
         expect(apexX).toBeLessThan(rawCoords[0]);
       }
@@ -1669,6 +1669,60 @@ describe('skeletalKinematics', () => {
     // Heights must remain smooth and non-inverted (no steep drop or collapse)
     expect(pos[1]).toBeLessThanOrEqual(pos[4]);
     expect(pos[4]).toBeLessThanOrEqual(pos[7]);
+  });
+
+  it('tracks humerus outward displacement in lower deltoid to maintain clearance outside bone and triceps', () => {
+    // Vertices on the lower half of the deltoid covering the humerus shaft and triceps:
+    // 0: Lower insertion zone (X = 0.206, Y = 1.288, Z = -0.027)
+    // 1: Lower shaft coverage (X = 0.215, Y = 1.320, Z = -0.020)
+    // 2: Upper shaft coverage (X = 0.210, Y = 1.350, Z = -0.015)
+    // 3: Acromial origin / apex on shoulder girdle (X = 0.180, Y = 1.416, Z = -0.030)
+    // 4: Medial pinned origin on clavicle (X = 0.100, Y = 1.380, Z = -0.010)
+    const rawCoords = [
+      0.206, 1.288, -0.027,
+      0.215, 1.320, -0.020,
+      0.210, 1.350, -0.015,
+      0.180, 1.416, -0.030,
+      0.100, 1.380, -0.010,
+    ];
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(rawCoords, 3));
+    const mesh = new THREE.Mesh(geom);
+    mesh.name = 'muscle_deltoid_lateral';
+
+    const shoulder = KINEMATIC_PIVOTS.shoulder;
+
+    for (const deg of [15, 30, 45, 60, 75, 90]) {
+      restoreOriginalMeshPositions(mesh);
+      const rad = (deg * Math.PI) / 180;
+      deformBridgingDeltoidMesh(mesh, rad, 0, 0);
+      const pos = geom.attributes.position.array as Float32Array;
+
+      // 1. Lower shaft vertices (v0, v1, v2) must track outward in +X without inward collapse
+      const v0X = pos[0];
+      const v1X = pos[3];
+      const v2X = pos[6];
+
+      expect(v0X).toBeGreaterThan(rawCoords[0]); // Insertion moves outward
+      expect(v1X).toBeGreaterThan(rawCoords[3]); // Lower shaft moves outward (+X)
+      expect(v2X).toBeGreaterThanOrEqual(rawCoords[6] - 0.002); // Upper shaft maintains clearance (within 2mm of rest X at full 90°)
+
+      // 2. Bone clearance check: verify lower deltoid stays outside the rotating humerus bone shaft
+      // At Y = 1.320, humerus bone is at X ~ 0.180 at rest:
+      const dxBone = 0.180 - shoulder.x;
+      const dyBone = 1.320 - shoulder.y;
+      const humerusX = shoulder.x + (dxBone * Math.cos(rad) - dyBone * Math.sin(rad));
+      expect(v1X).toBeGreaterThan(humerusX + 0.015); // At least 1.5 cm clearance outside bone shaft
+
+      // 3. Upper girdle apex contracts horizontally inward (-X towards joint pivot)
+      const apexX = pos[9];
+      expect(apexX).toBeLessThan(rawCoords[9]);
+
+      // 4. Medial clavicular corner remains strictly pinned (0 displacement)
+      expect(pos[12]).toBeCloseTo(rawCoords[12], 5);
+      expect(pos[13]).toBeCloseTo(rawCoords[13], 5);
+      expect(pos[14]).toBeCloseTo(rawCoords[14], 5);
+    }
   });
 
   it('deforms bridging pectoralis major mesh across 2-axis shoulder movements with sternal anchor and axillary fold stretch', () => {
