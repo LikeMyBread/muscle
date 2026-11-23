@@ -40,7 +40,7 @@ body {
 
 .muscle-app {
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: column;
   width: 100vw;
   height: calc(100vh - var(--labs-debug-dock-height, 0px));
   height: calc(100dvh - var(--labs-debug-dock-height, 0px));
@@ -56,10 +56,11 @@ body {
 }
 
 .muscle-main {
-  flex: 1 1 var(--muscle-canvas-split);
+  flex: 1 1 100%;
   min-width: 0;
   min-height: 0;
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1680,7 +1681,9 @@ body {
   align-items: flex-end;
   gap: 0.5rem;
   pointer-events: none;
-  max-width: min(calc(100% - 1.7rem), 12rem);
+  max-width: min(calc(100% - 1.7rem), 22rem);
+  max-height: calc(100% - 1.7rem);
+  z-index: 3;
 }
 
 .muscle-view-mode {
@@ -1789,49 +1792,12 @@ body {
   }
 
   .muscle-main {
-    flex: 1 1 auto;
-    min-height: 55dvh;
+    flex: 1 1 100%;
+    min-height: 0;
   }
 
-  .muscle-mobile-panel-toggle {
-    display: block;
-    position: absolute;
-    z-index: 5;
-    top: 0.65rem;
-    left: 0.65rem;
-    padding: 0.45rem 0.65rem;
-    border: none;
-    border-radius: 8px;
-    background: rgba(245, 240, 232, 0.95);
-    color: var(--muscle-navy);
-    font: inherit;
-  }
-
-  .muscle-workout-drawer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 4;
-    flex: none;
-    max-width: none;
-    min-width: 0;
-    height: min(52dvh, 420px);
-    transform: translateY(100%);
-    transition: transform 180ms ease;
-    border-right: none;
-    border-top: 1px solid var(--muscle-border);
-    box-shadow: 0 -8px 24px rgba(26, 39, 68, 0.12);
-  }
-
-  .muscle-workout-drawer.is-open {
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .muscle-workout-drawer {
-    transition: none;
+  .muscle-canvas-overlay {
+    max-width: min(calc(100% - 1.7rem), 18rem);
   }
 }
 
@@ -1845,12 +1811,19 @@ body {
 
 /* Kinematic Joint Pose Panel & Indented Tree */
 .muscle-joint-pose-panel {
-  margin-top: 0.75rem;
-  padding: 0.75rem 0.65rem 0.85rem;
-  background: var(--muscle-surface, #ffffff);
-  border: 1px solid var(--muscle-border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-top: 0;
+  padding: 0.65rem 0.75rem;
+  background: rgba(245, 240, 232, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(26, 39, 68, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .muscle-joint-pose-panel__header {
@@ -1858,9 +1831,31 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.5rem;
   padding-bottom: 0.45rem;
-  border-bottom: 1px solid var(--muscle-border, #e5e7eb);
+  border-bottom: 1px solid rgba(26, 39, 68, 0.12);
+}
+
+.muscle-joint-pose-panel__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.muscle-joint-pose-panel__toggle-btn {
+  background: none;
+  border: 1px solid var(--muscle-border, #cbd5e1);
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muscle-navy, #0f172a);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.muscle-joint-pose-panel__toggle-btn:hover {
+  background: rgba(26, 39, 68, 0.08);
 }
 
 .muscle-joint-pose-panel__eyebrow {
@@ -1902,6 +1897,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  max-height: min(48dvh, 22rem);
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.muscle-joint-tree.is-collapsed {
+  display: none;
 }
 
 .muscle-joint-tree__item {

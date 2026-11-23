@@ -26,49 +26,35 @@ function resolveExploreTarget(
 }
 
 export function useAnatomyMeshInteraction(nodeId: string) {
-  const handleClick = useCallback((event?: ThreeEvent<MouseEvent>) => {
-    const state = useMuscleStore.getState();
-    // In study mode, clicking 3D model does not identify features; interaction is via choices
-    if (state.studyActive) return;
-
-    if (state.mode === 'warmup') {
+  const handleClick = useCallback(
+    (event?: ThreeEvent<MouseEvent>) => {
+      const state = useMuscleStore.getState();
       const picked =
         event &&
         pickStructureFromIntersections(event.intersections, state.layerPeelDepth);
       const targetId = picked ?? nodeId;
-      const target = resolveExploreTarget(
-        targetId,
-        state.bodyView,
-        state.activeModuleId,
-        state.focusedGroupNodeIds,
-      );
-      if (target.kind === 'group') state.focusStudyGroup(target.nodeIds);
-      else state.focusStructure(target.nodeId);
-      return;
-    }
-    if (state.mode === 'active' && state.quiz.feedback === 'idle') {
-      void state.submitAnswer(nodeId);
-    }
-  }, [nodeId]);
+      state.focusStructure(targetId);
+    },
+    [nodeId],
+  );
 
-  const handlePointerOver = useCallback((event?: ThreeEvent<PointerEvent>) => {
-    const state = useMuscleStore.getState();
-    // Highlighting by hovering is reserved for reference mode only
-    if (state.studyActive) return;
-
-    if (state.mode === 'warmup' && event) {
-      const picked = pickStructureFromIntersections(event.intersections, state.layerPeelDepth);
-      if (picked) {
-        state.setHoveredNodeId(picked);
-        return;
+  const handlePointerOver = useCallback(
+    (event?: ThreeEvent<PointerEvent>) => {
+      const state = useMuscleStore.getState();
+      if (event) {
+        const picked = pickStructureFromIntersections(event.intersections, state.layerPeelDepth);
+        if (picked) {
+          state.setHoveredNodeId(picked);
+          return;
+        }
       }
-    }
-    state.setHoveredNodeId(nodeId);
-  }, [nodeId]);
+      state.setHoveredNodeId(nodeId);
+    },
+    [nodeId],
+  );
 
   const handlePointerOut = useCallback(() => {
     const state = useMuscleStore.getState();
-    if (state.studyActive) return;
     if (state.hoveredNodeId === nodeId) {
       state.setHoveredNodeId(null);
     }

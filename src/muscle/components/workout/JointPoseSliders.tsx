@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useMuscleStore, type SkeletonJointAngles } from '../../store/useMuscleStore';
 
 export interface JointPoseConfig {
@@ -151,6 +151,7 @@ function formatAngleDeg(deg: number): string {
 }
 
 function JointPoseSlidersComponent() {
+  const [isExpanded, setIsExpanded] = useState(true);
   const bodyView = useMuscleStore((s) => s.bodyView);
   const skeletonJointAngles = useMuscleStore((s) => s.skeletonJointAngles);
   const setSkeletonJointAngle = useMuscleStore((s) => s.setSkeletonJointAngle);
@@ -177,18 +178,33 @@ function JointPoseSlidersComponent() {
           <span className="muscle-joint-pose-panel__eyebrow">Kinematics</span>
           <h3 className="muscle-joint-pose-panel__title">Joint Pose Controls</h3>
         </div>
-        <button
-          type="button"
-          className="muscle-joint-pose-panel__reset-btn"
-          onClick={resetSkeletonPose}
-          data-testid="joint-pose-reset-btn"
-          title="Reset all joint sliders to neutral 0° pose"
-        >
-          Reset Pose
-        </button>
+        <div className="muscle-joint-pose-panel__controls">
+          <button
+            type="button"
+            className="muscle-joint-pose-panel__toggle-btn"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            aria-expanded={isExpanded}
+            title={isExpanded ? 'Collapse joint sliders' : 'Expand joint sliders'}
+          >
+            {isExpanded ? 'Hide' : 'Show'}
+          </button>
+          <button
+            type="button"
+            className="muscle-joint-pose-panel__reset-btn"
+            onClick={resetSkeletonPose}
+            data-testid="joint-pose-reset-btn"
+            title="Reset all joint sliders to neutral 0° pose"
+          >
+            Reset Pose
+          </button>
+        </div>
       </div>
 
-      <div className="muscle-joint-tree" role="group" aria-label="Kinematic joint pose sliders">
+      <div
+        className={`muscle-joint-tree${isExpanded ? '' : ' is-collapsed'}`}
+        role="group"
+        aria-label="Kinematic joint pose sliders"
+      >
         {JOINT_POSE_CONFIGS.map((config) => {
           const currentRad = skeletonJointAngles[config.key] ?? 0;
           const currentDeg = Math.round((currentRad * 180) / Math.PI);

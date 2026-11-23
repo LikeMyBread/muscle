@@ -7,6 +7,7 @@ import AnatomyCanvasHud from './AnatomyCanvasHud';
 import AnatomySceneLighting from './AnatomySceneLighting';
 import AnatomySceneEnvironment from './AnatomySceneEnvironment';
 import LayerDepthControl from '../workout/LayerDepthControl';
+import JointPoseSliders from '../workout/JointPoseSliders';
 import MuscleCanvasPerfOverlay from './MuscleCanvasPerfOverlay';
 import RegionModel from './RegionModel';
 import FullBodyRegionModel from './FullBodyRegionModel';
@@ -191,15 +192,12 @@ export default function TrainingCanvas() {
           <AnatomySceneInner showPerf={showPerf} />
         </Suspense>
       </Canvas>
-      {!studyActive ? (
-        <>
-          <AnatomyCanvasHud />
-          <CanvasViewControls />
-          <div className="muscle-canvas-overlay" aria-label="3D view controls">
-            <LayerDepthControl variant="canvas" />
-          </div>
-        </>
-      ) : null}
+      <AnatomyCanvasHud />
+      <CanvasViewControls />
+      <div className="muscle-canvas-overlay" aria-label="3D view controls">
+        <LayerDepthControl variant="canvas" />
+        <JointPoseSliders />
+      </div>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export default function AnatomyCanvasHud() {
         <div className="muscle-canvas-hud__hover" data-testid="muscle-hover-label">
           <span className="muscle-canvas-hud__hover-name">{hoverGroup.label}</span>
           <span className="muscle-canvas-hud__hover-meta muscle-canvas-hud__hover-meta--group">
-            Muscle group · click to study
+            Muscle group · tap to view details
           </span>
         </div>
       ) : focusGroup && focusedNode ? (
@@ -69,11 +69,11 @@ export default function AnatomyCanvasHud() {
       ) : focusedGroupNodeIds && focusedGroupNodeIds.length > 0 ? (
         <p className="muscle-canvas-hud__hint">Group in amber · tap a member to select in blue</p>
       ) : (
-        <p className="muscle-canvas-hud__hint">Hover or tap a structure to study it.</p>
+        <p className="muscle-canvas-hud__hint">Hover or tap a structure to view anatomy details.</p>
       )}
       <p className="muscle-canvas-hud__nav-hint">
         Drag to orbit · Right-drag or two-finger drag to pan · Scroll to zoom
-        {hasFocus ? ' · Esc to show all' : ''}
+        {hasFocus ? ' · Esc to deselect' : ''}
       </p>
     </div>
   );
